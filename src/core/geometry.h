@@ -123,6 +123,18 @@ public:
     bool operator!=(const Vector &v) const {
         return x != v.x || y != v.y || z != v.z;
     }
+    
+    float operator*(const Vector &v) const {
+        return x * v.x + y * v.y + z * v.z;
+    }
+    
+    Vector operator^(const Vector &v) const {
+        Vector res;
+        res.x = y * v.z - z * v.y;
+        res.y = z * v.x - x * v.z;
+        res.z = x * v.y - y * v.x;
+        return res;
+    }
 
     // Vector Public Data
     float x, y, z;
@@ -137,6 +149,7 @@ public:
         : x(xx), y(yy), z(zz) {
         Assert(!HasNaNs());
     }
+    explicit Point(const Vector &v);
 #ifndef NDEBUG
     Point(const Point &p) {
         Assert(!p.HasNaNs());
@@ -395,6 +408,7 @@ public:
     }
     friend BBox Union(const BBox &b, const Point &p);
     friend BBox Union(const BBox &b, const BBox &b2);
+    BBox& Union(const Point &p);
     bool Overlaps(const BBox &b) const {
         bool x = (pMax.x >= b.pMin.x) && (pMin.x <= b.pMax.x);
         bool y = (pMax.y >= b.pMin.y) && (pMin.y <= b.pMax.y);
@@ -605,6 +619,12 @@ inline Vector Faceforward(const Vector &v, const Vector &v2) {
 
 inline Vector Faceforward(const Vector &v, const Normal &n2) {
     return (Dot(v, n2) < 0.f) ? -v : v;
+}
+
+// Geometry Inline Functions
+inline Point::Point(const Vector &p)
+: x(p.x), y(p.y), z(p.z) {
+    Assert(!HasNaNs());
 }
 
 

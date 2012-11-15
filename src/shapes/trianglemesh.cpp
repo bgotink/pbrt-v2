@@ -96,6 +96,10 @@ BBox TriangleMesh::WorldBound() const {
     return worldBounds;
 }
 
+Reference<Triangle> TriangleMesh::getTriangle(int i) {
+    Assert(i >= 0 && i < ntris);
+    return Reference<Triangle>(new Triangle(ObjectToWorld, WorldToObject, ReverseOrientation, this, i));
+}
 
 void TriangleMesh::Refine(vector<Reference<Shape> > &refined) const {
     for (int i = 0; i < ntris; ++i)
@@ -188,13 +192,13 @@ bool Triangle::Intersect(const Ray &ray, float *tHit, float *rayEpsilon,
 
     // Test intersection against alpha texture, if present
     if (ray.depth != -1) {
-    if (mesh->alphaTexture) {
-        DifferentialGeometry dgLocal(ray(t), dpdu, dpdv,
+        if (mesh->alphaTexture) {
+            DifferentialGeometry dgLocal(ray(t), dpdu, dpdv,
                                      Normal(0,0,0), Normal(0,0,0),
                                      tu, tv, this);
-        if (mesh->alphaTexture->Evaluate(dgLocal) == 0.f)
-            return false;
-    }
+            if (mesh->alphaTexture->Evaluate(dgLocal) == 0.f)
+                return false;
+        }
     }
 
     // Fill in _DifferentialGeometry_ from triangle hit

@@ -1,4 +1,4 @@
-/* A Bison parser, made by GNU Bison 2.5.1.  */
+/* A Bison parser, made by GNU Bison 2.6.2.  */
 
 /* Bison interface for Yacc-like parsers in C
    
@@ -30,6 +30,15 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
+#ifndef YY_CORE_PBRTPARSE_HPP
+# define YY_CORE_PBRTPARSE_HPP
+/* Enabling traces.  */
+#ifndef YYDEBUG
+# define YYDEBUG 1
+#endif
+#if YYDEBUG
+extern int yydebug;
+#endif
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -88,22 +97,19 @@
 #endif
 
 
-
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 typedef union YYSTYPE
 {
-
-/* Line 2136 of yacc.c  */
-#line 156 "build/darwin-release/core/pbrtparse.yy"
+/* Line 2055 of yacc.c  */
+#line 156 "core/pbrtparse.yy"
 
 char string[1024];
 float num;
 ParamArray *ribarray;
 
 
-
-/* Line 2136 of yacc.c  */
-#line 107 "build/darwin-release/core/pbrtparse.hh"
+/* Line 2055 of yacc.c  */
+#line 113 "core/pbrtparse.hpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -112,4 +118,18 @@ ParamArray *ribarray;
 
 extern YYSTYPE yylval;
 
+#ifdef YYPARSE_PARAM
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void *YYPARSE_PARAM);
+#else
+int yyparse ();
+#endif
+#else /* ! YYPARSE_PARAM */
+#if defined __STDC__ || defined __cplusplus
+int yyparse (void);
+#else
+int yyparse ();
+#endif
+#endif /* ! YYPARSE_PARAM */
 
+#endif /* !YY_CORE_PBRTPARSE_HPP  */

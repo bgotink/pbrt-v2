@@ -41,6 +41,8 @@
 #include <map>
 using std::map;
 
+class Triangle;
+
 // TriangleMesh Declarations
 class TriangleMesh : public Shape {
 public:
@@ -56,6 +58,7 @@ public:
     void Refine(vector<Reference<Shape> > &refined) const;
     friend class Triangle;
     template <typename T> friend class VertexTexture;
+    friend class ShaftTreeNode;
 protected:
     // TriangleMesh Protected Data
     int ntris, nverts;
@@ -65,8 +68,8 @@ protected:
     Vector *s;
     float *uvs;
     Reference<Texture<float> > alphaTexture;
+    Reference<Triangle> getTriangle(int i);
 };
-
 
 class Triangle : public Shape {
 public:
@@ -97,6 +100,10 @@ public:
             uv[1][0] = 1.; uv[1][1] = 0.;
             uv[2][0] = 1.; uv[2][1] = 1.;
         }
+    }
+    const Point &getPoint(int i) const {
+        Assert((i >= 0) && (i < 3));
+        return mesh->p[v[i]];
     }
     float Area() const;
     virtual void GetShadingGeometry(const Transform &obj2world,

@@ -14,3 +14,8 @@ pbrt.exr
 #src/core/pbrtparse.cpp
 #src/core/pbrtparse.hh
 src/core/pbrtparse.output
+
+# no idea what this is
+*.hmap
+src/pbrt.xcodeproj/project.xcworkspace/
+src/pbrt.xcodeproj/xcuserdata/

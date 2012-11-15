@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		25F9DB331653D7CA00CE3FA1 /* shaft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F9DB311653D7CA00CE3FA1 /* shaft.cpp */; };
 		B130248E1236EE5100206AC7 /* fileutil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B130248C1236EE5100206AC7 /* fileutil.cpp */; };
 		B13B5765161245F5008FFA44 /* targa.c in Sources */ = {isa = PBXBuildFile; fileRef = B13B5763161245F5008FFA44 /* targa.c */; };
 		B19397BB12083210008317C5 /* shinymetal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B19397B912083210008317C5 /* shinymetal.cpp */; };
@@ -168,6 +169,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		25F9DB311653D7CA00CE3FA1 /* shaft.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = shaft.cpp; sourceTree = "<group>"; };
+		25F9DB321653D7CA00CE3FA1 /* shaft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shaft.h; sourceTree = "<group>"; };
 		B130248C1236EE5100206AC7 /* fileutil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fileutil.cpp; sourceTree = "<group>"; };
 		B130248D1236EE5100206AC7 /* fileutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fileutil.h; sourceTree = "<group>"; };
 		B13B5763161245F5008FFA44 /* targa.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = targa.c; sourceTree = "<group>"; };
@@ -475,6 +478,8 @@
 				B1D8EB57117030DE00A8A49E /* grid.h */,
 				B1D8EB58117030DE00A8A49E /* kdtreeaccel.cpp */,
 				B1D8EB59117030DE00A8A49E /* kdtreeaccel.h */,
+				25F9DB311653D7CA00CE3FA1 /* shaft.cpp */,
+				25F9DB321653D7CA00CE3FA1 /* shaft.h */,
 			);
 			path = accelerators;
 			sourceTree = SOURCE_ROOT;
@@ -990,6 +995,7 @@
 				B19397BB12083210008317C5 /* shinymetal.cpp in Sources */,
 				B130248E1236EE5100206AC7 /* fileutil.cpp in Sources */,
 				B13B5765161245F5008FFA44 /* targa.c in Sources */,
+				25F9DB331653D7CA00CE3FA1 /* shaft.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
