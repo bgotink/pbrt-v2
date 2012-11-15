@@ -58,7 +58,8 @@ public:
     void Refine(vector<Reference<Shape> > &refined) const;
     friend class Triangle;
     template <typename T> friend class VertexTexture;
-    friend class ShaftTreeNode;
+    Reference<Triangle> getTriangle(int i);
+    int getNbTriangles() const { return ntris; }
 protected:
     // TriangleMesh Protected Data
     int ntris, nverts;
@@ -68,17 +69,20 @@ protected:
     Vector *s;
     float *uvs;
     Reference<Texture<float> > alphaTexture;
-    Reference<Triangle> getTriangle(int i);
 };
 
 class Triangle : public Shape {
+    void setV() {
+        Assert(n >= 0 && n < mesh->ntris);
+        v = &mesh->vertexIndex[3 * n];
+    }
 public:
     // Triangle Public Methods
     Triangle(const Transform *o2w, const Transform *w2o, bool ro,
              TriangleMesh *m, int n)
-        : Shape(o2w, w2o, ro) {
+        : Shape(o2w, w2o, ro), n(n) {
         mesh = m;
-        v = &mesh->vertexIndex[3*n];
+        setV();
         PBRT_CREATED_TRIANGLE(this);
     }
     BBox ObjectBound() const;
@@ -105,6 +109,19 @@ public:
         Assert((i >= 0) && (i < 3));
         return mesh->p[v[i]];
     }
+    
+    Triangle &operator++() {
+        n++;
+        setV();
+        return *this;
+    }
+    Triangle &operator=(int i) {
+        n = i;
+        setV();
+        return *this;
+    }
+    int getIndex() const { return n; }
+    
     float Area() const;
     virtual void GetShadingGeometry(const Transform &obj2world,
             const DifferentialGeometry &dg,
@@ -112,6 +129,7 @@ public:
     Point Sample(float u1, float u2, Normal *Ns) const;
 private:
     // Triangle Private Data
+    int n;
     Reference<TriangleMesh> mesh;
     int *v;
 };

@@ -82,6 +82,9 @@ public:
     const T *operator->() const { return ptr; }
     operator bool() const { return ptr != NULL; }
     const T *GetPtr() const { return ptr; }
+    T &operator*() { return *ptr; }
+    const T& operator*() const { return *ptr; }
+    bool operator==(const Reference<T> &o) const { return ptr == o.ptr || *ptr == *o.ptr; }
 private:
     T *ptr;
 };

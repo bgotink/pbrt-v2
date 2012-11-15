@@ -135,6 +135,10 @@ public:
         res.z = x * v.y - y * v.x;
         return res;
     }
+    
+    Vector abs() const {
+        return Vector(::abs(x), ::abs(y), ::abs(z));
+    }
 
     // Vector Public Data
     float x, y, z;
@@ -230,6 +234,14 @@ public:
     }
     bool operator!=(const Point &p) const {
         return x != p.x || y != p.y || z != p.z;
+    }
+    
+    bool operator<(const Point &p) const {
+        return (x < p.x) || ((x == p.x) && (
+            (y < p.y) || ((y == p.y) &&
+                          (z < p.z)
+            )
+        ));
     }
 
     // Point Public Data
@@ -460,6 +472,10 @@ public:
     }
     bool operator!=(const BBox &b) const {
         return b.pMin != pMin || b.pMax != pMax;
+    }
+    
+    Point getCenter() const {
+        return (pMax + pMin) / 2;
     }
 
     // BBox Public Data

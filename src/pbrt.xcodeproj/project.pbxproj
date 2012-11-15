@@ -7,7 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		25F9DB331653D7CA00CE3FA1 /* shaft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F9DB311653D7CA00CE3FA1 /* shaft.cpp */; };
+		25DEEE3B16555CF8008ABA50 /* shaft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE3916555CF8008ABA50 /* shaft.cpp */; };
+		25DEEE3F1655604F008ABA50 /* tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE3D1655604F008ABA50 /* tree.cpp */; };
+		25DEEE4316559287008ABA50 /* surface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE4116559287008ABA50 /* surface.cpp */; };
+		25F9DB411655405300CE3FA1 /* Mesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F9DB3F1655405300CE3FA1 /* Mesh.cpp */; };
 		B130248E1236EE5100206AC7 /* fileutil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B130248C1236EE5100206AC7 /* fileutil.cpp */; };
 		B13B5765161245F5008FFA44 /* targa.c in Sources */ = {isa = PBXBuildFile; fileRef = B13B5763161245F5008FFA44 /* targa.c */; };
 		B19397BB12083210008317C5 /* shinymetal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B19397B912083210008317C5 /* shinymetal.cpp */; };
@@ -169,8 +172,15 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		25F9DB311653D7CA00CE3FA1 /* shaft.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = shaft.cpp; sourceTree = "<group>"; };
-		25F9DB321653D7CA00CE3FA1 /* shaft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shaft.h; sourceTree = "<group>"; };
+		25DEEE3916555CF8008ABA50 /* shaft.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = shaft.cpp; path = shaft/shaft.cpp; sourceTree = "<group>"; };
+		25DEEE3A16555CF8008ABA50 /* shaft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = shaft.h; path = shaft/shaft.h; sourceTree = "<group>"; };
+		25DEEE3D1655604F008ABA50 /* tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tree.cpp; path = shaft/tree.cpp; sourceTree = "<group>"; };
+		25DEEE3E1655604F008ABA50 /* tree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tree.h; path = shaft/tree.h; sourceTree = "<group>"; };
+		25DEEE40165560F4008ABA50 /* vector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = vector.h; path = shaft/vector.h; sourceTree = "<group>"; };
+		25DEEE4116559287008ABA50 /* surface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = surface.cpp; path = shaft/surface.cpp; sourceTree = "<group>"; };
+		25DEEE4216559287008ABA50 /* surface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = surface.h; path = shaft/surface.h; sourceTree = "<group>"; };
+		25F9DB3F1655405300CE3FA1 /* Mesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Mesh.cpp; path = shaft/Mesh.cpp; sourceTree = "<group>"; };
+		25F9DB401655405300CE3FA1 /* Mesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Mesh.h; path = shaft/Mesh.h; sourceTree = "<group>"; };
 		B130248C1236EE5100206AC7 /* fileutil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fileutil.cpp; sourceTree = "<group>"; };
 		B130248D1236EE5100206AC7 /* fileutil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fileutil.h; sourceTree = "<group>"; };
 		B13B5763161245F5008FFA44 /* targa.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = targa.c; sourceTree = "<group>"; };
@@ -469,17 +479,32 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		25F9DB3D1655402300CE3FA1 /* shaft */ = {
+			isa = PBXGroup;
+			children = (
+				25DEEE3D1655604F008ABA50 /* tree.cpp */,
+				25DEEE3E1655604F008ABA50 /* tree.h */,
+				25DEEE3916555CF8008ABA50 /* shaft.cpp */,
+				25DEEE3A16555CF8008ABA50 /* shaft.h */,
+				25F9DB3F1655405300CE3FA1 /* Mesh.cpp */,
+				25F9DB401655405300CE3FA1 /* Mesh.h */,
+				25DEEE40165560F4008ABA50 /* vector.h */,
+				25DEEE4116559287008ABA50 /* surface.cpp */,
+				25DEEE4216559287008ABA50 /* surface.h */,
+			);
+			name = shaft;
+			sourceTree = "<group>";
+		};
 		B1D8EB53117030DE00A8A49E /* accelerators */ = {
 			isa = PBXGroup;
 			children = (
+				25F9DB3D1655402300CE3FA1 /* shaft */,
 				B1D8EB54117030DE00A8A49E /* bvh.cpp */,
 				B1D8EB55117030DE00A8A49E /* bvh.h */,
 				B1D8EB56117030DE00A8A49E /* grid.cpp */,
 				B1D8EB57117030DE00A8A49E /* grid.h */,
 				B1D8EB58117030DE00A8A49E /* kdtreeaccel.cpp */,
 				B1D8EB59117030DE00A8A49E /* kdtreeaccel.h */,
-				25F9DB311653D7CA00CE3FA1 /* shaft.cpp */,
-				25F9DB321653D7CA00CE3FA1 /* shaft.h */,
 			);
 			path = accelerators;
 			sourceTree = SOURCE_ROOT;
@@ -995,7 +1020,10 @@
 				B19397BB12083210008317C5 /* shinymetal.cpp in Sources */,
 				B130248E1236EE5100206AC7 /* fileutil.cpp in Sources */,
 				B13B5765161245F5008FFA44 /* targa.c in Sources */,
-				25F9DB331653D7CA00CE3FA1 /* shaft.cpp in Sources */,
+				25F9DB411655405300CE3FA1 /* Mesh.cpp in Sources */,
+				25DEEE3B16555CF8008ABA50 /* shaft.cpp in Sources */,
+				25DEEE3F1655604F008ABA50 /* tree.cpp in Sources */,
+				25DEEE4316559287008ABA50 /* surface.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

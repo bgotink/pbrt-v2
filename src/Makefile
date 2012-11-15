@@ -71,14 +71,14 @@ LIBS=$(LEXLIB) $(EXR_LIBDIR) $(EXRLIBS) -lm
 
 LIB_CSRCS=core/targa.c
 LIB_CXXSRCS  = $(wildcard core/*.cpp) core/pbrtlex.cpp core/pbrtparse.cpp
-LIB_CXXSRCS += $(wildcard accelerators/*.cpp cameras/*.cpp film/*.cpp filters/*.cpp )
+LIB_CXXSRCS += $(wildcard accelerators/*.cpp accelerators/shaft/*.cpp cameras/*.cpp film/*.cpp filters/*.cpp )
 LIB_CXXSRCS += $(wildcard integrators/*.cpp lights/*.cpp materials/*.cpp renderers/*.cpp )
 LIB_CXXSRCS += $(wildcard samplers/*.cpp shapes/*.cpp textures/*.cpp volumes/*.cpp)
 
 LIBOBJS  = $(addprefix objs/, $(subst /,_,$(LIB_CSRCS:.c=.o)))
 LIBOBJS += $(addprefix objs/, $(subst /,_,$(LIB_CXXSRCS:.cpp=.o)))
 
-HEADERS = $(wildcard */*.h)
+HEADERS = $(wildcard */*.h accelerators/shafts/*.h)
 
 TOOLS = bin/bsdftest bin/exravg bin/exrdiff
 ifeq ($(HAVE_LIBTIFF),1)
@@ -103,6 +103,10 @@ objs/libpbrt.a: $(LIBOBJS)
 	@ar rcs $@ $(LIBOBJS)
 
 objs/accelerators_%.o: accelerators/%.cpp
+	@echo "Building object $@"
+	@$(CXX) $(CXXFLAGS) -o $@ -c $<
+
+objs/accelerators_shaft_%.o: accelerators/shaft/%.cpp
 	@echo "Building object $@"
 	@$(CXX) $(CXXFLAGS) -o $@ -c $<
 
