@@ -9,6 +9,9 @@
 #ifndef pbrt_vector_h
 #define pbrt_vector_h
 
+#include "pbrt.h"
+#include "geometry.h"
+
 namespace shaft{
     
     template <class T>
@@ -74,7 +77,7 @@ namespace shaft{
     }
     
     Vector4f CreatePlane(const Point &a, const Point &b, const Point&c) {
-        Vector n = (b - a) ^ (c - a);
+        ::Vector n = (b - a) ^ (c - a);
         float d = -n.x * a.x - n.y * a.y - n.z * a.z;
         return Vector4f(n.x, n.y, n.z, d);
     }

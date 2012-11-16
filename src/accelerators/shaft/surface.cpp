@@ -13,8 +13,8 @@ using std::list;
 namespace shaft {
     
     
-    const list<const Reference<RawEdge> > Surface::getRawEdges() const {
-        list<const Reference<RawEdge> > retVal;
+    const list<Reference<RawEdge> > Surface::getRawEdges() const {
+        list<Reference<RawEdge> > retVal;
         
         for (patch_citer patch = patches.begin(); patch != patches.end(); patch++) {
             for (Patch::edge_citer edge = (*patch)->edges.begin();

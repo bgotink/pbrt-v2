@@ -11,7 +11,7 @@
 
 #include "api.h"
 #include "memory.h"
-#include "trianglemesh.h"
+#include "../../shapes/trianglemesh.h"
 
 #include "vector.h"
 

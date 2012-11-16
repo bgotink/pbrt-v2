@@ -40,10 +40,10 @@ namespace shaft {
         friend class Surface;
         
     public:
-        Edge(Reference<RawEdge> raw, bool flipped) : raw_edge(raw), is_flipped(flipped) {}
+        Edge(const Reference<RawEdge> &raw, bool flipped) : raw_edge(raw), is_flipped(flipped) {}
         ~Edge() {}
         
-        Vertex &getVertex(int idx) {
+        const Vertex &getVertex(int idx) {
             Assert(idx == 0 || idx == 1);
             return is_flipped ? raw_edge->vertices[idx ^ 1]
                               : raw_edge->vertices[idx];
@@ -95,7 +95,7 @@ namespace shaft {
     public:
         const BBox &getBoundingBox() const { return bounding_box; }
         
-        const std::list<const Reference<RawEdge> > getRawEdges() const;
+        const std::list<Reference<RawEdge> > getRawEdges() const;
     };
     
 }
