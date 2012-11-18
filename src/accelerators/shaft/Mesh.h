@@ -36,8 +36,18 @@ namespace shaft {
         
     public:
         Mesh(TriangleMesh &mesh);
+
+        const Reference<Triangle> &getTriangle(int idx) const {
+            Assert(idx >= 0 && idx < triangles.size());
+            return triangles[idx];
+        }
+
+        const Point &getPoint(int idx) const {
+            Assert(idx >= 0 && idx < vertex_pos.size());
+            return vertex_pos[idx];
+        }
     };
-    
+
 };
 
 #endif /* defined(__pbrt__Mesh__) */

@@ -7,8 +7,12 @@
 //
 
 #include "surface.h"
+#include "shaft.h"
+
+#include <map>
 
 using std::list;
+using std::map;
 
 namespace shaft {
     
@@ -23,6 +27,24 @@ namespace shaft {
                 retVal.push_back(edge->raw_edge);
             }
         }
+        
+        return retVal;
+    }
+    
+    // see [Laine, 06] fig 4.20
+    Reference<Surface> Surface::constructTriangleSurface(nblist &triangles, Shaft &shaft) {
+        Surface &new_surface = *(new Surface);
+        
+        ShaftGeometry &sgeom = shaft.geometry;
+        
+        map<int, Reference<Edge> > edge_map;
+        
+        for (nbiter tidx = triangles.begin(); tidx != triangles.end(); tidx++) {
+            const Reference<Triangle> &t = shaft.getTriangle(*tidx);
+            // TODO implement!
+        }
+        
+        return Reference<Surface>(&new_surface);
     }
     
 }

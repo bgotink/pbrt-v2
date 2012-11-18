@@ -139,6 +139,17 @@ public:
     Vector abs() const {
         return Vector(::abs(x), ::abs(y), ::abs(z));
     }
+    
+    void normalize() {
+        float l = Length();
+        x /= l;
+        y /= l;
+        z /= l;
+    }
+    
+    Vector normalized() const {
+        return *this / Length();
+    }
 
     // Vector Public Data
     float x, y, z;
@@ -421,6 +432,7 @@ public:
     friend BBox Union(const BBox &b, const Point &p);
     friend BBox Union(const BBox &b, const BBox &b2);
     BBox& Union(const Point &p);
+    static BBox Union(const BBox &b, const BBox &b2);
     bool Overlaps(const BBox &b) const {
         bool x = (pMax.x >= b.pMin.x) && (pMin.x <= b.pMax.x);
         bool y = (pMax.y >= b.pMin.y) && (pMin.y <= b.pMax.y);

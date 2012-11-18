@@ -12,6 +12,12 @@
 #include "pbrt.h"
 #include "geometry.h"
 
+int sign(float f) {
+    Assert(!isnan(f));
+    if (f == 0.f) return 0;
+    return (f > 0.f) ? 1 : -1;
+}
+
 namespace shaft{
     
     template <class T>
@@ -68,11 +74,11 @@ namespace shaft{
     
     typedef Vector4<float> Vector4f;
     
-    float operator*(const Vector3i &o, const Vector4f &p) {
+    float operator*(const Point &o, const Vector4f &p) {
         return o.x * p.x + o.y * p.y + o.z * p.z + p.w;
     }
     
-    inline float operator*(const Vector4f &p, const Vector3i &o) {
+    inline float operator*(const Vector4f &p, const Point &o) {
         return o * p;
     }
     

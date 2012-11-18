@@ -68,6 +68,17 @@ BBox& BBox::Union(const Point& p) {
     return *this;
 }
 
+BBox BBox::Union(const BBox &b, const BBox &b2) {
+    BBox ret;
+    ret.pMin.x = min(b.pMin.x, b2.pMin.x);
+    ret.pMin.y = min(b.pMin.y, b2.pMin.y);
+    ret.pMin.z = min(b.pMin.z, b2.pMin.z);
+    ret.pMax.x = max(b.pMax.x, b2.pMax.x);
+    ret.pMax.y = max(b.pMax.y, b2.pMax.y);
+    ret.pMax.z = max(b.pMax.z, b2.pMax.z);
+    return ret;
+}
+
 
 void BBox::BoundingSphere(Point *c, float *rad) const {
     *c = .5f * pMin + .5f * pMax;

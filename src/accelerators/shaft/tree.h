@@ -15,6 +15,7 @@
 
 #include "pbrt.h"
 #include "mesh.h"
+#include "memory.h"
 
 namespace shaft {
 
@@ -26,7 +27,7 @@ bool Intersects(const BBox &box, const Reference<Triangle> &triangle);
 struct ElementTree {
     friend class ElementTreeNode;
     
-    ElementTreeNode *root_node;
+    Reference<ElementTreeNode> root_node;
     uint32_t max_points_in_leaf;
     Mesh mesh;
     
@@ -35,11 +36,11 @@ public:
     ElementTree(TriangleMesh &mesh);
 };
 
-struct ElementTreeNode {
+struct ElementTreeNode : public ReferenceCounted {
     friend class ElementTree;
     
-    ElementTreeNode *left, *right;
-    ElementTreeNode *parent;
+    Reference<ElementTreeNode> left, right;
+    Reference<ElementTreeNode> parent;
     ElementTree *tree;
     
     BBox bounding_box;

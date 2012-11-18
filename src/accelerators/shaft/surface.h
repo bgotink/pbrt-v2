@@ -25,6 +25,7 @@ namespace shaft {
     };
     
     class Patch;
+    class Shaft;
     
     struct RawEdge : public ReferenceCounted {
         Vertex vertices[2];
@@ -43,7 +44,7 @@ namespace shaft {
         Edge(const Reference<RawEdge> &raw, bool flipped) : raw_edge(raw), is_flipped(flipped) {}
         ~Edge() {}
         
-        const Vertex &getVertex(int idx) {
+        const Vertex &getVertex(int idx) const {
             Assert(idx == 0 || idx == 1);
             return is_flipped ? raw_edge->vertices[idx ^ 1]
                               : raw_edge->vertices[idx];
@@ -94,8 +95,11 @@ namespace shaft {
         
     public:
         const BBox &getBoundingBox() const { return bounding_box; }
+        void computeBoundingBox();
         
         const std::list<Reference<RawEdge> > getRawEdges() const;
+        
+        static Reference<Surface> constructTriangleSurface(nblist &triangles, Shaft &shaft);
     };
     
 }
