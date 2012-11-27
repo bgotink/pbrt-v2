@@ -58,15 +58,29 @@ BBox Union(const BBox &b, const BBox &b2) {
     return ret;
 }
 
-BBox& BBox::Union(const Point& p) {
-    pMin.x = min(pMin.x, p.x);
-    pMin.y = min(pMin.y, p.y);
-    pMin.z = min(pMin.z, p.z);
-    pMax.x = max(pMax.x, p.x);
-    pMax.y = max(pMax.y, p.y);
-    pMax.z = max(pMax.z, p.z);
-    return *this;
+BBox BBox::Union(const Point &p) const {
+    BBox b = *this;
+    b.pMin.x = min(pMin.x, p.x);
+    b.pMin.y = min(pMin.y, p.y);
+    b.pMin.z = min(pMin.z, p.z);
+    b.pMax.x = max(pMax.x, p.x);
+    b.pMax.y = max(pMax.y, p.y);
+    b.pMax.z = max(pMax.z, p.z);
+    return b;
 }
+
+BBox BBox::Union(const BBox &b) const {
+    BBox res = *this;
+    res.pMin.x = min(pMin.x, b.pMin.x);
+    res.pMin.y = min(pMin.y, b.pMin.y);
+    res.pMin.z = min(pMin.z, b.pMin.z);
+    res.pMax.x = max(pMax.x, b.pMax.x);
+    res.pMax.y = max(pMax.y, b.pMax.y);
+    res.pMax.z = max(pMax.z, b.pMax.z);
+    return res;
+}
+
+
 
 BBox BBox::Union(const BBox &b, const BBox &b2) {
     BBox ret;

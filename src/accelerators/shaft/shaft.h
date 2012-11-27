@@ -22,7 +22,7 @@
 namespace shaft {
     
     struct ShaftGeometry {
-        typedef std::vector<Vector4f> plane_list;
+        typedef std::list<Vector4f> plane_list;
         typedef plane_list::iterator plane_iter;
         typedef plane_list::const_iterator plane_citer;
         
@@ -35,19 +35,29 @@ namespace shaft {
         Vector4f testplane_1, testplane_2;
         
         bool blockedBy(const Reference<Surface> &surface) const;
+        
         bool intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const;
+        bool intersectsLine(Point one, Point two) const;
         
         ShaftGeometry(Reference<ElementTreeNode> &receiver_node, Reference<ElementTreeNode> &light_node);
         ~ShaftGeometry() {}
         
     private:
+        friend class Shaft;
+        
         bool canBeBlockedBy(const BBox &bounding_box) const;
+        
         std::list<Point> clampAndGetVertices(const Edge &edge) const;
     };
     
     class Shaft : public ReferenceCounted {
-        typedef std::vector<Reference<Surface> > surface_list;
+        typedef std::list<Reference<Surface> > surface_list;
         typedef surface_list::iterator surface_iter;
+        typedef surface_list::const_iterator surface_citer;
+        
+        typedef std::vector<uint32_t> nblist;
+        typedef nblist::iterator nbiter;
+        typedef nblist::const_iterator nbciter;
         
         Reference<ElementTreeNode> receiverNode;
         Reference<ElementTreeNode> lightNode;
@@ -57,11 +67,29 @@ namespace shaft {
         
         Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, Reference<ElementTreeNode> &split, Shaft &parent);
         
+        Reference<Surface> constructTriangleSurface(nblist &triangles);
+        Reference<Patch> createClippedPatch(const Reference<Triangle> &triangle) const;
+        
+        void classifyEdges(Reference<Surface> &surface) const;
+        void updatePatchFacings(Reference<Surface> &surface) const;
+        
+        
         friend class Surface;
         
+        inline Mesh &getMesh() { return receiverNode->tree->mesh; }
+        inline const Mesh &getMesh() const { return receiverNode->tree->mesh; }
+        
     public:
-        const Reference<Triangle> &getTriangle(int idx) {
-            return receiverNode->tree->mesh.getTriangle(idx);
+        const Reference<Triangle> &getTriangle(int idx) const {
+            return getMesh().getTriangle(idx);
+        }
+        
+        const Point &getPoint(int idx) const {
+            return getMesh().getPoint(idx);
+        }
+
+        bool intersects(const Reference<Triangle> &triangle) {
+            return geometry.intersects(triangle, getMesh());
         }
     };
 

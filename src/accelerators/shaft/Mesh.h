@@ -18,11 +18,13 @@
 namespace shaft {
     
     class Triangle : public ReferenceCounted {
-        Vector3i vertices, neighbours, edge_labels;
+        Vector3i vertices, neighbours;
+        Vector3l edge_labels;
         friend class Mesh;
         
     public:
-        int operator[](int i) const { return vertices[i]; }
+        inline uint32_t operator[](int i) const { return vertices[i]; }
+        inline uint32_t getPoint(int i) const { return vertices[i]; }
     };
     
     class Mesh {

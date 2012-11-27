@@ -39,6 +39,8 @@
 // core/geometry.h*
 #include "pbrt.h"
 
+#include <float.h>
+
 // Geometry Declarations
 class Vector {
 public:
@@ -254,6 +256,12 @@ public:
             )
         ));
     }
+    
+    bool epsilonEquals(const Point &p) const {
+        return fabs(x - p.x) < 4 * FLT_EPSILON
+            && fabs(y - p.y) < 4 * FLT_EPSILON
+            && fabs(z - p.z) < 4 * FLT_EPSILON;
+    }
 
     // Point Public Data
     float x, y, z;
@@ -431,7 +439,8 @@ public:
     }
     friend BBox Union(const BBox &b, const Point &p);
     friend BBox Union(const BBox &b, const BBox &b2);
-    BBox& Union(const Point &p);
+    BBox Union(const Point &p) const;
+    BBox Union(const BBox &b) const;
     static BBox Union(const BBox &b, const BBox &b2);
     bool Overlaps(const BBox &b) const {
         bool x = (pMax.x >= b.pMin.x) && (pMin.x <= b.pMax.x);

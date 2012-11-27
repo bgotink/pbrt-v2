@@ -7,6 +7,9 @@
 //
 
 #include "shaft.h"
+#include <float.h>
+
+#include "pbrt.h"
 
 using namespace std;
 
@@ -16,8 +19,9 @@ namespace shaft {
         return false;
     }
     
-    typedef list<Reference<RawEdge> > rawedge_clist;
-    typedef rawedge_clist::const_iterator rawedge_citer;
+    typedef list<Reference<RawEdge> > rawedge_list;
+    typedef rawedge_list::iterator rawedge_iter;
+    typedef rawedge_list::const_iterator rawedge_citer;
     
     // see [Laine, 06] fig 4.18
     bool ShaftGeometry::blockedBy(const Reference<shaft::Surface> &surface) const {
@@ -28,7 +32,7 @@ namespace shaft {
         if (!canBeBlockedBy(surface->getBoundingBox()))
             return false;
         
-        const rawedge_clist raw_edges = surface->getRawEdges();
+        const rawedge_list raw_edges = surface->getRawEdges();
         
         for (rawedge_citer re = raw_edges.begin(); re != raw_edges.end(); re++) {
             const RawEdge &edge = *re->GetPtr();
@@ -107,6 +111,47 @@ namespace shaft {
         // clip away parts of the triangle that lie outside of a plane, then check if anything is left
         
         return true;
+    }
+    
+    bool ShaftGeometry::intersectsLine(Point one, Point two) const {        
+        float f, f2;
+
+        for (plane_citer plane = planes.begin(); plane != planes.end(); plane++) {
+            f = one * *plane;
+            f2 = two * *plane;
+            
+            if (sign(f) == sign(f2)) {
+                if (f < 0)
+                    // both points are outside of the plane
+                    return false;
+                else
+                    continue;
+            }
+            
+            // using http://www.softsurfer.com/Archive/algorithm_0104/algorithm_0104B.htm#intersect3D_SegPlane()
+            
+            Vector u = two - one;
+            Vector w = one - getPointOnPlane(*plane);
+            Vector normal = getNormal(*plane);
+            
+            float d = normal * u;
+            float n = -normal * w;
+            
+            if (fabs(d) < 16 * FLT_EPSILON)
+                // line segment || plane
+                // -> skip this plane
+                continue;
+            
+            Point interstection = one + (n / d) * u;
+            
+            // replace the outside point with the intersection
+            if (f < 0)
+                one = interstection;
+            else
+                two = interstection;
+        }
+        
+        return !one.epsilonEquals(two);
     }
     
     list<Point> ShaftGeometry::clampAndGetVertices(const Edge & edge) const {
@@ -283,13 +328,127 @@ namespace shaft {
             }
                 break;
             case -1:
-                // how to handle this case? <-- FIXME
-                Warning("TODO implement -- how to create the bounding planes for a shaft between overlapping nodes?");
+                Warning("TODO stub: using a bounding volume instead of shaft");
+                
+                BBox shaft_bbox = receiver_bbox.Union(light_bbox);
+                
+                planes.push_back(Vector4f(1, 0, 0, -shaft_bbox.pMin.x));
+                planes.push_back(Vector4f(0, 1, 0, -shaft_bbox.pMin.y));
+                planes.push_back(Vector4f(0, 0, 1, -shaft_bbox.pMin.z));
+                
+                planes.push_back(Vector4f(-1, 0, 0, shaft_bbox.pMax.x));
+                planes.push_back(Vector4f(0, -1, 0, shaft_bbox.pMax.y));
+                planes.push_back(Vector4f(0, 0, -1, shaft_bbox.pMax.z));
                                  
                 // by not settings test_plane{1,2}, we assure that all tests fail
                 // (these tests shouldn't be run in the first place
                 break;
         }
+    }
+    
+    Reference<Patch> Shaft::createClippedPatch(const Reference<Triangle> &triangle) const {
+        Patch &result = *(new Patch);
+        Patch::edge_list &edges = result.edges;
+        
+        uint32_t pidx[3] = { triangle->getPoint(0), triangle->getPoint(1), triangle->getPoint(2) };
+        const Mesh &mesh = getMesh();
+        
+        for (int i = 0; i < 3; i++) {
+            int next = (i == 2) ? 0 : i+1;
+            Edge &edge = *new Edge(pidx[i], pidx[next], mesh);
+            
+            edge.setOwner(&result);
+            
+            RawEdge::idtype edge_id = pidx[i];
+            if (pidx[i] > pidx[next]) {
+                edge_id = (edge_id << 32) + pidx[next];
+            } else {
+                edge_id = edge_id + (uint64_t(pidx[next]) << 32);
+            }
+            
+            edges.push_back(Reference<Edge>(&edge));
+        }
+        // FIXME implement real clipping here
+        
+        return Reference<Patch>(&result);
+    }
+    
+    // See [Laine, 06] fig 4.21
+    void Shaft::classifyEdges(Reference<Surface> &surface) const {
+        rawedge_list rawEdges = surface->getRawEdges();
+        for (rawedge_iter re = rawEdges.begin(); re != rawEdges.end(); re++) {
+            if (!(*re)->is_inside) continue;
+            (*re)->is_inside = geometry.intersectsLine((*re)->getPoint(0), (*re)->getPoint(1));
+        }
+    }
+    
+    // See [Laine, 06] fig 4.22
+    void Shaft::updatePatchFacings(Reference<Surface> &surface) const {
+        const BBox &receiverBox = receiverNode->bounding_box;
+        const BBox &lightBox = lightNode->bounding_box;
+        
+        for (Surface::patch_iter patch = surface->patches.begin(); patch != surface->patches.end(); patch++) {
+            if ((*patch)->facing != INCONSISTENT)
+                continue;
+            
+            const Reference<Triangle> &t = getTriangle((*patch)->mesh_triangle);
+            Vector4f pl = CreatePlane(getPoint(t->getPoint(0)),
+                                      getPoint(t->getPoint(1)),
+                                      getPoint(t->getPoint(2)));
+            
+            BBoxPlaneResult receiver_result = pl * receiverBox;
+            BBoxPlaneResult light_result = pl * lightBox;
+            
+            if (receiver_result == FRONT)
+                (*patch)->facing = TOWARDS_RECEIVER;
+            else if (receiver_result == BACK)
+                (*patch)->facing = TOWARDS_LIGHT;
+            else if (light_result == FRONT)
+                (*patch)->facing = TOWARDS_LIGHT;
+            else if (light_result == BACK)
+                (*patch)->facing = TOWARDS_RECEIVER;
+        }
+    }
+    
+    // see [Laine, 06] fig 4.20
+    Reference<Surface> Shaft::constructTriangleSurface(nblist &triangles) {
+        Surface &new_surface = *(new Surface);
+        
+        map<RawEdge::idtype, Reference<Edge> > edge_map;
+        Mesh &mesh = getMesh();
+        
+        for (nbiter tidx = triangles.begin(); tidx != triangles.end(); tidx++) {
+            const Reference<Triangle> &t = getTriangle(*tidx);
+            
+            // Is the triangle in the shaft?
+            if (!intersects(t)) continue;
+            
+            // If the triangle is in any of the nodes the shaft connects,
+            // don't take it into account (cf [Laine, 06] section 4.2.2)
+            if (Intersects(receiverNode->bounding_box, t, mesh)) continue;
+            if (Intersects(lightNode->bounding_box, t, mesh)) continue;
+            
+            Reference<Patch> p = createClippedPatch(t);
+            p->facing = INCONSISTENT;
+            p->mesh_triangle = *tidx;
+            
+            for (Patch::edge_iter e = p->edges.begin(); e != p->edges.end(); e++) {
+                RawEdge::idtype elabel = (*e)->getRawEdgeLabel();
+                
+                if (edge_map.count(elabel) == 0) {
+                    edge_map.at(elabel) = *e;
+                } else {
+                    Reference<Edge> &other = edge_map.at(elabel);
+                    *e = other->flip();
+                    
+                    (*e)->setOwner(&*p);
+                }
+            }
+            
+            new_surface.patches.push_back(p);
+        }
+        
+        return Reference<Surface>(&new_surface);
     }
     
     // see [Laine, 06] fig 4.19
@@ -298,6 +457,13 @@ namespace shaft {
         // copy main_axis from the parent?
         
         for (surface_iter surf = parent.surfaces.begin(); surf != parent.surfaces.end(); surf++) {
+            surfaces.push_back((*surf)->clone());
+        }
+        
+        surfaces.push_back(constructTriangleSurface(split->gone_triangles));
+        surface_list tmp_surfaces;
+
+        for (surface_iter surf = tmp_surfaces.begin(); surf != tmp_surfaces.end(); surf++) {
             
         }
     }

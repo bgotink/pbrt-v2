@@ -12,6 +12,7 @@
 #include "vector.h"
 #include "geometry.h"
 #include "memory.h"
+#include "Mesh.h"
 #include <list>
 
 namespace shaft {
@@ -28,10 +29,35 @@ namespace shaft {
     class Shaft;
     
     struct RawEdge : public ReferenceCounted {
+        typedef uint64_t idtype;
+        
         Vertex vertices[2];
         Patch *neighbour[2];
         bool is_inside;
-        int mesh_edge;
+        idtype mesh_edge;
+        
+        RawEdge(uint32_t from, uint32_t to, const Mesh &mesh) {
+            vertices[0].point = mesh.getPoint(from);
+            vertices[1].point = mesh.getPoint(to);
+            
+            if (from > to) {
+                mesh_edge = from;
+                mesh_edge = (mesh_edge << 32) + to;
+            } else {
+                mesh_edge = to;
+                mesh_edge = (mesh_edge << 32) + from;
+            }
+        }
+        
+        const Point &getPoint(int i) {
+            Assert(i == 0 || i == 1);
+            return vertices[0].point;
+        }
+        
+        Reference<RawEdge> clone() const;
+        
+    private:
+        RawEdge() {}
     };
     
     class Edge : public ReferenceCounted {
@@ -41,6 +67,10 @@ namespace shaft {
         friend class Surface;
         
     public:
+        
+        Edge(uint32_t from, uint32_t to, const Mesh& mesh) : raw_edge(new RawEdge(from, to, mesh)), is_flipped(false) {
+        }
+        
         Edge(const Reference<RawEdge> &raw, bool flipped) : raw_edge(raw), is_flipped(flipped) {}
         ~Edge() {}
         
@@ -60,19 +90,42 @@ namespace shaft {
                               : raw_edge->neighbour[1];
         }
         
+        void setOwner(Patch *p) {
+            if (is_flipped)
+                raw_edge->neighbour[0] = p;
+            else
+                raw_edge->neighbour[1] = p;
+        }
+        
+        void setNeighbour(Patch *p) {
+            if (is_flipped)
+                raw_edge->neighbour[1] = p;
+            else
+                raw_edge->neighbour[0] = p;
+        }
+        
         Reference<Edge> flip() {
             return Reference<Edge>(new Edge(raw_edge, !is_flipped));
         }
+        
+        RawEdge::idtype getRawEdgeLabel() const {
+            return raw_edge->mesh_edge;
+        }
+        
+        Reference<Edge> clone() const;
     };
     
     class Patch : public ReferenceCounted {
     public:
-        typedef std::vector<Edge> edge_list;
+        typedef std::list<Reference<Edge> > edge_list;
         typedef edge_list::iterator edge_iter;
         typedef edge_list::const_iterator edge_citer;
         
+        Reference<Patch> clone() const;
+        
     private:
         friend class Surface;
+        friend class Shaft;
         
         edge_list edges;
         Facing facing;
@@ -81,7 +134,7 @@ namespace shaft {
     
     class Surface : public ReferenceCounted {
     public:
-        typedef std::vector<Reference<Patch> > patch_list;
+        typedef std::list<Reference<Patch> > patch_list;
         typedef patch_list::iterator patch_iter;
         typedef patch_list::const_iterator patch_citer;
         
@@ -89,17 +142,21 @@ namespace shaft {
         typedef std::vector<int> nblist;
         typedef nblist::iterator nbiter;
         
+        friend class Shaft;
+        
         patch_list patches;
         BBox bounding_box;
         nblist loose_edges;
+        
+        void mergePatches();
         
     public:
         const BBox &getBoundingBox() const { return bounding_box; }
         void computeBoundingBox();
         
         const std::list<Reference<RawEdge> > getRawEdges() const;
-        
-        static Reference<Surface> constructTriangleSurface(nblist &triangles, Shaft &shaft);
+        std::list<Reference<RawEdge> > getRawEdges();
+        Reference<Surface> clone() const;
     };
     
 }

@@ -22,7 +22,7 @@ namespace shaft {
 struct ElementTreeNode;
 struct ElementTree;
 
-bool Intersects(const BBox &box, const Reference<Triangle> &triangle);
+bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh &mesh);
 
 struct ElementTree {
     friend class ElementTreeNode;
@@ -45,9 +45,9 @@ struct ElementTreeNode : public ReferenceCounted {
     
     BBox bounding_box;
     
-    std::vector<int> points;
-    std::vector<int> gone_triangles;
-    std::vector<int> inside_triangles;
+    std::vector<uint32_t> points;
+    std::vector<uint32_t> gone_triangles;
+    std::vector<uint32_t> inside_triangles;
     
     bool is_leaf;
     

@@ -87,7 +87,7 @@ static bool planeBoxOverlap(const BBox &box, const Point &point, const Vector &n
 }
 
 // based on http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/tribox3.txt
-bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const vector<Point> &points) {
+bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh &mesh) {
     Point boxcenter = (box.pMax + box.pMin) / 2;
     Vector boxhalfsize = box.pMax - boxcenter;
     
@@ -96,9 +96,9 @@ bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const vect
     float min, max, p0, p1, p2, rad, fex, fey, fez;
     Vector normal, e0, e1, e2;
     
-    v0 = points[(*triangle)[0]] - boxcenter;
-    v1 = points[(*triangle)[1]] - boxcenter;
-    v2 = points[(*triangle)[2]] - boxcenter;
+    v0 = mesh.getPoint((*triangle)[0]) - boxcenter;
+    v1 = mesh.getPoint((*triangle)[1]) - boxcenter;
+    v2 = mesh.getPoint((*triangle)[2]) - boxcenter;
     
     e0 = v1 - v0;
     e1 = v2 - v1;
@@ -180,7 +180,7 @@ void ElementTreeNode::split() {
     typedef vector<Point> pointlist;
     typedef pointlist::iterator pointiter;
     
-    typedef vector<int> pidxlist;
+    typedef vector<uint32_t> pidxlist;
     typedef pidxlist::iterator pidxiter;
     
     if (is_leaf) return;
@@ -218,16 +218,16 @@ void ElementTreeNode::split() {
     
     vector<Reference<Triangle> > &triangles = mesh.triangles;
     Reference<Triangle> triangle;
-    for (vector<int>::iterator t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
+    for (vector<uint32_t>::iterator t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
         triangle = triangles[*t_idx];
         
-        if (Intersects(left->bounding_box, triangle)) {
+        if (Intersects(left->bounding_box, triangle, mesh)) {
             left->inside_triangles.push_back(*t_idx);
         } else {
             left->gone_triangles.push_back(*t_idx);
         }
         
-        if (Intersects(right->bounding_box, triangle)) {
+        if (Intersects(right->bounding_box, triangle, mesh)) {
             right->inside_triangles.push_back(*t_idx);
         } else {
             right->gone_triangles.push_back(*t_idx);
@@ -244,7 +244,7 @@ ElementTreeNode::ElementTreeNode(ElementTree *tree, ElementTreeNode *parent)
 
 void ElementTreeNode::createBoundingBox() {
     const vector<Point> &point_pos = tree->mesh.vertex_pos;
-    for (vector<int>::const_iterator point = points.begin(); point != points.end(); point++) {
+    for (vector<uint32_t>::const_iterator point = points.begin(); point != points.end(); point++) {
         bounding_box.Union(point_pos[*point]);
     }
 }
