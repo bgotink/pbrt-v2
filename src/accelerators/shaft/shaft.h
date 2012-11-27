@@ -66,6 +66,7 @@ namespace shaft {
         surface_list surfaces;
         
         Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, Reference<ElementTreeNode> &split, Shaft &parent);
+        Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, nblist &triangles);
         
         Reference<Surface> constructTriangleSurface(nblist &triangles);
         Reference<Patch> createClippedPatch(const Reference<Triangle> &triangle) const;
@@ -73,6 +74,8 @@ namespace shaft {
         void classifyEdges(Reference<Surface> &surface) const;
         void updatePatchFacings(Reference<Surface> &surface) const;
         
+        void computeLooseEdges(Reference<Surface> &surface);
+        void combineSurfaces(surface_list &input_surfaces);
         
         friend class Surface;
         
@@ -90,6 +93,16 @@ namespace shaft {
 
         bool intersects(const Reference<Triangle> &triangle) {
             return geometry.intersects(triangle, getMesh());
+        }
+        
+        static Reference<Shaft> constructSubShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
+                                                    Reference<ElementTreeNode> &split, Shaft &parent) {
+            return Reference<Shaft>(new Shaft(receiver, light, split, parent));
+        }
+        
+        static Reference<Shaft> constructInitialShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
+                                                      nblist &triangles) {
+            return Reference<Shaft>(new Shaft(receiver, light, triangles));
         }
     };
 

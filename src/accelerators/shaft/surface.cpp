@@ -109,12 +109,13 @@ namespace shaft {
         return clone;
     }
     
+    typedef set<Reference<Patch> > patch_set;
+    typedef patch_set::iterator patch_siter;
+    
+    typedef stack<Reference<Patch> > patch_stack;
+    
     // see [Laine, 06] fig 4.23
     void Surface::mergePatches() {
-        typedef set<Reference<Patch> > patch_set;
-        typedef patch_set::iterator patch_siter;
-        
-        typedef stack<Reference<Patch> > patch_stack;
         
         patch_list new_patches;
         patch_set patches_processed;
@@ -181,5 +182,92 @@ namespace shaft {
             if ((*re)->neighbour[1] != NULL)
                 (*re)->neighbour[1] = & *patch_remap.at((*re)->neighbour[1]);
         }
+    }
+    
+    // defined but not implemented in [Laine, 06] fig 4.19
+    // removes all internal edges from the patches
+    void Surface::simplifyPatches() {
+        Reference<Patch> patch;
+        Reference<Edge> edge;
+        for (patch_iter p = patches.begin(); p != patches.end(); p++) {
+            patch = *p;
+            for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
+                edge = *e;
+                if ((edge->getNeighbour() == &*patch) && (edge->getOwner() == &*patch)) {
+                    e = patch->edges.erase(e);
+                }
+            }
+        }
+    }
+    
+    typedef list<Reference<Surface> > surf_list;
+    typedef surf_list::iterator surf_iter;
+    
+    // cf [Laine, 06] fig 4.25
+    void Surface::splitSurface(surf_list &target_surfaces) {
+        patch_set processed;
+        for (patch_iter sp = patches.begin(); sp != patches.end(); sp++) {
+            Reference<Patch> seed_patch = *sp;
+            
+            if (processed.count(seed_patch) != 0)
+                continue;
+            
+            patch_set component_patches;
+            patch_stack traversal_stack;
+            traversal_stack.push(seed_patch);
+            
+            while (!traversal_stack.empty()) {
+                Reference<Patch> patch = traversal_stack.top(); traversal_stack.pop();
+                processed.insert(patch);
+                
+                for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
+                    Patch *neighbour = (*e)->getNeighbour();
+                    Reference<Patch> ref_neighbour = Reference<Patch>(neighbour);
+                    if ((*e)->raw_edge->is_inside && neighbour != NULL
+                                    && component_patches.count(ref_neighbour) == 0) {
+                        component_patches.insert(ref_neighbour);
+                        traversal_stack.push(ref_neighbour);
+                    }
+                }
+            }
+            
+            Surface &component_surface = *new Surface;
+            for (patch_siter p = component_patches.begin(); p != component_patches.end(); p++) {
+                Reference<Patch> patch = *p;
+                component_surface.patches.push_back(patch);
+                for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
+                    Reference<Edge> edge = *e;
+                    Patch *neighbour = edge->getNeighbour();
+                    if (neighbour != NULL && component_patches.count(Reference<Patch>(neighbour)) == 0) {
+                        Reference<Edge> ourEdge = edge->clone();
+                        ourEdge->setOwner(edge->getOwner());
+                        edge->setOwner(NULL);
+                        
+                        ourEdge->setNeighbour(NULL);
+                        
+                        *e = ourEdge;
+                    }
+                }
+            }
+            target_surfaces.push_back(Reference<Surface>(&component_surface));
+        }
+    }
+    
+    typedef std::set<Reference<Surface> > surf_set;
+    typedef surf_set::iterator surf_siter;
+    
+    Reference<Surface> Surface::constructCombinedSurface(surf_set &surfaces) {
+        Surface &new_surf = *new Surface;
+        patch_list &patches = new_surf.patches;
+        
+        for (surf_siter surf = surfaces.begin(); surf != surfaces.end(); surf++) {
+            patches.insert(patches.end(), (*surf)->patches.begin(), (*surf)->patches.end());
+        }
+        
+        new_surf.computeBoundingBox();
+        new_surf.mergePatches();
+        new_surf.simplifyPatches();
+        
+        return Reference<Surface>(&new_surf);
     }
 }

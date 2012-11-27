@@ -7,13 +7,17 @@
 //
 
 #include "mesh.h"
+#include "surface.h"
 
 #include <list>
 #include <map>
+#include <vector>
+#include <set>
 
 using std::vector;
 using std::list;
 using std::map;
+using std::set;
 
 namespace shaft {
     
@@ -26,8 +30,10 @@ namespace shaft {
         int vertex_idx = 0;
         const int ntris = mesh.getNbTriangles();
         list<Point> new_vertices;
-        map< Point, int> vmap;
+        map< Point, uint32_t> vmap;
         list<Reference<Triangle> > new_triangles;
+        
+        set<RawEdge::idtype> edges_created;
         
         const ::Point *point;
         while (cur_triangle->getIndex() < ntris) {
@@ -45,6 +51,20 @@ namespace shaft {
                     new_triangle.vertices[i] = vertex_idx++;
                 }
             }
+            
+            for (int i = 0; i < 3; i++) {
+                uint32_t from = new_triangle.vertices[i];
+                uint32_t to = new_triangle.vertices[i == 2 ? 0 : (i+1)];
+                
+                RawEdge::idtype edge_id = new_triangle.edge_labels[i] = RawEdge::createId(from, to);
+                if (edges_created.count(edge_id) == 0) {
+                    edges_created.insert(edge_id);
+                    is_double_edge[edge_id] = false;
+                } else {
+                    is_double_edge[edge_id] = true;
+                }
+            }
+            
             new_triangles.push_back(Reference<Triangle> (t));
             
             ++(*cur_triangle);

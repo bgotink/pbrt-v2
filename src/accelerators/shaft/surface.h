@@ -13,6 +13,7 @@
 #include "geometry.h"
 #include "memory.h"
 #include "Mesh.h"
+#include <set>
 #include <list>
 
 namespace shaft {
@@ -40,13 +41,7 @@ namespace shaft {
             vertices[0].point = mesh.getPoint(from);
             vertices[1].point = mesh.getPoint(to);
             
-            if (from > to) {
-                mesh_edge = from;
-                mesh_edge = (mesh_edge << 32) + to;
-            } else {
-                mesh_edge = to;
-                mesh_edge = (mesh_edge << 32) + from;
-            }
+            mesh_edge = createId(from, to);
         }
         
         const Point &getPoint(int i) {
@@ -56,6 +51,17 @@ namespace shaft {
         
         Reference<RawEdge> clone() const;
         
+        static idtype createId(uint32_t a, uint32_t b) {
+            idtype result;
+            if (a > b) {
+                result = a;
+                result = (result << 32) + b;
+            } else {
+                result = b;
+                result = (result << 32) + a;
+            }
+            return result;
+        }
     private:
         RawEdge() {}
     };
@@ -65,6 +71,7 @@ namespace shaft {
         bool is_flipped;
         
         friend class Surface;
+        friend class Shaft;
         
     public:
         
@@ -139,7 +146,7 @@ namespace shaft {
         typedef patch_list::const_iterator patch_citer;
         
     private:
-        typedef std::vector<int> nblist;
+        typedef std::vector<RawEdge::idtype> nblist;
         typedef nblist::iterator nbiter;
         
         friend class Shaft;
@@ -149,6 +156,9 @@ namespace shaft {
         nblist loose_edges;
         
         void mergePatches();
+        void simplifyPatches();
+        void splitSurface(std::list<Reference<Surface> > &target_surfaces);
+        static Reference<Surface> constructCombinedSurface(std::set<Reference<Surface> > &surfaces);
         
     public:
         const BBox &getBoundingBox() const { return bounding_box; }

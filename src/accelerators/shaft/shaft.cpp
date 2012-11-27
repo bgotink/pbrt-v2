@@ -11,6 +11,9 @@
 
 #include "pbrt.h"
 
+#include <set>
+#include <map>
+
 using namespace std;
 
 namespace shaft {
@@ -463,8 +466,94 @@ namespace shaft {
         surfaces.push_back(constructTriangleSurface(split->gone_triangles));
         surface_list tmp_surfaces;
 
+        Reference<Surface> surf;
+        for (surface_iter s = surfaces.begin(); s != surfaces.end(); s++) {
+            surf = *s;
+            classifyEdges(surf);
+            updatePatchFacings(surf);
+            surf->mergePatches();
+            surf->simplifyPatches();
+            surf->splitSurface(tmp_surfaces);
+        }
+        
+        surfaces.clear();
+        
         for (surface_iter surf = tmp_surfaces.begin(); surf != tmp_surfaces.end(); surf++) {
-            
+            computeLooseEdges(*surf);
+        }
+        
+        combineSurfaces(tmp_surfaces);
+        
+        for (surface_iter surf = surfaces.begin(); surf != surfaces.end(); surf++) {
+            (*surf)->computeBoundingBox();
+        }
+    }
+    
+    // cf. [Laine, 06] fig 4.31
+    Shaft::Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, nblist &triangles)
+    : receiverNode(receiver), lightNode(light), geometry(receiver, light) {
+        Reference<Surface> surf = constructTriangleSurface(triangles);
+        
+        classifyEdges(surf);
+        updatePatchFacings(surf);
+        surf->mergePatches();
+        surf->simplifyPatches();
+        surf->splitSurface(surfaces);
+        
+        for (surface_iter s = surfaces.begin(); s != surfaces.end(); s++) {
+            (*s)->computeBoundingBox();
+        }
+    }
+    
+    // cf [Laine, 06] fig 4.26
+    void Shaft::computeLooseEdges(Reference<Surface> &surface) {
+        Mesh &mesh = getMesh();
+        surface->loose_edges.clear();
+        
+        for (Surface::patch_iter patch = surface->patches.begin(); patch != surface->patches.end(); patch++) {
+            Reference<Patch> p = *patch;
+            for (Patch::edge_iter e = p->edges.begin(); e != p->edges.end(); e++) {
+                Reference<Edge> edge = *e;
+                RawEdge::idtype edge_label = edge->raw_edge->mesh_edge;
+                if (mesh.is_double_edge[edge_label] == false) continue;
+                if (edge->raw_edge->is_inside && edge->getNeighbour() == NULL) {
+                    surface->loose_edges.push_back(edge_label);
+                }
+            }
+        }
+    }
+    
+    typedef set<Reference<Surface> > surf_set;
+    typedef surf_set::iterator surf_siter;
+    
+    typedef map<RawEdge::idtype, surf_set> union_find;
+    typedef union_find::iterator uf_iter;
+    
+    // cf [Laine, 06] fig 4.27
+    void Shaft::combineSurfaces(surface_list &input_list) {
+        union_find combine_union;
+        
+        for (surface_iter s = input_list.begin(); s != input_list.end(); s++) {
+            Reference<Surface> surf = *s;
+            for (Surface::nbiter el = surf->loose_edges.begin(); el != surf->loose_edges.end(); el++) {
+                RawEdge::idtype elabel = *el;
+                if (combine_union.count(elabel)) {
+                    // label seen already?
+                    combine_union[elabel].insert(surf);
+                } else {
+                    combine_union[elabel] = set<Reference<Surface> >();
+                    combine_union[elabel].insert(surf);
+                }
+            }
+        }
+        
+        for (uf_iter s = combine_union.begin(); s != combine_union.end(); s++) {
+            surf_set &set_surfaces = s->second;
+            if (set_surfaces.size() == 1) {
+                surfaces.push_back(* set_surfaces.begin());
+            } else {
+                surfaces.push_back(Surface::constructCombinedSurface(set_surfaces));
+            }
         }
     }
 

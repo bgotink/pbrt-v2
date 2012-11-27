@@ -15,6 +15,8 @@
 
 #include "vector.h"
 
+#include <map>
+
 namespace shaft {
     
     class Triangle : public ReferenceCounted {
@@ -30,11 +32,12 @@ namespace shaft {
     class Mesh {
         friend class ElementTreeNode;
         friend class ElementTree;
+        friend class Shaft;
         
     protected:
         std::vector<Point> vertex_pos;
         std::vector<Reference<Triangle> > triangles;
-        std::vector<bool> is_double_edge;
+        std::map<uint32_t, bool> is_double_edge;
         
     public:
         Mesh(TriangleMesh &mesh);
