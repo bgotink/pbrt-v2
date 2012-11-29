@@ -9,12 +9,12 @@
 #ifndef __pbrt__Mesh__
 #define __pbrt__Mesh__
 
-#include "api.h"
 #include "memory.h"
 #include "../../shapes/trianglemesh.h"
 
 #include "vector.h"
 
+#include <list>
 #include <map>
 
 namespace shaft {
@@ -34,20 +34,23 @@ namespace shaft {
         friend class ElementTree;
         friend class Shaft;
         
+        void init(std::list<Reference<TriangleMesh> > &meshes);
+        
     protected:
         std::vector<Point> vertex_pos;
         std::vector<Reference<Triangle> > triangles;
         std::map<uint32_t, bool> is_double_edge;
         
     public:
-        Mesh(TriangleMesh &mesh);
+        Mesh(const vector<Reference<Primitive> > &primitives);
+        Mesh(const vector<Reference<Shape> > &primitives);
 
-        const Reference<Triangle> &getTriangle(int idx) const {
+        inline const Reference<Triangle> &getTriangle(int idx) const {
             Assert(idx >= 0 && idx < triangles.size());
             return triangles[idx];
         }
 
-        const Point &getPoint(int idx) const {
+        inline const Point &getPoint(int idx) const {
             Assert(idx >= 0 && idx < vertex_pos.size());
             return vertex_pos[idx];
         }

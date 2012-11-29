@@ -40,7 +40,7 @@ namespace shaft {
         bool intersectsLine(Point one, Point two) const;
         
         ShaftGeometry(Reference<ElementTreeNode> &receiver_node, Reference<ElementTreeNode> &light_node);
-        ~ShaftGeometry() {}
+        inline ~ShaftGeometry() {}
         
     private:
         friend class Shaft;
@@ -55,9 +55,13 @@ namespace shaft {
         typedef surface_list::iterator surface_iter;
         typedef surface_list::const_iterator surface_citer;
         
-        typedef std::vector<uint32_t> nblist;
+        typedef std::vector<int> nblist;
         typedef nblist::iterator nbiter;
         typedef nblist::const_iterator nbciter;
+
+        typedef std::list<int> nbllist;
+        typedef nbllist::iterator nbliter;
+        typedef nbllist::const_iterator nblciter;
         
         Reference<ElementTreeNode> receiverNode;
         Reference<ElementTreeNode> lightNode;
@@ -65,8 +69,10 @@ namespace shaft {
         ShaftGeometry geometry;
         surface_list surfaces;
         
+        nbllist triangles;
+        
         Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, Reference<ElementTreeNode> &split, Shaft &parent);
-        Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, nblist &triangles);
+        Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light);
         
         Reference<Surface> constructTriangleSurface(nblist &triangles);
         Reference<Patch> createClippedPatch(const Reference<Triangle> &triangle) const;
@@ -78,43 +84,41 @@ namespace shaft {
         void combineSurfaces(surface_list &input_surfaces);
         
         friend class Surface;
+        friend class ShaftTreeNode;
         
         inline Mesh &getMesh() { return receiverNode->tree->mesh; }
         inline const Mesh &getMesh() const { return receiverNode->tree->mesh; }
         
+        bool TriIntersectsP(const Ray &ray) const;
+        
     public:
-        const Reference<Triangle> &getTriangle(int idx) const {
+        inline const Reference<Triangle> &getTriangle(int idx) const {
             return getMesh().getTriangle(idx);
         }
         
-        const Point &getPoint(int idx) const {
+        inline const Point &getPoint(int idx) const {
             return getMesh().getPoint(idx);
         }
 
-        bool intersects(const Reference<Triangle> &triangle) {
+        inline bool intersects(const Reference<Triangle> &triangle) {
             return geometry.intersects(triangle, getMesh());
         }
         
-        static Reference<Shaft> constructSubShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
+        inline bool empty() const {
+            return surfaces.empty();
+        }
+        
+        bool IntersectsP(const Ray &ray) const;
+        
+        inline static Reference<Shaft> constructSubShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
                                                     Reference<ElementTreeNode> &split, Shaft &parent) {
             return Reference<Shaft>(new Shaft(receiver, light, split, parent));
         }
         
-        static Reference<Shaft> constructInitialShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
-                                                      nblist &triangles) {
-            return Reference<Shaft>(new Shaft(receiver, light, triangles));
+        inline static Reference<Shaft> constructInitialShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light) {
+            return Reference<Shaft>(new Shaft(receiver, light));
         }
-    };
-
-    class ShaftAccel : public Aggregate {
-    public:
-        bool canIntersect() { return true; }
-        
-        ~ShaftAccel();
-    private:
-        ElementTree *tree;
-    };
-    
+    };    
 }
 
 #endif /* defined(__pbrt__shaft__) */

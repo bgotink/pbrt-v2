@@ -44,6 +44,27 @@
 #include "rng.h"
 #include "memory.h"
 
+
+// ShapeSet Declarations
+class ShapeSet {
+public:
+    // ShapeSet Public Methods
+    ShapeSet(const Reference<Shape> &s);
+    float Area() const { return sumArea; }
+    ~ShapeSet();
+    Point Sample(const Point &p, const LightSample &ls, Normal *Ns) const;
+    Point Sample(const LightSample &ls, Normal *Ns) const;
+    float Pdf(const Point &p, const Vector &wi) const;
+    float Pdf(const Point &p) const;
+    const vector<Reference<Shape> > &getShapes() const { return shapes; }
+private:
+    // ShapeSet Private Data
+    vector<Reference<Shape> > shapes;
+    float sumArea;
+    vector<float> areas;
+    Distribution1D *areaDistribution;
+};
+
 // Light Declarations
 class Light {
 public:
@@ -73,6 +94,12 @@ public:
     virtual void SHProject(const Point &p, float pEpsilon, int lmax,
         const Scene *scene, bool computeLightVisibility, float time,
         RNG &rng, Spectrum *coeffs) const;
+    
+    virtual const ShapeSet &getShape() const {
+        Error("Using unimplemented Light::getShape");
+        Warning("This stub introduces a memory leak, beware!");
+        return *new ShapeSet(Reference<Shape>(NULL));
+    }
 
     // Light Public Data
     const int nSamples;
@@ -138,24 +165,6 @@ struct LightSampleOffsets {
 
 
 
-// ShapeSet Declarations
-class ShapeSet {
-public:
-    // ShapeSet Public Methods
-    ShapeSet(const Reference<Shape> &s);
-    float Area() const { return sumArea; }
-    ~ShapeSet();
-    Point Sample(const Point &p, const LightSample &ls, Normal *Ns) const;
-    Point Sample(const LightSample &ls, Normal *Ns) const;
-    float Pdf(const Point &p, const Vector &wi) const;
-    float Pdf(const Point &p) const;
-private:
-    // ShapeSet Private Data
-    vector<Reference<Shape> > shapes;
-    float sumArea;
-    vector<float> areas;
-    Distribution1D *areaDistribution;
-};
 
 
 

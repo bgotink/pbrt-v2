@@ -80,6 +80,31 @@ BBox BBox::Union(const BBox &b) const {
     return res;
 }
 
+BBox &BBox::Insert(const BBox &b) {
+    
+    pMin.x = min(pMin.x, b.pMin.x);
+    pMin.y = min(pMin.y, b.pMin.y);
+    pMin.z = min(pMin.z, b.pMin.z);
+    
+    pMax.x = max(pMax.x, b.pMax.x);
+    pMax.y = max(pMax.y, b.pMax.y);
+    pMax.z = max(pMax.z, b.pMax.z);
+    
+    return *this;
+}
+
+BBox &BBox::Insert(const Point &p) {
+    
+    pMin.x = min(pMin.x, p.x);
+    pMin.y = min(pMin.y, p.y);
+    pMin.z = min(pMin.z, p.z);
+    
+    pMax.x = max(pMax.x, p.x);
+    pMax.y = max(pMax.y, p.y);
+    pMax.z = max(pMax.z, p.z);
+    
+    return *this;
+}
 
 
 BBox BBox::Union(const BBox &b, const BBox &b2) {

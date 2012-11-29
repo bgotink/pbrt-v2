@@ -46,6 +46,7 @@
 #include "accelerators/bvh.h"
 #include "accelerators/grid.h"
 #include "accelerators/kdtreeaccel.h"
+#include "accelerators/shaft/shaftaccel.h"
 #include "cameras/environment.h"
 #include "cameras/orthographic.h"
 #include "cameras/perspective.h"
@@ -576,9 +577,22 @@ VolumeIntegrator *MakeVolumeIntegrator(const string &name,
     return vi;
 }
 
+Aggregate *CreateShaftAccelerator(const vector<Reference<Primitive> > &prims, const vector<Light *> lights) {
+    std::vector<Reference<Shape> > light_shapes;
+    
+    for (vector<Light *>::const_iterator light = lights.begin(); light != lights.end(); light++) {
+        const Light *l = *light;
+        const std::vector<Reference<Shape> > cur_light = l->getShape().getShapes();
+        light_shapes.insert(light_shapes.end(), cur_light.begin(), cur_light.end());
+    }
+    
+    return new shaft::ShaftAccel(prims, light_shapes);
+}
+
 
 Primitive *MakeAccelerator(const string &name,
         const vector<Reference<Primitive> > &prims,
+        const vector<Light *> lights,
         const ParamSet &paramSet) {
     Primitive *accel = NULL;
     if (name == "bvh")
@@ -587,6 +601,8 @@ Primitive *MakeAccelerator(const string &name,
         accel = CreateGridAccelerator(prims, paramSet);
     else if (name == "kdtree")
         accel = CreateKdTreeAccelerator(prims, paramSet);
+    else if (name == "shaft")
+        accel = CreateShaftAccelerator(prims, lights);
     else
         Warning("Accelerator \"%s\" unknown.", name.c_str());
     paramSet.ReportUnused();
@@ -1127,9 +1143,9 @@ void pbrtObjectInstance(const string &name) {
     if (in.size() > 1 || !in[0]->CanIntersect()) {
         // Refine instance _Primitive_s and create aggregate
         Reference<Primitive> accel =
-             MakeAccelerator(renderOptions->AcceleratorName,
-                             in, renderOptions->AcceleratorParams);
-        if (!accel) accel = MakeAccelerator("bvh", in, ParamSet());
+             MakeAccelerator(renderOptions->AcceleratorName, in, renderOptions->lights,
+                             renderOptions->AcceleratorParams);
+        if (!accel) accel = MakeAccelerator("bvh", in, renderOptions->lights, ParamSet());
         if (!accel) Severe("Unable to create \"bvh\" accelerator");
         in.erase(in.begin(), in.end());
         in.push_back(accel);
@@ -1193,9 +1209,9 @@ Scene *RenderOptions::MakeScene() {
     else
         volumeRegion = new AggregateVolume(volumeRegions);
     Primitive *accelerator = MakeAccelerator(AcceleratorName,
-        primitives, AcceleratorParams);
+        primitives, lights, AcceleratorParams);
     if (!accelerator)
-        accelerator = MakeAccelerator("bvh", primitives, ParamSet());
+        accelerator = MakeAccelerator("bvh", primitives, lights, ParamSet());
     if (!accelerator)
         Severe("Unable to create \"bvh\" accelerator.");
     Scene *scene = new Scene(accelerator, lights, volumeRegion);

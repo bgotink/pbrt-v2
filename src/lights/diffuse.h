@@ -58,6 +58,11 @@ public:
         Vector *wo, float *pdf, VisibilityTester *visibility) const;
     Spectrum Sample_L(const Scene *scene, const LightSample &ls, float u1, float u2,
         float time, Ray *ray, Normal *Ns, float *pdf) const;
+    
+    virtual const ShapeSet &getShape() const {
+        return *shapeSet;
+    }
+
 protected:
     // DiffuseAreaLight Protected Data
     Spectrum Lemit;

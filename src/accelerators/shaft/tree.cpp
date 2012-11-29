@@ -174,13 +174,14 @@ SplitPlane findSplitPlane(const ElementTreeNode &node) {
     return result;
 }
     
-ElementTree::ElementTree(TriangleMesh &mesh) : mesh(mesh) {}
+ElementTree::ElementTree(const prim_list &primitives) : mesh(primitives) {}
+ElementTree::ElementTree(const vector<Reference<Shape> > &primitives) : mesh(primitives) {}
 
 void ElementTreeNode::split() {
     typedef vector<Point> pointlist;
     typedef pointlist::iterator pointiter;
     
-    typedef vector<uint32_t> pidxlist;
+    typedef vector<int> pidxlist;
     typedef pidxlist::iterator pidxiter;
     
     if (is_leaf) return;
@@ -218,7 +219,7 @@ void ElementTreeNode::split() {
     
     vector<Reference<Triangle> > &triangles = mesh.triangles;
     Reference<Triangle> triangle;
-    for (vector<uint32_t>::iterator t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
+    for (vector<int>::iterator t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
         triangle = triangles[*t_idx];
         
         if (Intersects(left->bounding_box, triangle, mesh)) {
@@ -244,7 +245,7 @@ ElementTreeNode::ElementTreeNode(ElementTree *tree, ElementTreeNode *parent)
 
 void ElementTreeNode::createBoundingBox() {
     const vector<Point> &point_pos = tree->mesh.vertex_pos;
-    for (vector<uint32_t>::const_iterator point = points.begin(); point != points.end(); point++) {
+    for (vector<int>::const_iterator point = points.begin(); point != points.end(); point++) {
         bounding_box.Union(point_pos[*point]);
     }
 }

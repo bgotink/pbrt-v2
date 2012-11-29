@@ -74,6 +74,8 @@ public:
         return Sample(u1, u2, Ns);
     }
     virtual float Pdf(const Point &p, const Vector &wi) const;
+    
+    virtual bool isTriangleMesh() const { return false; }
 
     // Shape Public Data
     const Transform *ObjectToWorld, *WorldToObject;

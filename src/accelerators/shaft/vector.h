@@ -12,7 +12,7 @@
 #include "pbrt.h"
 #include "geometry.h"
 
-int sign(float f) {
+inline int sign(float f) {
     Assert(!isnan(f));
     if (f == 0.f) return 0;
     return (f > 0.f) ? 1 : -1;
@@ -29,17 +29,17 @@ namespace shaft{
         Vector3(T x, T y, T z) : x(x),y(y),z(z) {}
         ~Vector3() {}
         
-        Vector3 &operator=(Vector3 v) {
+        inline Vector3 &operator=(Vector3 v) {
             x = v.x; y = v.y; z = v.z;
             return *this;
         }
         
-        T &operator[](int i) {
+        inline T &operator[](int i) {
             Assert(i >= 0 && i < 3);
             return (&x)[i];
         }
         
-        T operator[](int i) const {
+        inline T operator[](int i) const {
             Assert(i >= 0 && i < 3);
             return (&x)[i];
         }
@@ -53,21 +53,21 @@ namespace shaft{
     public:
         T x, y, z, w;
         
-        Vector4() : x(0), y(0), z(0), w(0) {}
-        Vector4(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
-        ~Vector4() {};
+        inline Vector4() : x(0), y(0), z(0), w(0) {}
+        inline Vector4(T x, T y, T z, T w) : x(x), y(y), z(z), w(w) {}
+        inline ~Vector4() {};
         
-        Vector4<T> &operator=(Vector4 v) {
+        inline Vector4<T> &operator=(Vector4 v) {
             x = v.x; y = v.y; z = v.z; w = v.w;
             return *this;
         }
         
-        T &operator[](int i) {
+        inline T &operator[](int i) {
             Assert(i >= 0 && i < 4);
             return (&x)[i];
         }
         
-        T operator[](int i) const {
+        inline T operator[](int i) const {
             Assert(i >= 0 && i < 4);
             return (&x)[i];
         }
@@ -75,7 +75,7 @@ namespace shaft{
     
     typedef Vector4<float> Vector4f;
     
-    float operator*(const Point &o, const Vector4f &p) {
+    inline float operator*(const Point &o, const Vector4f &p) {
         return o.x * p.x + o.y * p.y + o.z * p.z + p.w;
     }
     
@@ -83,13 +83,13 @@ namespace shaft{
         return o * p;
     }
     
-    Vector4f CreatePlane(const Point &a, const Point &b, const Point&c) {
+    inline Vector4f CreatePlane(const Point &a, const Point &b, const Point&c) {
         ::Vector n = (b - a) ^ (c - a);
         float d = -n.x * a.x - n.y * a.y - n.z * a.z;
         return Vector4f(n.x, n.y, n.z, d);
     }
     
-    Point getPointOnPlane(const Vector4f &p) {
+    inline Point getPointOnPlane(const Vector4f &p) {
         float t = p.x + p.y + p.z;
         Assert(t != 0.f);
         
@@ -107,7 +107,7 @@ namespace shaft{
         return Point(t, t, t);
     }
     
-    Vector getNormal(const Vector4f &p) {
+    inline Vector getNormal(const Vector4f &p) {
         return Vector(p.x, p.y, p.z);
     }
     
@@ -115,11 +115,11 @@ namespace shaft{
         FRONT, BACK, BOTH
     };
     
-    float Distance(const Vector4f &plane, const Point &point) {
+    inline float Distance(const Vector4f &plane, const Point &point) {
         return (plane * point) / (float) sqrt(plane.x * plane.x + plane.y * plane.y + plane.z * plane.z);
     }
     
-    BBoxPlaneResult operator*(const BBox &box, const Vector4f &plane) {
+    inline BBoxPlaneResult operator*(const BBox &box, const Vector4f &plane) {
         // cf http://replay.googlecode.com/svn-history/r57/trunk/source/aabb.cpp
         
         float tmp[2];
@@ -147,7 +147,7 @@ namespace shaft{
         return BACK;
     }
     
-    BBoxPlaneResult operator*(const Vector4f &plane, const BBox &box) {
+    inline BBoxPlaneResult operator*(const Vector4f &plane, const BBox &box) {
         return box * plane;
     }
     

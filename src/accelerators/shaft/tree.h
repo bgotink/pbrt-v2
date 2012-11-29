@@ -17,6 +17,8 @@
 #include "mesh.h"
 #include "memory.h"
 
+#include <vector>
+
 namespace shaft {
 
 struct ElementTreeNode;
@@ -24,20 +26,26 @@ struct ElementTree;
 
 bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh &mesh);
 
-struct ElementTree {
+    struct ElementTree: public ReferenceCounted {
+private:
+    typedef std::vector<Reference<Primitive> > prim_list;
+    
+public:
     friend class ElementTreeNode;
     
     Reference<ElementTreeNode> root_node;
     uint32_t max_points_in_leaf;
     Mesh mesh;
     
-    std::vector<Point> &getPointPos() { return mesh.vertex_pos; }
-public:
-    ElementTree(TriangleMesh &mesh);
+    inline std::vector<Point> &getPointPos() { return mesh.vertex_pos; }
+        
+    ElementTree(const prim_list &primitives);
+    ElementTree(const std::vector<Reference<Shape> > &shapes);
 };
 
 struct ElementTreeNode : public ReferenceCounted {
     friend class ElementTree;
+    friend class ShaftTreeNode;
     
     Reference<ElementTreeNode> left, right;
     Reference<ElementTreeNode> parent;
@@ -45,9 +53,9 @@ struct ElementTreeNode : public ReferenceCounted {
     
     BBox bounding_box;
     
-    std::vector<uint32_t> points;
-    std::vector<uint32_t> gone_triangles;
-    std::vector<uint32_t> inside_triangles;
+    std::vector<int> points;
+    std::vector<int> gone_triangles;
+    std::vector<int> inside_triangles;
     
     bool is_leaf;
     

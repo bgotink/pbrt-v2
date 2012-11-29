@@ -59,6 +59,8 @@ public:
     virtual BSSRDF *GetBSSRDF(const DifferentialGeometry &dg,
         const Transform &ObjectToWorld, MemoryArena &arena) const = 0;
 
+    virtual Reference<Shape> getShape() const { return Reference<Shape>(NULL); }
+    
     // Primitive Public Data
     const uint32_t primitiveId;
 protected:
@@ -84,6 +86,9 @@ public:
                   const Transform &ObjectToWorld, MemoryArena &arena) const;
     BSSRDF *GetBSSRDF(const DifferentialGeometry &dg,
                       const Transform &ObjectToWorld, MemoryArena &arena) const;
+    
+    virtual Reference<Shape> getShape() const { return shape; }
+    
 private:
     // GeometricPrimitive Private Data
     Reference<Shape> shape;

@@ -509,6 +509,9 @@ public:
     Point getxYz() const { return Point(pMin.x, pMax.y, pMin.z); }
     Point getxYZ() const { return Point(pMin.x, pMax.y, pMax.z); }
     Point getxyZ() const { return Point(pMin.x, pMin.y, pMax.z); }
+    
+    BBox &Insert(const BBox &b);
+    BBox &Insert(const Point &p);
 
     // BBox Public Data
     Point pMin, pMax;

@@ -487,12 +487,27 @@ namespace shaft {
         for (surface_iter surf = surfaces.begin(); surf != surfaces.end(); surf++) {
             (*surf)->computeBoundingBox();
         }
+        
+        Mesh &mesh = getMesh();
+        for (nblciter tris = parent.triangles.begin(); tris != parent.triangles.end(); tris++) {
+            if (geometry.intersects(mesh.getTriangle(*tris), mesh))
+                triangles.push_back(*tris);
+        }
     }
     
     // cf. [Laine, 06] fig 4.31
-    Shaft::Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, nblist &triangles)
+    Shaft::Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light)
     : receiverNode(receiver), lightNode(light), geometry(receiver, light) {
-        Reference<Surface> surf = constructTriangleSurface(triangles);
+        Mesh &mesh = getMesh();
+        int nbTris = mesh.triangles.size();
+        for (int i = 0; i < nbTris; i++) {
+            triangles.push_back(i);
+        }
+        
+        nblist triangles_vector(nbTris);
+        triangles_vector.insert(triangles_vector.begin(), triangles.begin(), triangles.end());
+        
+        Reference<Surface> surf = constructTriangleSurface(triangles_vector);
         
         classifyEdges(surf);
         updatePatchFacings(surf);
@@ -555,6 +570,56 @@ namespace shaft {
                 surfaces.push_back(Surface::constructCombinedSurface(set_surfaces));
             }
         }
+    }
+    
+    bool IntersectsTriangle(const Reference<Triangle> &triangle, const Mesh &mesh, const Ray &ray) {
+        PBRT_RAY_TRIANGLE_INTERSECTIONP_TEST(const_cast<Ray *>(&ray), const_cast<Triangle *>(this));
+        // Compute $\VEC{s}_1$
+        
+        // Get triangle vertices in _p1_, _p2_, and _p3_
+        const Point &p1 = mesh.getPoint(triangle->getPoint(0));
+        const Point &p2 = mesh.getPoint(triangle->getPoint(1));
+        const Point &p3 = mesh.getPoint(triangle->getPoint(2));
+        Vector e1 = p2 - p1;
+        Vector e2 = p3 - p1;
+        Vector s1 = Cross(ray.d, e2);
+        float divisor = Dot(s1, e1);
+        
+        if (divisor == 0.)
+            return false;
+        float invDivisor = 1.f / divisor;
+        
+        // Compute first barycentric coordinate
+        Vector d = ray.o - p1;
+        float b1 = Dot(d, s1) * invDivisor;
+        if (b1 < 0. || b1 > 1.)
+            return false;
+        
+        // Compute second barycentric coordinate
+        Vector s2 = Cross(d, e1);
+        float b2 = Dot(ray.d, s2) * invDivisor;
+        if (b2 < 0. || b1 + b2 > 1.)
+            return false;
+        
+        // Compute _t_ to intersection point
+        float t = Dot(e2, s2) * invDivisor;
+        if (t < ray.mint || t > ray.maxt)
+            return false;
+        
+        PBRT_RAY_TRIANGLE_INTERSECTIONP_HIT(const_cast<Ray *>(&ray), t);
+        return true;
+    }
+    
+    bool Shaft::IntersectsP(const Ray &ray) const {
+        const Mesh &mesh = getMesh();
+        
+        // check all triangles
+        for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+            if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
+                return true;
+        }
+        
+        return false;
     }
 
 }

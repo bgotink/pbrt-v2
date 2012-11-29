@@ -60,6 +60,8 @@ public:
     template <typename T> friend class VertexTexture;
     Reference<Triangle> getTriangle(int i);
     int getNbTriangles() const { return ntris; }
+    
+    virtual bool isTriangleMesh() const { return true; }
 protected:
     // TriangleMesh Protected Data
     int ntris, nverts;

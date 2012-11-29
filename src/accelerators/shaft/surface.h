@@ -37,21 +37,16 @@ namespace shaft {
         bool is_inside;
         idtype mesh_edge;
         
-        RawEdge(uint32_t from, uint32_t to, const Mesh &mesh) {
-            vertices[0].point = mesh.getPoint(from);
-            vertices[1].point = mesh.getPoint(to);
-            
-            mesh_edge = createId(from, to);
-        }
+        RawEdge(uint32_t from, uint32_t to, const Mesh &mesh);
         
-        const Point &getPoint(int i) {
+        inline const Point &getPoint(int i) {
             Assert(i == 0 || i == 1);
             return vertices[0].point;
         }
         
         Reference<RawEdge> clone() const;
         
-        static idtype createId(uint32_t a, uint32_t b) {
+        inline static idtype createId(uint32_t a, uint32_t b) {
             idtype result;
             if (a > b) {
                 result = a;
@@ -75,47 +70,44 @@ namespace shaft {
         
     public:
         
-        Edge(uint32_t from, uint32_t to, const Mesh& mesh) : raw_edge(new RawEdge(from, to, mesh)), is_flipped(false) {
-        }
+        Edge(uint32_t from, uint32_t to, const Mesh& mesh);
+        Edge(const Reference<RawEdge> &raw, bool flipped);
         
-        Edge(const Reference<RawEdge> &raw, bool flipped) : raw_edge(raw), is_flipped(flipped) {}
-        ~Edge() {}
-        
-        const Vertex &getVertex(int idx) const {
+        inline const Vertex &getVertex(int idx) const {
             Assert(idx == 0 || idx == 1);
             return is_flipped ? raw_edge->vertices[idx ^ 1]
                               : raw_edge->vertices[idx];
         }
         
-        Patch *getNeighbour() {
+        inline Patch *getNeighbour() {
             return is_flipped ? raw_edge->neighbour[1]
                               : raw_edge->neighbour[0];
         }
         
-        Patch *getOwner() {
+        inline Patch *getOwner() {
             return is_flipped ? raw_edge->neighbour[0]
                               : raw_edge->neighbour[1];
         }
         
-        void setOwner(Patch *p) {
+        inline void setOwner(Patch *p) {
             if (is_flipped)
                 raw_edge->neighbour[0] = p;
             else
                 raw_edge->neighbour[1] = p;
         }
         
-        void setNeighbour(Patch *p) {
+        inline void setNeighbour(Patch *p) {
             if (is_flipped)
                 raw_edge->neighbour[1] = p;
             else
                 raw_edge->neighbour[0] = p;
         }
         
-        Reference<Edge> flip() {
+        inline Reference<Edge> flip() {
             return Reference<Edge>(new Edge(raw_edge, !is_flipped));
         }
         
-        RawEdge::idtype getRawEdgeLabel() const {
+        inline RawEdge::idtype getRawEdgeLabel() const {
             return raw_edge->mesh_edge;
         }
         
@@ -129,6 +121,8 @@ namespace shaft {
         typedef edge_list::const_iterator edge_citer;
         
         Reference<Patch> clone() const;
+        
+        BBox getBoundingBox() const;
         
     private:
         friend class Surface;
@@ -161,7 +155,7 @@ namespace shaft {
         static Reference<Surface> constructCombinedSurface(std::set<Reference<Surface> > &surfaces);
         
     public:
-        const BBox &getBoundingBox() const { return bounding_box; }
+        inline const BBox &getBoundingBox() const { return bounding_box; }
         void computeBoundingBox();
         
         const std::list<Reference<RawEdge> > getRawEdges() const;

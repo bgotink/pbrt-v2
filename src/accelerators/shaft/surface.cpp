@@ -20,6 +20,13 @@ using std::stack;
 
 namespace shaft {
     
+    RawEdge::RawEdge(uint32_t from, uint32_t to, const Mesh &mesh) {
+        vertices[0].point = mesh.getPoint(from);
+        vertices[1].point = mesh.getPoint(to);
+        
+        mesh_edge = createId(from, to);
+    }
+    
     Reference<RawEdge> RawEdge::clone() const {
         RawEdge &clone = *new RawEdge;
         
@@ -30,6 +37,11 @@ namespace shaft {
         
         return Reference<RawEdge>(&clone);
     }
+    
+    Edge::Edge(uint32_t from, uint32_t to, const Mesh& mesh) : raw_edge(new RawEdge(from, to, mesh)), is_flipped(false) {
+    }
+    
+    Edge::Edge(const Reference<RawEdge> &raw, bool flipped) : raw_edge(raw), is_flipped(flipped) {}
     
     Reference<Edge> Edge::clone() const {
         return Reference<Edge>(new Edge(raw_edge->clone(), is_flipped));
@@ -269,5 +281,24 @@ namespace shaft {
         new_surf.simplifyPatches();
         
         return Reference<Surface>(&new_surf);
+    }
+    
+    BBox Patch::getBoundingBox() const {
+        BBox res;
+        
+        for (edge_citer edge = edges.begin(); edge != edges.end(); edge++) {
+            res.Insert((*edge)->getVertex(0).point);
+            res.Insert((*edge)->getVertex(1).point);
+        }
+        
+        return res;
+    }
+    
+    void Surface::computeBoundingBox() {
+        bounding_box = BBox();
+        
+        for (patch_citer patch = patches.begin(); patch != patches.end(); patch++) {
+            bounding_box.Insert((*patch)->getBoundingBox());
+        }
     }
 }
