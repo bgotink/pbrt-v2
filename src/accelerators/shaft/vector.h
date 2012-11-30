@@ -92,12 +92,14 @@ namespace shaft{
     inline Point getPointOnPlane(const Vector4f &p) {
         float t = p.x + p.y + p.z;
         Assert(t != 0.f);
+        Assert(!isnan(t));
         
         if (t == 0) {
-            Warning("This function doesn't work for a plane (a*x + b*y + c*z + d == 0) with (a + b + c) == 0");
+            Error("This function doesn't work for a plane (a*x + b*y + c*z + d == 0) with (a + b + c) == 0");
         }
         
         t = -p.w / t;
+        Assert(!isnan(t));
         
         // p = a*x + b*y + c*z + d == 0
         // -> a point:

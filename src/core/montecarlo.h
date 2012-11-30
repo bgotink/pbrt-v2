@@ -53,8 +53,7 @@ static const float OneMinusEpsilon=0x1.fffffep-1;
 // Monte Carlo Utility Declarations
 struct Distribution1D {
     // Distribution1D Public Methods
-    Distribution1D(const float *f, int n) {
-        count = n;
+    Distribution1D(const float *f, int n) : count(n) {
         func = new float[n];
         memcpy(func, f, n*sizeof(float));
         cdf = new float[n+1];
@@ -73,6 +72,7 @@ struct Distribution1D {
             for (int i = 1; i < n+1; ++i)
                 cdf[i] /= funcInt;
         }
+        Error("count: %d; func: %ld; cdf: %ld; funcInt: %d", count, (long int)func, (long int)cdf, (int)funcInt);
     }
     ~Distribution1D() {
         delete[] func;
@@ -100,17 +100,21 @@ struct Distribution1D {
         // Find surrounding CDF segments and _offset_
         float *ptr = std::upper_bound(cdf, cdf+count+1, u);
         int offset = max(0, int(ptr-cdf-1));
+        if (count <= 0) {
+            Error("count: %d; func: %ld; cdf: %ld; funcInt: %d", count, (long int)func, (long int)cdf, (int)funcInt);
+        }
+        Assert(count > 0);
         Assert(offset < count);
         Assert(u >= cdf[offset] && u < cdf[offset+1]);
         if (pdf) *pdf = func[offset] / (funcInt * count);
         return offset;
     }
 private:
+    const int count;
     friend struct Distribution2D;
     // Distribution1D Private Data
     float *func, *cdf;
     float funcInt;
-    int count;
 };
 
 

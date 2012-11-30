@@ -29,6 +29,7 @@ bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh
     struct ElementTree: public ReferenceCounted {
 private:
     typedef std::vector<Reference<Primitive> > prim_list;
+    typedef std::vector<Reference<Shape> > shape_list;
     
 public:
     friend class ElementTreeNode;
@@ -40,10 +41,13 @@ public:
     inline std::vector<Point> &getPointPos() { return mesh.vertex_pos; }
         
     ElementTree(const prim_list &primitives);
-    ElementTree(const std::vector<Reference<Shape> > &shapes);
+    ElementTree(const shape_list &shapes);
 };
 
 struct ElementTreeNode : public ReferenceCounted {
+    
+    ElementTreeNode(ElementTree *tree);
+    
     friend class ElementTree;
     friend class ShaftTreeNode;
     

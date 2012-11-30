@@ -29,7 +29,7 @@ namespace shaft {
         plane_list planes;
         int main_axis;
         
-        const BBox &receiver_bbox, &light_bbox;
+        const BBox receiver_bbox, light_bbox;
         const BBox bbox;
         
         Vector4f testplane_1, testplane_2;

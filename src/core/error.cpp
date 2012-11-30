@@ -37,6 +37,10 @@
 // Error Reporting Includes
 #include <stdarg.h>
 
+#if !defined(PBRT_IS_WINDOWS)
+#include <pthread.h>
+#endif
+
 // Error Reporting Definitions
 #define PBRT_ERROR_IGNORE 0
 #define PBRT_ERROR_CONTINUE 1
@@ -48,6 +52,10 @@ const char *findWordEnd(const char *buf) {
     return buf;
 }
 
+#ifndef PBRT_IS_WINDOWS
+static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
 // Error Reporting Functions
 static void processError(const char *format, va_list args,
         const char *message, int disposition) {
@@ -57,6 +65,7 @@ static void processError(const char *format, va_list args,
         fprintf(stderr, "vasprintf() unable to allocate memory!\n");
         abort();
     }
+    pthread_mutex_lock(&mutex);
 #else
     char errorBuf[2048];
     vsnprintf_s(errorBuf, sizeof(errorBuf), _TRUNCATE, format, args);
@@ -95,6 +104,7 @@ static void processError(const char *format, va_list args,
             ++column;
         }
         fputs("\n", stderr);
+        fflush(stderr);
     }
     if (disposition == PBRT_ERROR_ABORT) {
 #if defined(PBRT_IS_WINDOWS)
@@ -104,6 +114,7 @@ static void processError(const char *format, va_list args,
 #endif
     }
 #if !defined(PBRT_IS_WINDOWS)
+    pthread_mutex_unlock(&mutex);
     free(errorBuf);
 #endif
 }

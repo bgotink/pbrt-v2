@@ -111,7 +111,7 @@ void Light::SHProject(const Point &p, float pEpsilon, int lmax,
 
 
 // ShapeSet Method Definitions
-ShapeSet::ShapeSet(const Reference<Shape> &s) {
+ShapeSet::ShapeSet(const Reference<Shape> &s) : original_shape(s) {
     vector<Reference<Shape> > todo;
     todo.push_back(s);
     while (todo.size()) {

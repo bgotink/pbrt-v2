@@ -34,13 +34,13 @@ namespace shaft {
     shape_list filter(const vector<Reference<Shape> > &list) {
         shape_list res;
         
-        for (vector<Reference<Shape> >::const_iterator shape = list.begin(); shape != list.begin(); shape++) {
+        for (vector<Reference<Shape> >::const_iterator shape = list.begin(); shape != list.end(); shape++) {
             Reference<Shape> s = *shape;
             
             if (!s->isTriangleMesh()) {
                 Warning("A non-TriangleMesh-shape, ignored!");
             } else {
-                res.push_back(static_cast<TriangleMesh *>(&*s));
+                res.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*s)));
             }
         }
         
@@ -59,9 +59,9 @@ namespace shaft {
                     Warning("A non-GeometricPrimitive primitive in the scene -> ignoring!!");
                 } else {
                     if (!shape->isTriangleMesh()) {
-                        Warning("The shape is not a TriangleMesh");
+                        Warning("The shape is not a TriangleMesh, skipping...");
                     } else {
-                        meshes.push_back(static_cast<TriangleMesh *>(&*shape));
+                        meshes.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*shape)));
                     }
                 }
             }
@@ -72,11 +72,13 @@ namespace shaft {
     
     Mesh::Mesh(const vector<Reference<Shape> > &shapes) {
         shape_list meshes = filter(shapes);
+        Assert(!meshes.empty());
         init(meshes);
     }
     
     Mesh::Mesh(const prim_list &primitives) {
         shape_list meshes = filter(primitives);
+        Assert(!meshes.empty());
         init(meshes);
     }
     
@@ -93,12 +95,14 @@ namespace shaft {
         
             int vertex_idx = 0;
             const int ntris = mesh.getNbTriangles();
+            if (ntris == 0)
+                Warning("Empty trianglemesh!!");
         
             set<RawEdge::idtype> edges_created;
         
             const ::Point *point;
-            while (cur_triangle->getIndex() < ntris) {
-                Triangle *t = new Triangle();
+            while (cur_triangle->isValid()) {
+                Triangle *t = new Triangle;
                 Triangle &new_triangle = *t;
             
                 for (int i = 0; i < 3; i++) {
@@ -108,6 +112,7 @@ namespace shaft {
                         new_triangle.vertices[i] = vmap[*point];
                     } else {
                         new_vertices.push_back(Point(*point));
+                        Warning("Adding point (%f,%f,%f)", point->x, point->y, point->z);
                         vmap[*point] = vertex_idx;
                         new_triangle.vertices[i] = vertex_idx++;
                     }
@@ -132,11 +137,14 @@ namespace shaft {
             }
         }
         
-        vertex_pos.reserve(new_vertices.size());
+        nbVertices = new_vertices.size();
+        vertex_pos.reserve(nbVertices);
         vertex_pos.insert(vertex_pos.begin(), new_vertices.begin(), new_vertices.end());
+        Assert(new_vertices.size() == vertex_pos.size());
         
         triangles.reserve(new_triangles.size());
         triangles.insert(triangles.begin(), new_triangles.begin(), new_triangles.end());
+        Assert(new_triangles.size() == triangles.size());
     }
     
     

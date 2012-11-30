@@ -581,10 +581,14 @@ Aggregate *CreateShaftAccelerator(const vector<Reference<Primitive> > &prims, co
     std::vector<Reference<Shape> > light_shapes;
     
     for (vector<Light *>::const_iterator light = lights.begin(); light != lights.end(); light++) {
-        const Light *l = *light;
-        const std::vector<Reference<Shape> > cur_light = l->getShape().getShapes();
-        light_shapes.insert(light_shapes.end(), cur_light.begin(), cur_light.end());
+        Light *l = *light;
+        if (!l) continue;
+        const ShapeSet &shapes = l->getShape();
+        const Reference<Shape> cur_light = shapes.getOriginalShape();
+        light_shapes.push_back(cur_light);
     }
+    
+    Assert(!light_shapes.empty());
     
     return new shaft::ShaftAccel(prims, light_shapes);
 }

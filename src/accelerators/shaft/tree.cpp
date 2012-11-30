@@ -174,8 +174,12 @@ SplitPlane findSplitPlane(const ElementTreeNode &node) {
     return result;
 }
     
-ElementTree::ElementTree(const prim_list &primitives) : mesh(primitives) {}
-ElementTree::ElementTree(const vector<Reference<Shape> > &primitives) : mesh(primitives) {}
+ElementTree::ElementTree(const prim_list &primitives) : mesh(primitives) {
+    root_node = new ElementTreeNode(this);
+}
+ElementTree::ElementTree(const vector<Reference<Shape> > &shapes) : mesh(shapes) {
+    root_node = new ElementTreeNode(this);
+}
 
 void ElementTreeNode::split() {
     typedef vector<Point> pointlist;
@@ -238,6 +242,15 @@ void ElementTreeNode::split() {
     points.clear();
     inside_triangles.clear();
 }
+    
+ElementTreeNode::ElementTreeNode(ElementTree *tree) : parent(NULL), tree(tree) {
+    const Mesh &mesh = tree->mesh;
+    for (int i = 0; i < mesh.getNbVertices(); i++) {
+        Warning("Adding point with pidx %d to ElementTreeNode", i);
+        points.push_back(i);
+    }
+    createBoundingBox();
+}
 
 ElementTreeNode::ElementTreeNode(ElementTree *tree, ElementTreeNode *parent)
     : parent(parent), tree(tree) {
@@ -245,9 +258,17 @@ ElementTreeNode::ElementTreeNode(ElementTree *tree, ElementTreeNode *parent)
 
 void ElementTreeNode::createBoundingBox() {
     const vector<Point> &point_pos = tree->mesh.vertex_pos;
-    for (vector<int>::const_iterator point = points.begin(); point != points.end(); point++) {
+    
+    vector<int>::const_iterator point = points.begin();
+    Assert(!points.empty());
+    // reset the bounding box
+    bounding_box = BBox(point_pos[*point]);
+    
+    for(; point != points.end(); point++) {
         bounding_box.Union(point_pos[*point]);
     }
+    
+    Warning("Created BBox for ElementTreeNode");
 }
 
 }

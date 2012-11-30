@@ -17,7 +17,7 @@ namespace shaft {
     };
     
     struct ShaftTreeNode {
-        ShaftTreeNode(Reference<Shaft> shaft) : shaft(shaft), state(getState()) {}
+        ShaftTreeNode(Reference<Shaft> shaft) : shaft(shaft), left(NULL), right(NULL), state(getState()) {}
         ~ShaftTreeNode() { if (left) delete left; if (right) delete right; }
         
         Reference<Shaft> shaft;
@@ -30,7 +30,7 @@ namespace shaft {
         
         bool RayInShaft(const Ray &ray) {
             return shaft->receiverNode->bounding_box.IntersectP(ray)
-                || shaft->lightNode->bounding_box.IntersectP(ray);
+                && shaft->lightNode->bounding_box.IntersectP(ray);
         }
         
         bool IntersectP(const Ray &ray) {
@@ -117,23 +117,23 @@ namespace shaft {
     
     ShaftAccel::ShaftAccel(const prim_list &primitives, const prim_list &lights)
     : receiver_tree(new ElementTree(primitives)), light_tree(new ElementTree(lights)),
-    bounding_box(*new BBox(Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box))),
-    shaft_tree(new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node))),
     fallback_accel(new BVHAccel(primitives))
     {
+        bounding_box = Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box);
+        shaft_tree = new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node));
     }
     
     ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights)
     : receiver_tree(new ElementTree(primitives)), light_tree(new ElementTree(lights)),
-    bounding_box(*new BBox(Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box))),
-    shaft_tree(new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node))),
     fallback_accel(new BVHAccel(primitives))
     {
+        bounding_box = Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box);
+        shaft_tree = new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node));
     }
     
     ShaftAccel::~ShaftAccel() {
-        delete &bounding_box;
-        delete &fallback_accel;
+        delete shaft_tree;
+        delete fallback_accel;
     }
     
     bool ShaftAccel::IntersectP(const Ray &ray) const {

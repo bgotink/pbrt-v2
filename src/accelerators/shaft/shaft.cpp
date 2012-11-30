@@ -38,13 +38,13 @@ namespace shaft {
         const rawedge_list raw_edges = surface->getRawEdges();
         
         for (rawedge_citer re = raw_edges.begin(); re != raw_edges.end(); re++) {
-            const RawEdge &edge = *re->GetPtr();
+            const RawEdge &edge = **re;
             
             if ((edge.neighbour[0] == NULL || edge.neighbour[1] == NULL) && edge.is_inside)
                 return false; // single edge inside shaft
         }
 
-        float winding_counter = 0;
+        float winding_counter = 0.f;
         for (rawedge_citer re = raw_edges.begin(); re != raw_edges.end(); re++) {
             Reference<RawEdge> raw_edge = *re;
             if (raw_edge->neighbour[0] != NULL && raw_edge->neighbour[1] != NULL)
@@ -66,24 +66,24 @@ namespace shaft {
                 
                 float f0 = current * testplane_2, f1 = next * testplane_2;
                 
-                if ((f0 < 0) && (f1 < 0)) continue;
+                if ((f0 < 0.f) && (f1 < 0.f)) continue;
                 if ((d0 < d1) == (d0 * f1 > d1 * f0)) continue;
                 
                 float adjust = 1.f;
-                if ((d0 == 0) || (d1 == 0)) adjust = .5f;
+                if ((d0 == 0.f) || (d1 == 0.f)) adjust = .5f;
                 if (d0 > d1) adjust = -adjust;
                 winding_counter += adjust;
             }
         }
         
-        return winding_counter != 0;
+        return winding_counter != 0.f;
     }
     
     bool ShaftGeometry::intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const {
         const Point *point[3];
         
         for (int i = 0; i < 3; i++)
-            point[i] = &mesh.getPoint(triangle->operator[](i));
+            point[i] = &mesh.getPoint((*triangle)[i]);
         
         // if neither of the point is inside the bounding box of the shaft, the triangle cannot intersect
         if (!bbox.Inside(*point[0]) && !bbox.Inside(*point[1]) && !bbox.Inside(*point[2]))

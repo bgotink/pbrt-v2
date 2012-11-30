@@ -78,12 +78,12 @@ public:
         if (ptr && AtomicAdd(&ptr->nReferences, -1) == 0)
             delete ptr;
     }
-    T *operator->() { return ptr; }
-    const T *operator->() const { return ptr; }
+    T *operator->() { Assert(*this); return ptr; }
+    const T *operator->() const { Assert(*this); return ptr; }
     operator bool() const { return ptr != NULL; }
     const T *GetPtr() const { return ptr; }
-    T &operator*() { return *ptr; }
-    const T& operator*() const { return *ptr; }
+    T &operator*() { Assert(*this); return *ptr; }
+    const T& operator*() const { Assert(*this); return *ptr; }
     bool operator==(const Reference<T> &o) const { return ptr == o.ptr || *ptr == *o.ptr; }
 private:
     T *ptr;

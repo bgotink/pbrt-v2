@@ -164,6 +164,9 @@ public:
     Point() { x = y = z = 0.f; }
     Point(float xx, float yy, float zz)
         : x(xx), y(yy), z(zz) {
+            if (HasNaNs()) {
+                Error("Point (%f,%f,%f) has NaN", x, y, z);
+            }
         Assert(!HasNaNs());
     }
     explicit Point(const Vector &v);

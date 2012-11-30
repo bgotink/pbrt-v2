@@ -75,7 +75,7 @@ protected:
 
 class Triangle : public Shape {
     void setV() {
-        Assert(n >= 0 && n < mesh->ntris);
+        Assert(n >= 0 && n <= mesh->ntris);
         v = &mesh->vertexIndex[3 * n];
     }
 public:
@@ -122,7 +122,9 @@ public:
         setV();
         return *this;
     }
-    int getIndex() const { return n; }
+    inline int getIndex() const { return n; }
+    
+    inline bool isValid() const { return n < mesh->ntris; }
     
     float Area() const;
     virtual void GetShadingGeometry(const Transform &obj2world,

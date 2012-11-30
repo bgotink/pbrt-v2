@@ -39,11 +39,14 @@ namespace shaft {
     protected:
         std::vector<Point> vertex_pos;
         std::vector<Reference<Triangle> > triangles;
-        std::map<uint32_t, bool> is_double_edge;
+        std::map<uint64_t, bool> is_double_edge;
+        int nbVertices;
         
     public:
         Mesh(const vector<Reference<Primitive> > &primitives);
         Mesh(const vector<Reference<Shape> > &primitives);
+        
+        inline int getNbVertices() const { return nbVertices; }
 
         inline const Reference<Triangle> &getTriangle(int idx) const {
             Assert(idx >= 0 && idx < triangles.size());
@@ -51,7 +54,7 @@ namespace shaft {
         }
 
         inline const Point &getPoint(int idx) const {
-            Assert(idx >= 0 && idx < vertex_pos.size());
+            Assert(idx >= 0 && idx < nbVertices);
             return vertex_pos[idx];
         }
     };

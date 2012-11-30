@@ -56,10 +56,12 @@ public:
     Point Sample(const LightSample &ls, Normal *Ns) const;
     float Pdf(const Point &p, const Vector &wi) const;
     float Pdf(const Point &p) const;
-    const vector<Reference<Shape> > &getShapes() const { return shapes; }
+    inline const vector<Reference<Shape> > &getShapes() const { return shapes; }
+    inline const Reference<Shape> &getOriginalShape() const { return original_shape; }
 private:
     // ShapeSet Private Data
     vector<Reference<Shape> > shapes;
+    Reference<Shape> original_shape;
     float sumArea;
     vector<float> areas;
     Distribution1D *areaDistribution;

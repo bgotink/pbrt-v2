@@ -46,7 +46,7 @@ namespace shaft {
         Reference<ElementTree> receiver_tree;
         Reference<ElementTree> light_tree;
         
-        const BBox &bounding_box;
+        BBox bounding_box;
         
         mutable ShaftTreeNode *shaft_tree;
         
