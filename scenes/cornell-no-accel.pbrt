@@ -15,13 +15,14 @@ Translate -278.000000 -273.000000 500.000000
 #SurfaceIntegrator "whitted"
 
 #Renderer "metropolis" "integer samplesperpixel" [2048]
-Renderer "sampler" "integer samplesperpixel" [2048]
+Renderer "sampler"
 
 Camera "perspective" "float fov" [55.000000 ]
 Film "image" "integer xresolution" [250 ] "integer yresolution" [250 ]
     "string filename" "cornell-no-accel.exr"
 
 PixelFilter "box"
+Accelerator "bvh"
 
 WorldBegin
 ############################################################################
@@ -30,8 +31,8 @@ WorldBegin
 AttributeBegin
     #Rotate 10 1 0 0 
     Translate 278.000000 278.000000 279.500000
-    AreaLightSource "area" "color L" [1 1 1] "integer nsamples" [4]
-    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2] "point P" [0.0 0.0 0.0 0.0 0.0 1.0 1.0 0.0 0.0 1.0 0.0 1.0]
+    AreaLightSource "area" "color L" [10 10 10] "integer nsamples" [4]
+    Shape "trianglemesh"  "integer indices" [0 1 2 0 2 3] "point P" [0.0 0.0 0.0 0.0 0.0 50.0 50.0 0.0 0.0 50.0 0.0 50.0]
 AttributeEnd
 # ignored Illuminate 1.000000 1.000000
 ############################################################################
