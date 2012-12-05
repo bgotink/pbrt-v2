@@ -138,7 +138,9 @@ bool BBox::IntersectP(const Ray &ray, float *hitt0,
         if (tNear > tFar) swap(tNear, tFar);
         t0 = tNear > t0 ? tNear : t0;
         t1 = tFar  < t1 ? tFar  : t1;
-        if (t0 > t1) return false;
+        if (t0 > t1) {
+            return false;
+        }
     }
     if (hitt0) *hitt0 = t0;
     if (hitt1) *hitt1 = t1;

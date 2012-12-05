@@ -55,11 +55,11 @@ namespace shaft {
         typedef surface_list::iterator surface_iter;
         typedef surface_list::const_iterator surface_citer;
         
-        typedef std::vector<int> nblist;
+        typedef std::vector<unsigned int> nblist;
         typedef nblist::iterator nbiter;
         typedef nblist::const_iterator nbciter;
 
-        typedef std::list<int> nbllist;
+        typedef std::list<unsigned int> nbllist;
         typedef nbllist::iterator nbliter;
         typedef nbllist::const_iterator nblciter;
         
@@ -96,7 +96,7 @@ namespace shaft {
             return getMesh().getTriangle(idx);
         }
         
-        inline const Point &getPoint(int idx) const {
+        inline const Point &getPoint(unsigned int idx) const {
             return getMesh().getPoint(idx);
         }
 
@@ -105,10 +105,10 @@ namespace shaft {
         }
         
         inline bool empty() const {
-            return surfaces.empty();
+            return surfaces.empty() && receiverNode->empty();
         }
         
-        bool IntersectsP(const Ray &ray) const;
+        bool IntersectP(const Ray &ray) const;
         
         inline static Reference<Shaft> constructSubShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
                                                     Reference<ElementTreeNode> &split, Shaft &parent) {

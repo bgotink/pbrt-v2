@@ -7,6 +7,7 @@
 //
 
 #include "tree.h"
+#include "log.h"
 
 #define X 0
 #define Y 1
@@ -15,20 +16,20 @@
 using namespace std;
 
 namespace shaft {
-
+    
 /*======================== X-tests ========================*/
 #define AXISTEST_X01(a, b, fa, fb)			   \
     p0 = a*v0[Y] - b*v0[Z];			       	   \
     p2 = a*v2[Y] - b*v2[Z];			       	   \
     if(p0<p2) {min=p0; max=p2;} else {min=p2; max=p0;} \
-        rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z];   \
+    rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z];   \
     if(min>rad || max<-rad) return 0;
 
 #define AXISTEST_X2(a, b, fa, fb)			   \
     p0 = a*v0[Y] - b*v0[Z];			           \
     p1 = a*v1[Y] - b*v1[Z];			       	   \
     if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} \
-        rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z];   \
+    rad = fa * boxhalfsize[Y] + fb * boxhalfsize[Z];   \
     if(min>rad || max<-rad) return 0;
 
 /*======================== Y-tests ========================*/
@@ -36,14 +37,14 @@ namespace shaft {
     p0 = -a*v0[X] + b*v0[Z];		      	   \
     p2 = -a*v2[X] + b*v2[Z];	       	       	   \
     if(p0<p2) {min=p0; max=p2;} else {min=p2; max=p0;} \
-        rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];   \
+    rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];   \
     if(min>rad || max<-rad) return 0;
 
 #define AXISTEST_Y1(a, b, fa, fb)			   \
     p0 = -a*v0[X] + b*v0[Z];		      	   \
     p1 = -a*v1[X] + b*v1[Z];	     	       	   \
     if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} \
-        rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];   \
+    rad = fa * boxhalfsize[X] + fb * boxhalfsize[Z];   \
     if(min>rad || max<-rad) return 0;
 
 /*======================== Z-tests ========================*/
@@ -51,14 +52,14 @@ namespace shaft {
     p1 = a*v1[X] - b*v1[Y];			           \
     p2 = a*v2[X] - b*v2[Y];			       	   \
     if(p2<p1) {min=p2; max=p1;} else {min=p1; max=p2;} \
-        rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];   \
+    rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];   \
     if(min>rad || max<-rad) return 0;
 
 #define AXISTEST_Z0(a, b, fa, fb)			   \
     p0 = a*v0[X] - b*v0[Y];				   \
     p1 = a*v1[X] - b*v1[Y];			           \
     if(p0<p1) {min=p0; max=p1;} else {min=p1; max=p0;} \
-        rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];   \
+    rad = fa * boxhalfsize[X] + fb * boxhalfsize[Y];   \
     if(min>rad || max<-rad) return 0;
 
 #define FINDMINMAX(a, b, c, min, max)           \
@@ -88,8 +89,8 @@ static bool planeBoxOverlap(const BBox &box, const Point &point, const Vector &n
 
 // based on http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/tribox3.txt
 bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh &mesh) {
-    Point boxcenter = (box.pMax + box.pMin) / 2;
-    Vector boxhalfsize = box.pMax - boxcenter;
+    Point boxcenter = box.getCenter();
+    Vector boxhalfsize = box.getXYZ() - boxcenter;
     
     Vector v0, v1, v2;
     
@@ -156,36 +157,26 @@ SplitPlane findSplitPlane(const ElementTreeNode &node) {
     
     const BBox &box = node.bounding_box;
     
-    float diffx = box.pMax.x - box.pMin.x,
-          diffy = box.pMax.y - box.pMin.y,
-          diffz = box.pMax.z - box.pMin.z;
-    
-    if (diffx > diffy && diffx > diffz) {
-        result.split_axis = X;
-        result.split_pos = (box.pMax.x + box.pMin.x) / 2;
-    } else if (diffy > diffz) {
-        result.split_axis = Y;
-        result.split_pos = (box.pMax.y + box.pMin.y) / 2;
-    } else {
-        result.split_axis = Z;
-        result.split_pos = (box.pMax.z + box.pMin.z) / 2;
-    }
+    result.split_axis = box.MaximumExtent();
+    result.split_pos = box.getCenter()[result.split_axis];
     
     return result;
 }
     
-ElementTree::ElementTree(const prim_list &primitives) : mesh(primitives) {
+ElementTree::ElementTree(const prim_list &primitives, uint32_t nbPointsInLeaf) : max_points_in_leaf(nbPointsInLeaf), mesh(primitives) {
     root_node = new ElementTreeNode(this);
 }
-ElementTree::ElementTree(const vector<Reference<Shape> > &shapes) : mesh(shapes) {
+ElementTree::ElementTree(const vector<Reference<Shape> > &shapes, uint32_t nbPointsInLeaf) : max_points_in_leaf(nbPointsInLeaf), mesh(shapes) {
     root_node = new ElementTreeNode(this);
 }
 
 void ElementTreeNode::split() {
+    Assert(!is_leaf);
+    
     typedef vector<Point> pointlist;
     typedef pointlist::iterator pointiter;
     
-    typedef vector<int> pidxlist;
+    typedef nblist pidxlist;
     typedef pidxlist::iterator pidxiter;
     
     if (is_leaf) return;
@@ -200,6 +191,8 @@ void ElementTreeNode::split() {
         SplitPlane split = findSplitPlane(*this);
         split_axis = split.split_axis;
         split_pos = split.split_pos;
+        Info("Splitting box at axis %s, pos %f (extent: %f - %f)", (split_axis == X ? "X" : (split_axis == Y ? "Y" : "Z")), split_pos,
+             bounding_box.pMin[split_axis], bounding_box.pMax[split_axis]);
     }
     
     left = new ElementTreeNode(tree, this);
@@ -213,31 +206,82 @@ void ElementTreeNode::split() {
         }
     }
     
-    left->createBoundingBox();
-    right->createBoundingBox();
+    //    left->createBoundingBox();
+    //    right->createBoundingBox();
+    left->bounding_box = bounding_box;
+    left->bounding_box.pMax[split_axis] = split_pos;
     
-    if (left->points.size() < tree->max_points_in_leaf)
+    right->bounding_box = bounding_box;
+    right->bounding_box.pMin[split_axis] = split_pos;
+    
+    Info("bounding box: (%f,%f,%f) -> (%f,%f,%f)", bounding_box.pMin.x, bounding_box.pMin.y, bounding_box.pMin.z,
+         bounding_box.pMax.x, bounding_box.pMax.y, bounding_box.pMax.z);
+    Info("left bounding box: (%f,%f,%f) -> (%f,%f,%f)", left->bounding_box.pMin.x, left->bounding_box.pMin.y, left->bounding_box.pMin.z,
+         left->bounding_box.pMax.x, left->bounding_box.pMax.y, left->bounding_box.pMax.z);
+    Info("right bounding box: (%f,%f,%f) -> (%f,%f,%f)", right->bounding_box.pMin.x, right->bounding_box.pMin.y, right->bounding_box.pMin.z,
+         right->bounding_box.pMax.x, right->bounding_box.pMax.y, right->bounding_box.pMax.z);
+    
+    if (left->points.size() < tree->max_points_in_leaf) {
+        Info("Left child is leaf (points: %lu/%u)", left->points.size(), tree->max_points_in_leaf);
         left->is_leaf = true;
-    if (right->points.size() < tree->max_points_in_leaf)
+    } else {
+        Info("Left child is not a leaf (points: %lu/%u)", left->points.size(), tree->max_points_in_leaf);
+    }
+    if (right->points.size() < tree->max_points_in_leaf) {
         right->is_leaf = true;
+        Info("Right child is leaf (points: %lu/%u)", right->points.size(), tree->max_points_in_leaf);
+    } else {
+        Info("Right child is not a leaf (points: %lu/%u)", right->points.size(), tree->max_points_in_leaf);
+    }
     
     vector<Reference<Triangle> > &triangles = mesh.triangles;
     Reference<Triangle> triangle;
-    for (vector<int>::iterator t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
+    for (nbiter t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
         triangle = triangles[*t_idx];
+
+        /*float a = mesh.getPoint(triangle->getPoint(0))[split_axis],
+            b = mesh.getPoint(triangle->getPoint(1))[split_axis],
+            c = mesh.getPoint(triangle->getPoint(2))[split_axis];
         
-        if (Intersects(left->bounding_box, triangle, mesh)) {
+        if (a <= split_pos || b <= split_pos || c <= split_pos) {
             left->inside_triangles.push_back(*t_idx);
         } else {
             left->gone_triangles.push_back(*t_idx);
         }
         
-        if (Intersects(right->bounding_box, triangle, mesh)) {
+        if (a >= split_pos || b >= split_pos || c >= split_pos) {
             right->inside_triangles.push_back(*t_idx);
         } else {
             right->gone_triangles.push_back(*t_idx);
+        }*/
+        
+ /*       const Point &a = points[triangle->getPoint(0)],
+                    &b = points[triangle->getPoint(1)],
+                    &c = points[triangle->getPoint(2)];
+        
+        Info("Triangle ((%f,%f,%f), (%f,%f,%f), (%f,%f,%f))",
+             a[0], a[1], a[2],
+             b[0], b[1], b[2],
+             c[0], c[1], c[2]);*/
+        if (Intersects(left->bounding_box, triangle, mesh)) {
+            //            Info("inside left");
+            left->inside_triangles.push_back(*t_idx);
+        } else {
+            //            Info("outside left");
+            left->gone_triangles.push_back(*t_idx);
+        }
+
+        if (Intersects(right->bounding_box, triangle, mesh)) {
+            //            Info("inside right");
+            right->inside_triangles.push_back(*t_idx);
+        } else {
+            //            Info("outside right");
+            right->gone_triangles.push_back(*t_idx);
         }
     }
+    
+    Info("After split: %lu prims in current, %lu in left, %lu in right", inside_triangles.size(), left->inside_triangles.size(), right->inside_triangles.size());
+    Info("Triangles gone: %lu in left, %lu in right", left->gone_triangles.size(), right->gone_triangles.size());
     
     points.clear();
     inside_triangles.clear();
@@ -245,9 +289,12 @@ void ElementTreeNode::split() {
     
 ElementTreeNode::ElementTreeNode(ElementTree *tree) : parent(NULL), tree(tree) {
     const Mesh &mesh = tree->mesh;
-    for (int i = 0; i < mesh.getNbVertices(); i++) {
-        Warning("Adding point with pidx %d to ElementTreeNode", i);
+    for (unsigned int i = 0; i < mesh.getNbVertices(); i++) {
         points.push_back(i);
+    }
+    is_leaf = (points.size() < tree->max_points_in_leaf);
+    for (unsigned int i = 0; i < mesh.getNbTriangles(); i++) {
+        inside_triangles.push_back(i);
     }
     createBoundingBox();
 }
@@ -256,19 +303,42 @@ ElementTreeNode::ElementTreeNode(ElementTree *tree, ElementTreeNode *parent)
     : parent(parent), tree(tree) {
 }
 
-void ElementTreeNode::createBoundingBox() {
+void ElementTreeNode::createBoundingBox() {    
     const vector<Point> &point_pos = tree->mesh.vertex_pos;
     
-    vector<int>::const_iterator point = points.begin();
     Assert(!points.empty());
     // reset the bounding box
-    bounding_box = BBox(point_pos[*point]);
+    bounding_box = BBox();
     
-    for(; point != points.end(); point++) {
-        bounding_box.Union(point_pos[*point]);
+    for(nbiter point = points.begin(); point != points.end(); point++) {
+        bounding_box.Insert(point_pos[*point]);
     }
     
-    Warning("Created BBox for ElementTreeNode");
+    bounding_box.Expand(1.f);
+    
+    Info("Created BBox for ElementTreeNode");
+}
+    
+bool ElementTreeNode::IntersectP(const Ray &ray) const {
+    Assert(is_leaf);
+    Assert(!empty());
+    
+    const Mesh &mesh = tree->mesh;
+
+    nbciter tidx_end = inside_triangles.end();
+    for (nbciter tidx = inside_triangles.begin(); tidx != tidx_end; tidx++) {
+        const Reference<Triangle> t = mesh.getTriangle(*tidx);
+        
+        ShaftNodeIntersectionTest();
+        if (IntersectsTriangle(t, mesh, ray))
+            return true;
+    }
+    
+    return false;
+}
+    
+bool ElementTreeNode::empty() const {
+    return inside_triangles.empty();
 }
 
 }

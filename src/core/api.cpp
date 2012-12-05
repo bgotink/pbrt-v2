@@ -577,7 +577,8 @@ VolumeIntegrator *MakeVolumeIntegrator(const string &name,
     return vi;
 }
 
-Aggregate *CreateShaftAccelerator(const vector<Reference<Primitive> > &prims, const vector<Light *> lights) {
+Aggregate *CreateShaftAccelerator(const vector<Reference<Primitive> > &prims, const vector<Light *> lights,
+                                  const ParamSet &ps) {
     std::vector<Reference<Shape> > light_shapes;
     
     for (vector<Light *>::const_iterator light = lights.begin(); light != lights.end(); light++) {
@@ -590,7 +591,7 @@ Aggregate *CreateShaftAccelerator(const vector<Reference<Primitive> > &prims, co
     
     Assert(!light_shapes.empty());
     
-    return new shaft::ShaftAccel(prims, light_shapes);
+    return shaft::createShaftAccel(prims, light_shapes, ps);
 }
 
 
@@ -606,7 +607,7 @@ Primitive *MakeAccelerator(const string &name,
     else if (name == "kdtree")
         accel = CreateKdTreeAccelerator(prims, paramSet);
     else if (name == "shaft")
-        accel = CreateShaftAccelerator(prims, lights);
+        accel = CreateShaftAccelerator(prims, lights, paramSet);
     else
         Warning("Accelerator \"%s\" unknown.", name.c_str());
     paramSet.ReportUnused();

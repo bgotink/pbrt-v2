@@ -33,7 +33,7 @@ namespace shaft {
         typedef uint64_t idtype;
         
         Vertex vertices[2];
-        Patch *neighbour[2];
+        Reference<Patch> neighbour[2];
         bool is_inside;
         idtype mesh_edge;
         
@@ -79,24 +79,24 @@ namespace shaft {
                               : raw_edge->vertices[idx];
         }
         
-        inline Patch *getNeighbour() {
+        inline const Reference<Patch> &getNeighbour() {
             return is_flipped ? raw_edge->neighbour[1]
                               : raw_edge->neighbour[0];
         }
         
-        inline Patch *getOwner() {
+        inline const Reference<Patch> &getOwner() {
             return is_flipped ? raw_edge->neighbour[0]
                               : raw_edge->neighbour[1];
         }
         
-        inline void setOwner(Patch *p) {
+        inline void setOwner(const Reference<Patch> &p) {
             if (is_flipped)
                 raw_edge->neighbour[0] = p;
             else
                 raw_edge->neighbour[1] = p;
         }
         
-        inline void setNeighbour(Patch *p) {
+        inline void setNeighbour(const Reference<Patch> &p) {
             if (is_flipped)
                 raw_edge->neighbour[1] = p;
             else
@@ -161,6 +161,7 @@ namespace shaft {
         const std::list<Reference<RawEdge> > getRawEdges() const;
         std::list<Reference<RawEdge> > getRawEdges();
         Reference<Surface> clone() const;
+        inline bool operator==(const Patch &o) const { return false; }
     };
     
 }

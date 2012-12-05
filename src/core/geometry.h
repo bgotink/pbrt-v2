@@ -38,7 +38,7 @@
 
 // core/geometry.h*
 #include "pbrt.h"
-
+#include <iostream>
 #include <float.h>
 
 // Geometry Declarations
@@ -498,7 +498,7 @@ public:
         return b.pMin != pMin || b.pMax != pMax;
     }
     
-    Point getCenter() const {
+    inline Point getCenter() const {
         return (pMax + pMin) / 2;
     }
     
@@ -720,7 +720,29 @@ inline float SphericalPhi(const Vector &v) {
     float p = atan2f(v.y, v.x);
     return (p < 0.f) ? p + 2.f*M_PI : p;
 }
+    
+inline std::ostream &operator<<(std::ostream &str, const Point &p) {
+    str << "(" << p.x << "," << p.y << "," << p.z << ")";
+    return str;
+}
+    
+inline std::ostream &operator<<(std::ostream &str, const Vector &p) {
+    str << "(" << p.x << "," << p.y << "," << p.z << ")";
+    return str;
+}
+    
+inline std::ostream &operator<<(std::ostream &str, const Normal &p) {
+    str << "(" << p.x << "," << p.y << "," << p.z << ")";
+    return str;
+}
+    
+inline std::ostream &operator<<(std::ostream &str, const Ray &ray) {
+    return str << ray.o << " -> " << ray.d << " [" << ray.mint << "->" << ray.maxt << "]";
+}
 
+inline std::ostream &operator<<(std::ostream &str, const BBox &box) {
+    return str << "[" << box.pMin << " - " << box.pMax << "]";
+}
 
 
 #endif // PBRT_CORE_GEOMETRY_H

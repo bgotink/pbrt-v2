@@ -87,13 +87,13 @@ namespace shaft {
         map< Point, uint32_t> vmap;
         list<Reference<Triangle> > new_triangles;
         
+        int vertex_idx = 0;
         const shape_iter meshes_end = meshes.end();
         for (shape_iter shape = meshes.begin(); shape != meshes_end; shape++) {
             TriangleMesh &mesh = **shape;
         
             Reference< ::Triangle> cur_triangle = mesh.getTriangle(0);
         
-            int vertex_idx = 0;
             const int ntris = mesh.getNbTriangles();
             if (ntris == 0)
                 Warning("Empty trianglemesh!!");
@@ -112,15 +112,20 @@ namespace shaft {
                         new_triangle.vertices[i] = vmap[*point];
                     } else {
                         new_vertices.push_back(Point(*point));
-                        Warning("Adding point (%f,%f,%f)", point->x, point->y, point->z);
+                        //                        Info("Adding point (%f,%f,%f)", point->x, point->y, point->z);
+                        
                         vmap[*point] = vertex_idx;
-                        new_triangle.vertices[i] = vertex_idx++;
+                        new_triangle.vertices[i] = vertex_idx;
+                        
+                        vertex_idx++;
                     }
+                    //                    Info("Vertex %d = %u", i, new_triangle.vertices[i]);
                 }
             
                 for (int i = 0; i < 3; i++) {
                     uint32_t from = new_triangle.vertices[i];
                     uint32_t to = new_triangle.vertices[i == 2 ? 0 : (i+1)];
+                    //                    Info("Edge %u -> %u", from, to);
                 
                     RawEdge::idtype edge_id = new_triangle.edge_labels[i] = RawEdge::createId(from, to);
                     if (edges_created.count(edge_id) == 0) {
@@ -142,10 +147,48 @@ namespace shaft {
         vertex_pos.insert(vertex_pos.begin(), new_vertices.begin(), new_vertices.end());
         Assert(new_vertices.size() == vertex_pos.size());
         
-        triangles.reserve(new_triangles.size());
+        nbTriangles = new_triangles.size();
+        triangles.reserve(nbTriangles);
         triangles.insert(triangles.begin(), new_triangles.begin(), new_triangles.end());
         Assert(new_triangles.size() == triangles.size());
     }
     
+    bool IntersectsTriangle(const Reference<Triangle> &triangle, const Mesh &mesh, const Ray &ray) {
+        PBRT_RAY_TRIANGLE_INTERSECTIONP_TEST(const_cast<Ray *>(&ray), const_cast<Triangle *>(this));
+        // Compute $\VEC{s}_1$
+        
+        // Get triangle vertices in _p1_, _p2_, and _p3_
+        const Point &p1 = mesh.getPoint(triangle->getPoint(0));
+        const Point &p2 = mesh.getPoint(triangle->getPoint(1));
+        const Point &p3 = mesh.getPoint(triangle->getPoint(2));
+        Vector e1 = p2 - p1;
+        Vector e2 = p3 - p1;
+        Vector s1 = Cross(ray.d, e2);
+        float divisor = Dot(s1, e1);
+        
+        if (divisor == 0.)
+            return false;
+        float invDivisor = 1.f / divisor;
+        
+        // Compute first barycentric coordinate
+        Vector d = ray.o - p1;
+        float b1 = Dot(d, s1) * invDivisor;
+        if (b1 < 0. || b1 > 1.)
+            return false;
+        
+        // Compute second barycentric coordinate
+        Vector s2 = Cross(d, e1);
+        float b2 = Dot(ray.d, s2) * invDivisor;
+        if (b2 < 0. || b1 + b2 > 1.)
+            return false;
+        
+        // Compute _t_ to intersection point
+        float t = Dot(e2, s2) * invDivisor;
+        if (t < ray.mint || t > ray.maxt)
+            return false;
+        
+        PBRT_RAY_TRIANGLE_INTERSECTIONP_HIT(const_cast<Ray *>(&ray), t);
+        return true;
+    }
     
 }

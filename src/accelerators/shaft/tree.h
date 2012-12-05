@@ -35,18 +35,25 @@ public:
     friend class ElementTreeNode;
     
     Reference<ElementTreeNode> root_node;
-    uint32_t max_points_in_leaf;
+    const uint32_t max_points_in_leaf;
     Mesh mesh;
     
     inline std::vector<Point> &getPointPos() { return mesh.vertex_pos; }
         
-    ElementTree(const prim_list &primitives);
-    ElementTree(const shape_list &shapes);
+    ElementTree(const prim_list &primitives, uint32_t nbPoinsInLeaf = 15);
+    ElementTree(const shape_list &shapes, uint32_t nbPointsInLeaf = 15);
 };
 
 struct ElementTreeNode : public ReferenceCounted {
+private:
+    typedef std::vector<unsigned int> nblist;
+    typedef nblist::iterator nbiter;
+    typedef nblist::const_iterator nbciter;
     
+public:
     ElementTreeNode(ElementTree *tree);
+    bool IntersectP(const Ray &ray) const;
+    bool empty() const;
     
     friend class ElementTree;
     friend class ShaftTreeNode;
@@ -57,9 +64,9 @@ struct ElementTreeNode : public ReferenceCounted {
     
     BBox bounding_box;
     
-    std::vector<int> points;
-    std::vector<int> gone_triangles;
-    std::vector<int> inside_triangles;
+    nblist points;
+    nblist gone_triangles;
+    nblist inside_triangles;
     
     bool is_leaf;
     

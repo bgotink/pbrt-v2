@@ -151,9 +151,9 @@ namespace shaft {
                 patches_processed.insert(patch);
                 
                 for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
-                    Reference<Patch> neighbour = Reference<Patch>((*e)->getNeighbour());
+                    const  Reference<Patch> &neighbour = (*e)->getNeighbour();
                     if ((*e)->raw_edge->is_inside
-                            && (neighbour.GetPtr() != NULL)
+                            && (neighbour)
                             && (merge_patches.count(neighbour) == 0)
                             && (patch->facing != INCONSISTENT) && (neighbour->facing != INCONSISTENT)
                             && (patch->facing == neighbour->facing)) {
@@ -189,9 +189,9 @@ namespace shaft {
         
         list<Reference<RawEdge> > raw_edges = getRawEdges();
         for (list<Reference<RawEdge> >::iterator re = raw_edges.begin(); re != raw_edges.end(); re++) {
-            if ((*re)->neighbour[0] != NULL)
+            if ((*re)->neighbour[0])
                 (*re)->neighbour[0] = & *patch_remap.at((*re)->neighbour[0]);
-            if ((*re)->neighbour[1] != NULL)
+            if ((*re)->neighbour[1])
                 (*re)->neighbour[1] = & *patch_remap.at((*re)->neighbour[1]);
         }
     }
@@ -205,7 +205,7 @@ namespace shaft {
             patch = *p;
             for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
                 edge = *e;
-                if ((edge->getNeighbour() == &*patch) && (edge->getOwner() == &*patch)) {
+                if ((&*edge->getNeighbour() == &*patch) && (&*edge->getOwner() == &*patch)) {
                     e = patch->edges.erase(e);
                 }
             }
@@ -232,13 +232,13 @@ namespace shaft {
                 Reference<Patch> patch = traversal_stack.top(); traversal_stack.pop();
                 processed.insert(patch);
                 
+                Reference<Patch> neighbour;
                 for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
-                    Patch *neighbour = (*e)->getNeighbour();
-                    Reference<Patch> ref_neighbour = Reference<Patch>(neighbour);
-                    if ((*e)->raw_edge->is_inside && neighbour != NULL
-                                    && component_patches.count(ref_neighbour) == 0) {
-                        component_patches.insert(ref_neighbour);
-                        traversal_stack.push(ref_neighbour);
+                    neighbour = (*e)->getNeighbour();
+                    if ((*e)->raw_edge->is_inside && neighbour
+                                    && component_patches.count(neighbour) == 0) {
+                        component_patches.insert(neighbour);
+                        traversal_stack.push(neighbour);
                     }
                 }
             }
@@ -249,8 +249,8 @@ namespace shaft {
                 component_surface.patches.push_back(patch);
                 for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
                     Reference<Edge> edge = *e;
-                    Patch *neighbour = edge->getNeighbour();
-                    if (neighbour != NULL && component_patches.count(Reference<Patch>(neighbour)) == 0) {
+                    const Reference<Patch> &neighbour = edge->getNeighbour();
+                    if (neighbour && component_patches.count(Reference<Patch>(neighbour)) == 0) {
                         Reference<Edge> ourEdge = edge->clone();
                         ourEdge->setOwner(edge->getOwner());
                         edge->setOwner(NULL);

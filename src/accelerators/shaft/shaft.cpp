@@ -10,6 +10,7 @@
 #include <float.h>
 
 #include "pbrt.h"
+#include "log.h"
 
 #include <set>
 #include <map>
@@ -40,18 +41,18 @@ namespace shaft {
         for (rawedge_citer re = raw_edges.begin(); re != raw_edges.end(); re++) {
             const RawEdge &edge = **re;
             
-            if ((edge.neighbour[0] == NULL || edge.neighbour[1] == NULL) && edge.is_inside)
+            if ((!edge.neighbour[0] || !edge.neighbour[1]) && edge.is_inside)
                 return false; // single edge inside shaft
         }
 
         float winding_counter = 0.f;
         for (rawedge_citer re = raw_edges.begin(); re != raw_edges.end(); re++) {
             Reference<RawEdge> raw_edge = *re;
-            if (raw_edge->neighbour[0] != NULL && raw_edge->neighbour[1] != NULL)
+            if (raw_edge->neighbour[0]&& raw_edge->neighbour[1])
                 // double edge -> not @ side of the surface
                 continue;
             
-            Edge edge(raw_edge, raw_edge->neighbour[0] != NULL);
+            Edge edge(raw_edge, !!raw_edge->neighbour[0]);
             list<Point> vertices = clampAndGetVertices(edge);
             
             list<Point>::iterator vertices_end = --vertices.end();
@@ -82,7 +83,7 @@ namespace shaft {
     bool ShaftGeometry::intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const {
         const Point *point[3];
         
-        for (int i = 0; i < 3; i++)
+        for (unsigned int i = 0; i < 3; i++)
             point[i] = &mesh.getPoint((*triangle)[i]);
         
         // if neither of the point is inside the bounding box of the shaft, the triangle cannot intersect
@@ -181,7 +182,7 @@ namespace shaft {
                 const Point *p[2];
                 p[0] = &edge.getVertex(0).point;
                 p[1] = &edge.getVertex(1).point;
-                for (int i = 0; i < 2; i++) {
+                for (unsigned int i = 0; i < 2; i++) {
                     const Point &point = *p[i];
                     const Point &other = *p[1-i];
                     
@@ -356,7 +357,7 @@ namespace shaft {
         uint32_t pidx[3] = { triangle->getPoint(0), triangle->getPoint(1), triangle->getPoint(2) };
         const Mesh &mesh = getMesh();
         
-        for (int i = 0; i < 3; i++) {
+        for (unsigned int i = 0; i < 3; i++) {
             int next = (i == 2) ? 0 : i+1;
             Edge &edge = *new Edge(pidx[i], pidx[next], mesh);
             
@@ -439,9 +440,9 @@ namespace shaft {
                 RawEdge::idtype elabel = (*e)->getRawEdgeLabel();
                 
                 if (edge_map.count(elabel) == 0) {
-                    edge_map.at(elabel) = *e;
+                    edge_map[elabel] = *e;
                 } else {
-                    Reference<Edge> &other = edge_map.at(elabel);
+                    Reference<Edge> &other = edge_map[elabel];
                     *e = other->flip();
                     
                     (*e)->setOwner(&*p);
@@ -531,7 +532,7 @@ namespace shaft {
                 Reference<Edge> edge = *e;
                 RawEdge::idtype edge_label = edge->raw_edge->mesh_edge;
                 if (mesh.is_double_edge[edge_label] == false) continue;
-                if (edge->raw_edge->is_inside && edge->getNeighbour() == NULL) {
+                if (edge->raw_edge->is_inside && !edge->getNeighbour()) {
                     surface->loose_edges.push_back(edge_label);
                 }
             }
@@ -572,54 +573,20 @@ namespace shaft {
         }
     }
     
-    bool IntersectsTriangle(const Reference<Triangle> &triangle, const Mesh &mesh, const Ray &ray) {
-        PBRT_RAY_TRIANGLE_INTERSECTIONP_TEST(const_cast<Ray *>(&ray), const_cast<Triangle *>(this));
-        // Compute $\VEC{s}_1$
-        
-        // Get triangle vertices in _p1_, _p2_, and _p3_
-        const Point &p1 = mesh.getPoint(triangle->getPoint(0));
-        const Point &p2 = mesh.getPoint(triangle->getPoint(1));
-        const Point &p3 = mesh.getPoint(triangle->getPoint(2));
-        Vector e1 = p2 - p1;
-        Vector e2 = p3 - p1;
-        Vector s1 = Cross(ray.d, e2);
-        float divisor = Dot(s1, e1);
-        
-        if (divisor == 0.)
-            return false;
-        float invDivisor = 1.f / divisor;
-        
-        // Compute first barycentric coordinate
-        Vector d = ray.o - p1;
-        float b1 = Dot(d, s1) * invDivisor;
-        if (b1 < 0. || b1 > 1.)
-            return false;
-        
-        // Compute second barycentric coordinate
-        Vector s2 = Cross(d, e1);
-        float b2 = Dot(ray.d, s2) * invDivisor;
-        if (b2 < 0. || b1 + b2 > 1.)
-            return false;
-        
-        // Compute _t_ to intersection point
-        float t = Dot(e2, s2) * invDivisor;
-        if (t < ray.mint || t > ray.maxt)
-            return false;
-        
-        PBRT_RAY_TRIANGLE_INTERSECTIONP_HIT(const_cast<Ray *>(&ray), t);
-        return true;
-    }
-    
-    bool Shaft::IntersectsP(const Ray &ray) const {
+    bool Shaft::IntersectP(const Ray &ray) const {
         const Mesh &mesh = getMesh();
+
+        ShaftStartIntersectP();
         
         // check all triangles
         for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+            ShaftIntersectTest();
             if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
                 return true;
         }
+        ShaftNotIntersected();
         
-        return false;
+        return receiverNode->IntersectP(ray);
     }
 
 }

@@ -132,7 +132,7 @@ namespace shaft{
         }
 
         for (int i = 0; i < 3; i++) {
-            mask = sign(plane[i]);
+            mask = plane[i] > 0.f ? 0 : 1;
             
             tmp[mask] += box.pMax[i] * plane[i];
             tmp[mask ^ 1] += box.pMin[i] * plane[i];

@@ -37,10 +37,10 @@ ARCH = $(shell uname)
 
 LEX=flex
 YACC=bison -d -v -t
-ifeq ($(ARCH),OpenBSD)
+ifeq ($(ARCH),Darwin)
     LEXLIB = -ll
 else
-    LEBLIB = -lfl
+    LEXLIB = -lfl
 endif
 
 ifeq ($(HAVE_DTRACE),1)

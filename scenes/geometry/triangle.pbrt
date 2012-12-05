@@ -1,0 +1,9 @@
+AttributeBegin
+Shape "trianglemesh" 
+  "integer indices" [ 0 1 2 ]
+  "point P" [
+    5 0 0
+    0 5 0
+    0 0 5
+  ]
+AttributeEnd
