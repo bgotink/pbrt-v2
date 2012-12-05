@@ -113,9 +113,6 @@ namespace shaft {
                 return;
             }
             
-            // we only get here if we should be in UNDECIDED but the subshafts aren't constructed yet
-            state = SHAFT_UNDECIDED;
-            
             Shaft &shaft = *this->shaft;
             Reference<ElementTreeNode> &receiver = shaft.receiverNode,
                                     &light = shaft.lightNode;
@@ -123,6 +120,7 @@ namespace shaft {
             if (receiver->is_leaf && light->is_leaf) {
                 is_leaf = true;
                 Info("Shaft is leaf");
+                state = SHAFT_UNDECIDED;
                 pthread_mutex_unlock(&mutex);
                 return;
             } else {
@@ -160,6 +158,7 @@ namespace shaft {
                 Info("Prims in shaft: before: %lu; left: %lu, right %lu", shaft.triangles.size(), left->shaft->triangles.size(), right->shaft->triangles.size());
             }
             
+            state = SHAFT_UNDECIDED;
             pthread_mutex_unlock(&mutex);
         }
         
