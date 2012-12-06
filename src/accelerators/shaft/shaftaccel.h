@@ -25,8 +25,8 @@ namespace shaft {
         typedef std::vector<Reference<Shape> > shape_list;
         
     public:
-        ShaftAccel(const prim_list &primitives, const prim_list &light_sources, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf);
-        ShaftAccel(const prim_list &primitives, const shape_list &light_sources, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf);
+        ShaftAccel(const prim_list &primitives, const prim_list &light_sources, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool drawShafts = false);
+        ShaftAccel(const prim_list &primitives, const shape_list &light_sources, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool drawShafts = false);
         ~ShaftAccel();
         
         BBox WorldBound() const { return bounding_box; }
@@ -35,10 +35,7 @@ namespace shaft {
         bool CanIntersect() const { return true; }
         
         // find intersection point
-        inline bool Intersect(const Ray &ray, Intersection *isect) const {
-            return fallback_accel->Intersect(ray, isect);
-        }
-        
+        bool Intersect(const Ray &ray, Intersection *isect) const;
         // check if shadow
         bool IntersectP(const Ray &ray) const;
         
@@ -49,8 +46,11 @@ namespace shaft {
         BBox bounding_box;
         
         mutable ShaftTreeNode *shaft_tree;
-        
         Aggregate *fallback_accel;
+        
+        const bool showShafts;
+        Reference<Primitive> prim;
+        
     }; // class ShaftAccel
     
     ShaftAccel *createShaftAccel(const std::vector<Reference<Primitive> > &receivers,

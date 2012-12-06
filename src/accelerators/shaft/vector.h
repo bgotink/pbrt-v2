@@ -83,6 +83,14 @@ namespace shaft{
         return o * p;
     }
     
+    inline float operator*(const ::Vector &v, const Vector4f &p) {
+        return v.x * p.x + v.y * p.y + v.z * p.z;
+    }
+    
+    inline float operator*(const Vector4f &p, const ::Vector &v) {
+        return v * p;
+    }
+    
     inline Vector4f CreatePlane(const Point &a, const Point &b, const Point&c) {
         ::Vector n = (b - a) ^ (c - a);
         float d = -n.x * a.x - n.y * a.y - n.z * a.z;

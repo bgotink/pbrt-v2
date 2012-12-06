@@ -602,6 +602,15 @@ inline Point operator*(float f, const Point &p) {
 }
 
 
+inline float operator*(const Normal &n, const Vector &v) {
+    return n.x * v.x + n.y * v.y + n.z * v.z;
+}
+
+inline float operator*(const Vector &v, const Normal &n) {
+    return n * v;
+}
+
+
 inline Normal operator*(float f, const Normal &n) {
     return Normal(f*n.x, f*n.y, f*n.z);
 }

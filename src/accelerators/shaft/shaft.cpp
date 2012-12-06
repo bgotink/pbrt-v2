@@ -11,6 +11,7 @@
 
 #include "pbrt.h"
 #include "log.h"
+#include "intersection.h"
 
 #include <set>
 #include <map>
@@ -156,6 +157,54 @@ namespace shaft {
         }
         
         return !one.epsilonEquals(two);
+    }
+    
+    bool ShaftGeometry::Intersect(const Ray &ray, Intersection *isect) const {
+        Intersection intersect;
+        float distance = INFINITY;
+        
+        for (plane_citer plane = planes.begin(); plane != planes.end(); plane++) {
+            float nominator = ray.d * *plane;
+            if (nominator == 0.f) {
+                // plane || ray
+                continue;
+            }
+            
+            float t = - (ray.o * *plane) / nominator;
+            if (t < 0 || t > distance)
+                continue;
+            
+            Point intersectPoint(ray(t));
+            
+            {
+                bool exit = false;
+                for (plane_citer p = planes.begin(); p != planes.end(); p++) {
+                    if (p == plane) continue;
+                    if (*p * intersectPoint < 0) {
+                        exit = true;
+                        break;
+                    }
+                }
+                if (exit) continue;
+            }
+            
+            intersect.dg.p = intersectPoint;
+            intersect.dg.nn = Normal(plane->x, plane->y, plane->z);
+            if (intersect.dg.nn * ray.d < 0.f)
+                intersect.dg.nn = -intersect.dg.nn;
+            intersect.rayEpsilon = 1e-3 * t;
+            distance = t;
+        }
+        
+        if (!isinf(distance)) {
+            if (isect) *isect = intersect;
+            return true;
+        }
+        return false;
+    }
+    
+    bool ShaftGeometry::IntersectP(const Ray &ray) const {
+        return Intersect(ray);
     }
     
     list<Point> ShaftGeometry::clampAndGetVertices(const Edge & edge) const {
@@ -571,6 +620,11 @@ namespace shaft {
                 surfaces.push_back(Surface::constructCombinedSurface(set_surfaces));
             }
         }
+    }
+    
+    bool Shaft::GeomIntersectP(const Ray &ray) const {
+        ShaftStartIntersectP();
+        return geometry.IntersectP(ray);
     }
     
     bool Shaft::IntersectP(const Ray &ray) const {

@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include "log.h"
 #include "paramset.h"
+#include "intersection.h"
 
 namespace shaft {
     
@@ -76,8 +77,20 @@ namespace shaft {
             return RayBBoxIntersect(shaft->lightNode->bounding_box, r);
         }
         
-        bool IntersectP(const Ray &ray) {
-            if (!RayInShaft(ray))
+        bool Intersect(const Ray &ray, Intersection *isect) {
+            if (state == SHAFT_UNSET) {
+                split();
+            }
+            
+            if (is_leaf) {
+                return shaft->Intersect(ray, isect);
+            } else {
+                return left->Intersect(ray, isect) || right->Intersect(ray, isect);
+            }
+        }
+        
+        bool IntersectP(const Ray &ray, bool showShafts = false) {
+            if (!showShafts && !RayInShaft(ray))
                 return false;
             
             if (state == SHAFT_UNSET) {
@@ -93,11 +106,31 @@ namespace shaft {
                     return false;
                 case SHAFT_UNDECIDED:
                 default:
-                    if (is_leaf) {
-                        return shaft->IntersectP(ray);
-                    } else {
-                        return left->IntersectP(ray) || right->IntersectP(ray);
-                    }
+                    if (showShafts)
+                        if (is_leaf) {
+                            return shaft->GeomIntersectP(ray);
+                        } else {
+                            return shaft->GeomIntersectP(ray);
+                        }
+                    else
+                        if (is_leaf) {
+                            return shaft->IntersectP(ray);
+                        } else {
+                            return left->IntersectP(ray) || right->IntersectP(ray);
+                        }
+            }
+        }
+        
+        void preSplit() {
+            if (state != SHAFT_UNSET) return;
+            
+            split();
+            
+            if (is_leaf)
+                return;
+            else {
+                left->preSplit();
+                right->preSplit();
             }
         }
         
@@ -179,20 +212,30 @@ namespace shaft {
         }
     };
     
-    ShaftAccel::ShaftAccel(const prim_list &primitives, const prim_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPoitnsInLightLeaf)
+    ShaftAccel::ShaftAccel(const prim_list &primitives, const prim_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPoitnsInLightLeaf, bool b)
     : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPoitnsInLightLeaf)),
-    fallback_accel(new BVHAccel(primitives))
+    fallback_accel(new BVHAccel(primitives)), showShafts(b)
     {
+        prim = *primitives.begin();
         bounding_box = Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box);
         shaft_tree = new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node));
+        
+        if (showShafts) {
+            shaft_tree->preSplit();
+        }
     }
     
-    ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf)
+    ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool b)
     : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPointsInLightLeaf)),
-    fallback_accel(new BVHAccel(primitives))
+    fallback_accel(new BVHAccel(primitives)), showShafts(b)
     {
+        prim = *primitives.begin();
         bounding_box = Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box);
         shaft_tree = new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node));
+        
+        if (showShafts) {
+            shaft_tree->preSplit();
+        }
     }
     
     ShaftAccel::~ShaftAccel() {
@@ -201,9 +244,20 @@ namespace shaft {
         delete fallback_accel;
     }
     
+    bool ShaftAccel::Intersect(const Ray &ray, Intersection *isect) const {
+        if (showShafts) {
+            if (!shaft_tree->Intersect(ray, isect))
+                return false;
+            isect->primitive = &*prim;
+            return true;
+        } else {
+            return fallback_accel->Intersect(ray, isect);
+        }
+    }
+    
     bool ShaftAccel::IntersectP(const Ray &ray) const {
         ShaftAccelIntersectP();
-        return shaft_tree->IntersectP(ray);
+        return shaft_tree->IntersectP(ray, showShafts);
     }
     
     ShaftAccel *createShaftAccel(const std::vector<Reference<Primitive> > &receivers,
@@ -211,9 +265,12 @@ namespace shaft {
                                  const ParamSet &ps) {
         uint32_t nbPointsInReceiverNode = (uint32_t)ps.FindOneInt("receiver_treshold", 15);
         uint32_t nbPointsInLightNode = (uint32_t)ps.FindOneInt("light_treshold", 15);
+        bool showShafts = ps.FindOneBool("draw_shafts", false);
         ps.ReportUnused();
         
-        return new ShaftAccel(receivers, lights, nbPointsInReceiverNode, nbPointsInLightNode);
+        return new ShaftAccel(receivers, lights,
+                              nbPointsInReceiverNode, nbPointsInLightNode,
+                              showShafts);
     }
     
 } // namespace shaft

@@ -39,6 +39,9 @@ namespace shaft {
         bool intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const;
         bool intersectsLine(Point one, Point two) const;
         
+        bool Intersect(const Ray &ray, Intersection *isect = NULL) const;
+        bool IntersectP(const Ray &ray) const;
+        
         ShaftGeometry(Reference<ElementTreeNode> &receiver_node, Reference<ElementTreeNode> &light_node);
         inline ~ShaftGeometry() {}
         
@@ -89,8 +92,6 @@ namespace shaft {
         inline Mesh &getMesh() { return receiverNode->tree->mesh; }
         inline const Mesh &getMesh() const { return receiverNode->tree->mesh; }
         
-        bool TriIntersectsP(const Ray &ray) const;
-        
     public:
         inline const Reference<Triangle> &getTriangle(int idx) const {
             return getMesh().getTriangle(idx);
@@ -108,7 +109,12 @@ namespace shaft {
             return surfaces.empty() && receiverNode->empty();
         }
         
+        inline bool Intersect(const Ray &ray, Intersection *isect) const {
+            return geometry.Intersect(ray, isect);
+        }
         bool IntersectP(const Ray &ray) const;
+        bool GeomIntersectP(const Ray &ray) const;
+        
         
         inline static Reference<Shaft> constructSubShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
                                                     Reference<ElementTreeNode> &split, Shaft &parent) {
