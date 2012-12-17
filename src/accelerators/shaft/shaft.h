@@ -18,6 +18,7 @@
 #include "mesh.h"
 #include "tree.h"
 #include "surface.h"
+#include "log.h"
 
 namespace shaft {
     
@@ -74,6 +75,10 @@ namespace shaft {
         
         nbllist triangles;
         
+#ifdef SHAFT_LOG
+        uint32_t depth;
+#endif
+        
         Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, Reference<ElementTreeNode> &split, Shaft &parent);
         Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light);
         
@@ -115,6 +120,13 @@ namespace shaft {
         bool IntersectP(const Ray &ray) const;
         bool GeomIntersectP(const Ray &ray) const;
         
+        inline bool isLeaf() const {
+            return receiverNode->is_leaf && lightNode->is_leaf;
+        }
+        
+#ifdef SHAFT_LOG
+        inline uint32_t getDepth() const { return depth; }
+#endif
         
         inline static Reference<Shaft> constructSubShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
                                                     Reference<ElementTreeNode> &split, Shaft &parent) {

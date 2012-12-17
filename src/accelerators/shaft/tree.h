@@ -53,7 +53,7 @@ private:
 public:
     ElementTreeNode(ElementTree *tree);
     bool IntersectP(const Ray &ray) const;
-    bool empty() const;
+    inline bool empty() const { return inside_triangles.empty();}
     
     friend class ElementTree;
     friend class ShaftTreeNode;

@@ -22,9 +22,16 @@ namespace shaft {
     AtomicInt64 nb_intersect_done = 0;
     AtomicInt64 nb_no_intersected_shaft = 0;
     AtomicInt64 nb_node_intersect_done = 0;
+    
     AtomicInt64 nb_shaft_blocked = 0;
     AtomicInt64 nb_shaft_empty = 0;
     AtomicInt64 nb_shaftaccel_intersectp = 0;
+    
+    AtomicInt64 nb_leave_shafts = 0;
+    AtomicInt64 nb_total_prims_in_leaves = 0;
+    AtomicInt64 nb_total_prims_in_leave_nodes = 0;
+    AtomicInt64 nb_total_points_in_leave_nodes = 0;
+    AtomicInt64 nb_total_depth = 0;
 #endif
     
     enum ShaftState {
@@ -66,13 +73,16 @@ namespace shaft {
         bool is_leaf;
         
         bool RayInShaft(const Ray &ray) {
-            if (!RayBBoxIntersect(shaft->receiverNode->bounding_box, ray))
-                return false;
-            
             // lenghten the ray by 1, because the algorithm takes the
             // length to be E smaller than the distance to the light
             // source
-            Ray r = Ray(ray.o, ray.d, ray.mint, ray.maxt + 1, ray.time, ray.depth);
+            // Also, set mint to 0, because it starts at +- .9 to disallow
+            // intersecting with the geometry where it started
+            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
+            
+            if (!shaft->receiverNode->bounding_box.Inside(ray.o))
+            /*if (!shaft->receiverNode->bounding_box.IntersectP(r))*/
+                return false;
             
             return RayBBoxIntersect(shaft->lightNode->bounding_box, r);
         }
@@ -150,11 +160,19 @@ namespace shaft {
             Reference<ElementTreeNode> &receiver = shaft.receiverNode,
                                     &light = shaft.lightNode;
             
-            if (receiver->is_leaf && light->is_leaf) {
+            if (shaft.isLeaf()) {
                 is_leaf = true;
-                Info("Shaft is leaf");
                 state = SHAFT_UNDECIDED;
                 pthread_mutex_unlock(&mutex);
+                
+                Warning("Shaft is leaf (#prims in shaft: %lu, #prims in node: %lu, #points in node: %lu",
+                        shaft.triangles.size(),
+                        shaft.receiverNode->inside_triangles.size(),
+                        shaft.receiverNode->points.size());
+                ShaftLeafCreated(shaft.receiverNode->inside_triangles.size(),
+                                 shaft.receiverNode->points.size(),
+                                 shaft.triangles.size(),
+                                 shaft.getDepth());
                 return;
             } else {
                 is_leaf = false;
@@ -220,9 +238,9 @@ namespace shaft {
         bounding_box = Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box);
         shaft_tree = new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node));
         
-        if (showShafts) {
+        //if (showShafts) {
             shaft_tree->preSplit();
-        }
+        //}
     }
     
     ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool b)
@@ -233,9 +251,9 @@ namespace shaft {
         bounding_box = Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box);
         shaft_tree = new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node));
         
-        if (showShafts) {
+        //if (showShafts) {
             shaft_tree->preSplit();
-        }
+        //}
     }
     
     ShaftAccel::~ShaftAccel() {

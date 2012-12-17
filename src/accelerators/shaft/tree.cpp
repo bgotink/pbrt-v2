@@ -206,8 +206,6 @@ void ElementTreeNode::split() {
         }
     }
     
-    //    left->createBoundingBox();
-    //    right->createBoundingBox();
     left->bounding_box = bounding_box;
     left->bounding_box.pMax[split_axis] = split_pos;
     
@@ -226,12 +224,14 @@ void ElementTreeNode::split() {
         left->is_leaf = true;
     } else {
         Info("Left child is not a leaf (points: %lu/%u)", left->points.size(), tree->max_points_in_leaf);
+        left->is_leaf = false;
     }
     if (right->points.size() < tree->max_points_in_leaf) {
         right->is_leaf = true;
         Info("Right child is leaf (points: %lu/%u)", right->points.size(), tree->max_points_in_leaf);
     } else {
         Info("Right child is not a leaf (points: %lu/%u)", right->points.size(), tree->max_points_in_leaf);
+        right->is_leaf = false;
     }
     
     vector<Reference<Triangle> > &triangles = mesh.triangles;
@@ -239,7 +239,7 @@ void ElementTreeNode::split() {
     for (nbiter t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
         triangle = triangles[*t_idx];
 
-        /*float a = mesh.getPoint(triangle->getPoint(0))[split_axis],
+        float a = mesh.getPoint(triangle->getPoint(0))[split_axis],
             b = mesh.getPoint(triangle->getPoint(1))[split_axis],
             c = mesh.getPoint(triangle->getPoint(2))[split_axis];
         
@@ -253,31 +253,19 @@ void ElementTreeNode::split() {
             right->inside_triangles.push_back(*t_idx);
         } else {
             right->gone_triangles.push_back(*t_idx);
-        }*/
+        }
         
- /*       const Point &a = points[triangle->getPoint(0)],
-                    &b = points[triangle->getPoint(1)],
-                    &c = points[triangle->getPoint(2)];
-        
-        Info("Triangle ((%f,%f,%f), (%f,%f,%f), (%f,%f,%f))",
-             a[0], a[1], a[2],
-             b[0], b[1], b[2],
-             c[0], c[1], c[2]);*/
-        if (Intersects(left->bounding_box, triangle, mesh)) {
-            //            Info("inside left");
+        /*if (Intersects(left->bounding_box, triangle, mesh)) {
             left->inside_triangles.push_back(*t_idx);
         } else {
-            //            Info("outside left");
             left->gone_triangles.push_back(*t_idx);
         }
 
         if (Intersects(right->bounding_box, triangle, mesh)) {
-            //            Info("inside right");
             right->inside_triangles.push_back(*t_idx);
         } else {
-            //            Info("outside right");
             right->gone_triangles.push_back(*t_idx);
-        }
+        }*/
     }
     
     Info("After split: %lu prims in current, %lu in left, %lu in right", inside_triangles.size(), left->inside_triangles.size(), right->inside_triangles.size());
@@ -314,7 +302,7 @@ void ElementTreeNode::createBoundingBox() {
         bounding_box.Insert(point_pos[*point]);
     }
     
-    bounding_box.Expand(1.f);
+    //bounding_box.Expand(1.f);
     
     Info("Created BBox for ElementTreeNode");
 }
@@ -335,10 +323,6 @@ bool ElementTreeNode::IntersectP(const Ray &ray) const {
     }
     
     return false;
-}
-    
-bool ElementTreeNode::empty() const {
-    return inside_triangles.empty();
 }
 
 }

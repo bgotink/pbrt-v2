@@ -103,7 +103,7 @@ namespace shaft {
             bool check[3] = { true, true, true };
             for (plane_citer plane = planes.begin(); plane != planes.end(); plane++) {
                 for (int i = 0; i < 3; i++) {
-                    check[i] &= (*point[i] * *plane) > 0;
+                    check[i] &= (*point[i] * *plane) >= 0;
                 }
             }
             if (check[0] || check[1] || check[2])
@@ -543,6 +543,14 @@ namespace shaft {
             if (geometry.intersects(mesh.getTriangle(*tris), mesh))
                 triangles.push_back(*tris);
         }
+        for (nbciter tris = split->gone_triangles.begin(); tris != split->gone_triangles.end(); tris++) {
+            if (geometry.intersects(mesh.getTriangle(*tris), mesh))
+                triangles.push_back(*tris);
+        }
+            
+#ifdef SHAFT_LOG
+        depth = parent.depth + 1;
+#endif
     }
     
     // cf. [Laine, 06] fig 4.31
@@ -568,6 +576,10 @@ namespace shaft {
         for (surface_iter s = surfaces.begin(); s != surfaces.end(); s++) {
             (*s)->computeBoundingBox();
         }
+        
+#ifdef SHAFT_LOG
+        depth = 0;
+#endif
     }
     
     // cf [Laine, 06] fig 4.26

@@ -154,7 +154,7 @@ namespace shaft {
     }
     
     bool IntersectsTriangle(const Reference<Triangle> &triangle, const Mesh &mesh, const Ray &ray) {
-        PBRT_RAY_TRIANGLE_INTERSECTIONP_TEST(const_cast<Ray *>(&ray), const_cast<Triangle *>(this));
+        PBRT_RAY_TRIANGLE_INTERSECTIONP_TEST(const_cast<Ray *>(&ray), const_cast<Triangle *>(&*triangle));
         // Compute $\VEC{s}_1$
         
         // Get triangle vertices in _p1_, _p2_, and _p3_
