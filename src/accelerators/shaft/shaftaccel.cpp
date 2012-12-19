@@ -73,17 +73,10 @@ namespace shaft {
         bool is_leaf;
         
         bool RayInShaft(const Ray &ray) {
-            // lenghten the ray by 1, because the algorithm takes the
-            // length to be E smaller than the distance to the light
-            // source
-            // Also, set mint to 0, because it starts at +- .9 to disallow
-            // intersecting with the geometry where it started
-            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
-            
             if (!shaft->receiverNode->bounding_box.Inside(ray.o))
-            /*if (!shaft->receiverNode->bounding_box.IntersectP(r))*/
                 return false;
             
+            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
             return RayBBoxIntersect(shaft->lightNode->bounding_box, r);
         }
         

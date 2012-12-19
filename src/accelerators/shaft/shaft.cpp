@@ -299,21 +299,21 @@ namespace shaft {
 
     #define CREATE_PLANES_Z(first, last) \
         if (first.pMax.x > last.pMax.x) \
-            planes.push_back(CreatePlane(first.getXyZ(), first.getXYZ(), last.getXYZ())); \
+            planes.push_back(CreatePlane(first.getXYZ(), first.getXyZ(), last.getXYZ())); \
         else \
-            planes.push_back(CreatePlane(first.getXyz(), first.getXYz(), last.getXYz())); \
+            planes.push_back(CreatePlane(first.getXYz(), first.getXyz(), last.getXYz())); \
         if (first.pMax.y > last.pMax.y) \
-            planes.push_back(CreatePlane(first.getXYZ(), first.getxYZ(), last.getXYZ())); \
+            planes.push_back(CreatePlane(first.getxYZ(), first.getXYZ(), last.getXYZ())); \
         else \
-            planes.push_back(CreatePlane(first.getXYz(), first.getxYz(), last.getXYz())); \
+            planes.push_back(CreatePlane(first.getxYz(), first.getXYz(), last.getXYz())); \
         if (first.pMin.x < last.pMin.x) \
-            planes.push_back(CreatePlane(first.getxYZ(), first.getxyZ(), last.getxyZ())); \
+            planes.push_back(CreatePlane(first.getxyZ(), first.getxYZ(), last.getxyZ())); \
         else \
-            planes.push_back(CreatePlane(first.getxYz(), first.getxyZ(), last.getxyz())); \
+            planes.push_back(CreatePlane(first.getxyz(), first.getxYz(), last.getxyz())); \
         if (first.pMin.y < last.pMin.y) \
-            planes.push_back(CreatePlane(first.getxyZ(), first.getXyZ(), last.getxyZ())); \
+            planes.push_back(CreatePlane(first.getXyZ(), first.getxyZ(), last.getXyZ())); \
         else \
-            planes.push_back(CreatePlane(first.getxyz(), first.getXyz(), last.getxyz()));
+            planes.push_back(CreatePlane(first.getXyz(), first.getxyz(), last.getxyz()));
 
     
     ShaftGeometry::ShaftGeometry(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light)
