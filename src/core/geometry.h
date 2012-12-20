@@ -488,6 +488,9 @@ public:
                       (p.y - pMin.y) / (pMax.y - pMin.y),
                       (p.z - pMin.z) / (pMax.z - pMin.z));
     }
+    inline Vector Extent() const {
+        return pMax - pMin;
+    }
     void BoundingSphere(Point *c, float *rad) const;
     bool IntersectP(const Ray &ray, float *hitt0 = NULL, float *hitt1 = NULL) const;
 

@@ -103,7 +103,7 @@ namespace shaft {
     
     struct ShaftTreeNode {
         ShaftTreeNode(const Reference<Shaft> &shaft) : shaft(shaft), left(NULL), right(NULL), state(getState())
-        , show(NULL) {
+        , show(NULL), probVis(false) {
             pthread_mutex_init(&mutex, NULL);
             Assert(shaft);
         }
@@ -117,6 +117,7 @@ namespace shaft {
         
         bool is_leaf;
         bool *show;
+        bool probVis;
         
         bool RayInShaft(const Ray &ray) {
             if (!shaft->receiverNode->bounding_box.Inside(ray.o))
@@ -145,9 +146,9 @@ namespace shaft {
                 default:
                     if (is_leaf) {
                         if (show == NULL)
-                            return shaft->IntersectP(ray);
+                            return shaft->IntersectP(ray, probVis);
                         else {
-                            return *show ? shaft->IntersectP(ray) : false;
+                            return *show ? shaft->IntersectP(ray, false) : false;
                         }
                     } else {
                         return left->IntersectP(ray) || right->IntersectP(ray);
@@ -210,6 +211,20 @@ namespace shaft {
                 accel.set(triangles);
                 
             } else *show = false;
+        }
+        
+        void useProbVis() {
+            if (probVis) return; // already run
+            probVis = true;
+            
+            RNG *rng = new RNG;
+            
+            if (is_leaf) {
+                shaft->initProbVis(*rng);
+            } else {
+                left->useProbVis();
+                right->useProbVis();
+            }
         }
         
     private:
@@ -301,7 +316,7 @@ namespace shaft {
         }
     };
     
-    ShaftAccel::ShaftAccel(const prim_list &primitives, const prim_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPoitnsInLightLeaf, bool b, const Point &shaftPoint)
+    ShaftAccel::ShaftAccel(const prim_list &primitives, const prim_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPoitnsInLightLeaf, bool b, const Point &shaftPoint, bool useProbVis)
     : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPoitnsInLightLeaf)), showShafts(b), shaftPoint(shaftPoint)
     {
         prim = *primitives.begin();
@@ -315,9 +330,13 @@ namespace shaft {
             shaft_tree->showShaft(shaftPoint, fallbackCreator);
         }
         fallback_accel = fallbackCreator.createAccel();
+        
+        if (useProbVis) {
+            shaft_tree->useProbVis();
+        }
     }
     
-    ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool b, const Point &shaftPoint)
+    ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool b, const Point &shaftPoint, bool useProbVis)
     : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPointsInLightLeaf)), showShafts(b), shaftPoint(shaftPoint)
     {
         prim = *primitives.begin();
@@ -331,6 +350,10 @@ namespace shaft {
             shaft_tree->showShaft(shaftPoint, fallbackCreator);
         }
         fallback_accel = fallbackCreator.createAccel();
+        
+        if (useProbVis) {
+            shaft_tree->useProbVis();
+        }
     }
     
     ShaftAccel::~ShaftAccel() {
@@ -358,11 +381,13 @@ namespace shaft {
         if (showShafts) {
             shaftPoint = ps.FindOnePoint("shaft_point", Point(0, 0, 0));
         }
+        bool useProbVis = ps.FindOneBool("use_probvis", !showShafts);
+        
         ps.ReportUnused();
         
         return new ShaftAccel(receivers, lights,
                               nbPointsInReceiverNode, nbPointsInLightNode,
-                              showShafts, shaftPoint);
+                              showShafts, shaftPoint, useProbVis);
     }
     
 } // namespace shaft

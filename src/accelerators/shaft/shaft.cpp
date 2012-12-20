@@ -12,6 +12,7 @@
 #include "pbrt.h"
 #include "log.h"
 #include "intersection.h"
+#include "geometry.h"
 
 #include <set>
 #include <map>
@@ -634,25 +635,91 @@ namespace shaft {
         }
     }
     
-    bool Shaft::GeomIntersectP(const Ray &ray) const {
-        ShaftStartIntersectP();
-        return geometry.IntersectP(ray);
-    }
+#   define P_A  0.4
+#   define P_B  0.3
     
-    bool Shaft::IntersectP(const Ray &ray) const {
+    bool Shaft::IntersectP(const Ray &ray, bool useProbVis) const {
         const Mesh &mesh = getMesh();
 
         ShaftStartIntersectP();
         
-        // check all triangles
-        for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
-            ShaftIntersectTest();
-            if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
-                return true;
-        }
-        ShaftNotIntersected();
+        // if (!useProbVis) {
+            // check all triangles
+            for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+                ShaftIntersectTest();
+                if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
+                    return true;
+            }
+            ShaftNotIntersected();
         
-        return receiverNode->IntersectP(ray);
+            return receiverNode->IntersectP(ray);
+     /*   }
+        
+        float p = rng->RandomFloat();
+        if ((p -= P_A) < 0) {
+            return IntersectsTriangle(mostBlockingOccluder, mesh, ray);
+        }*/
+    }
+    
+#   define PROBVIS_NBTESTS_RECEIVER 3
+#   define PROBVIS_NBTESTS_LIGHT    2
+    
+    void Shaft::initProbVis(RNG &rng) {
+        typedef std::map<uint32_t, unsigned int> countmap;
+        
+        Assert(isLeaf());
+        
+        countmap counts;
+        for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+            counts[*t] = 0;
+        }
+        
+        BBox &receiverBox = receiverNode->bounding_box;
+        BBox &lightBox = lightNode->bounding_box;
+        
+        Point &receiverStart = receiverBox.pMin;
+        Vector receiverStep = receiverBox.Extent() / PROBVIS_NBTESTS_RECEIVER;
+        
+        Point &lightStart = lightBox.pMin;
+        Vector lightStep = lightBox.Extent() / PROBVIS_NBTESTS_LIGHT;
+        
+        const nbllist &triangles = this->triangles;
+        const Mesh &mesh = getMesh();
+        
+        for (int ir = 0; ir < PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER; ir++) {
+            int xr = ir % PROBVIS_NBTESTS_RECEIVER;
+            int yr = (ir / PROBVIS_NBTESTS_RECEIVER) % PROBVIS_NBTESTS_RECEIVER;
+            int zr = (ir / PROBVIS_NBTESTS_RECEIVER) / PROBVIS_NBTESTS_RECEIVER;
+            
+            Point pr = receiverStart + Vector(receiverStep.x * xr, receiverStep.y * yr, receiverStep.z * zr);
+            
+            for (int il = 0; il < PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT; il++) {
+                int xl = il % PROBVIS_NBTESTS_LIGHT;
+                int yl = (il / PROBVIS_NBTESTS_LIGHT) % PROBVIS_NBTESTS_LIGHT;
+                int zl = (il / PROBVIS_NBTESTS_LIGHT) / PROBVIS_NBTESTS_LIGHT;
+                
+                Point pl = lightStart + Vector(lightStep.x * xl, lightStep.y * yl, lightStep.z * zl);
+                
+                Ray ray(pr, pl - pr, 0.f);
+                
+                for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+                    if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray)) {
+                        counts[*t]++;
+                    }
+                }
+            }
+        }
+        
+        unsigned int max = 0;
+        for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+            if (counts[*t] > max) {
+                max = counts[*t];
+                mostBlockingOccluder = mesh.getTriangle(*t);
+            }
+        }
+        Info("Most blocking occluder blocked %u times", max);
+        
+        this->rng = &rng;
     }
 
 }

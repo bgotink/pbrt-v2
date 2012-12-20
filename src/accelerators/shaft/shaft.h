@@ -19,6 +19,7 @@
 #include "tree.h"
 #include "surface.h"
 #include "log.h"
+#include "rng.h"
 
 namespace shaft {
     
@@ -97,6 +98,9 @@ namespace shaft {
         inline Mesh &getMesh() { return receiverNode->tree->mesh; }
         inline const Mesh &getMesh() const { return receiverNode->tree->mesh; }
         
+        Reference<Triangle> mostBlockingOccluder;
+        RNG *rng;
+        
     public:
         inline const Reference<Triangle> &getTriangle(int idx) const {
             return getMesh().getTriangle(idx);
@@ -117,8 +121,7 @@ namespace shaft {
         inline bool Intersect(const Ray &ray, Intersection *isect) const {
             return geometry.Intersect(ray, isect);
         }
-        bool IntersectP(const Ray &ray) const;
-        bool GeomIntersectP(const Ray &ray) const;
+        bool IntersectP(const Ray &ray, bool useProbVis) const;
         
         inline bool isLeaf() const {
             return receiverNode->is_leaf && lightNode->is_leaf;
@@ -127,6 +130,8 @@ namespace shaft {
 #ifdef SHAFT_LOG
         inline uint32_t getDepth() const { return depth; }
 #endif
+        
+        void initProbVis(RNG &rng);
         
         inline static Reference<Shaft> constructSubShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
                                                     Reference<ElementTreeNode> &split, Shaft &parent) {
