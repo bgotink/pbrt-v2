@@ -41,6 +41,10 @@
 #include "shape.h"
 #include "material.h"
 
+namespace shaft {
+    class ShaftTreeNode;
+}
+
 // Primitive Declarations
 class Primitive : public ReferenceCounted {
 public:
@@ -58,6 +62,8 @@ public:
         const Transform &ObjectToWorld, MemoryArena &arena) const = 0;
     virtual BSSRDF *GetBSSRDF(const DifferentialGeometry &dg,
         const Transform &ObjectToWorld, MemoryArena &arena) const = 0;
+    
+    virtual Reference<Material> getMaterial() const { return Reference<Material>(NULL); }
 
     virtual Reference<Shape> getShape() const { return Reference<Shape>(NULL); }
     
@@ -88,12 +94,15 @@ public:
                       const Transform &ObjectToWorld, MemoryArena &arena) const;
     
     virtual Reference<Shape> getShape() const { return shape; }
+    virtual Reference<Material> getMaterial() const { return material; }
     
 private:
     // GeometricPrimitive Private Data
     Reference<Shape> shape;
     Reference<Material> material;
     AreaLight *areaLight;
+    
+    friend class shaft::ShaftTreeNode;
 };
 
 

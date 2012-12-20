@@ -126,6 +126,10 @@ public:
     
     inline bool isValid() const { return n < mesh->ntris; }
     
+    bool operator==(const Triangle &t) const {
+        return t.n == n && t.v == v;
+    }
+    
     float Area() const;
     virtual void GetShadingGeometry(const Transform &obj2world,
             const DifferentialGeometry &dg,

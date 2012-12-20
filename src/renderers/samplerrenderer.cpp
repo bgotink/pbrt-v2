@@ -239,6 +239,8 @@ Spectrum SamplerRenderer::Li(const Scene *scene,
         // Handle ray that doesn't intersect any geometry
         for (uint32_t i = 0; i < scene->lights.size(); ++i)
            Li += scene->lights[i]->Le(ray);
+        if (Li == 0.f)
+            Li = .5f;
     }
     Spectrum Lvi = volumeIntegrator->Li(scene, this, ray, sample, rng,
                                         T, arena);

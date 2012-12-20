@@ -25,8 +25,8 @@ namespace shaft {
         typedef std::vector<Reference<Shape> > shape_list;
         
     public:
-        ShaftAccel(const prim_list &primitives, const prim_list &light_sources, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool drawShafts = false);
-        ShaftAccel(const prim_list &primitives, const shape_list &light_sources, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool drawShafts = false);
+        ShaftAccel(const prim_list &primitives, const prim_list &light_sources, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool drawShafts = false, const Point &shaftPoint = Point(0, 0, 0));
+        ShaftAccel(const prim_list &primitives, const shape_list &light_sources, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool drawShafts = false, const Point &shaftPoint = Point(0, 0, 0));
         ~ShaftAccel();
         
         BBox WorldBound() const { return bounding_box; }
@@ -49,6 +49,7 @@ namespace shaft {
         Aggregate *fallback_accel;
         
         const bool showShafts;
+        const Point shaftPoint;
         Reference<Primitive> prim;
         
     }; // class ShaftAccel

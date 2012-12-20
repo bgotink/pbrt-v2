@@ -2,7 +2,8 @@
 LookAt 278 273 -800  278 273 0   0 1 0
 Camera "perspective" "float fov" [37.5]
 #PixelFilter "mitchell" "float xwidth" [3] "float ywidth" [3]
-Accelerator "shaft"
+Accelerator "shaft" "bool draw_shafts" "true" "point shaft_point" [ 500.0  250.0 0.0 ]
+#Accelerator "shaft"
 Sampler "random" "integer pixelsamples" [64]
 Film "image" "integer xresolution" [480] "integer yresolution" [480]
 

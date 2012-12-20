@@ -14,6 +14,9 @@
 #include "log.h"
 #include "paramset.h"
 #include "intersection.h"
+#include <set>
+#include <list>
+#include <vector>
 
 namespace shaft {
     
@@ -33,6 +36,47 @@ namespace shaft {
     AtomicInt64 nb_total_points_in_leave_nodes = 0;
     AtomicInt64 nb_total_depth = 0;
 #endif
+    
+    class BVHAccelCreator {
+        typedef std::vector<Reference<Primitive> > primarr;
+        typedef primarr::iterator primaiter;
+        
+        typedef std::list<Reference<Primitive> > primlist;
+        
+        primarr prims;
+        const Mesh &mesh;
+    public:
+        typedef std::set<Shape *> trisset;
+        typedef trisset::iterator trisiter;
+        
+        BVHAccelCreator(const primarr &p, const Mesh &mesh) : mesh(mesh) {
+            prims = p;
+        }
+        
+        void set(trisset &shapes) {
+            Reference<Material> material = mesh.getSomeMaterial();
+            
+            prims.clear();
+            prims.reserve(shapes.size());
+
+            Reference<Shape> shape;
+            Reference<Primitive> prim;
+            for (trisiter triangle = shapes.begin(); triangle != shapes.end(); triangle++) {
+                shape = *triangle;
+                
+                /*prim = mesh.getPrimitive(shape);
+                if (prim) {
+                    newPrims.push_back(Reference<Primitive>(prim));
+                }*/
+                prims.push_back(Reference<Primitive>(new GeometricPrimitive(shape, material, NULL)));
+            }
+            Info("Shapes to retain: %lu, primitives kept: %lu", shapes.size(), prims.size());
+        }
+        
+        BVHAccel *createAccel() {
+            return new BVHAccel(prims);
+        }
+    };
     
     enum ShaftState {
         SHAFT_BLOCKED, SHAFT_EMPTY, SHAFT_UNDECIDED, SHAFT_UNSET
@@ -58,7 +102,8 @@ namespace shaft {
     }
     
     struct ShaftTreeNode {
-        ShaftTreeNode(const Reference<Shaft> &shaft) : shaft(shaft), left(NULL), right(NULL), state(getState()) {
+        ShaftTreeNode(const Reference<Shaft> &shaft) : shaft(shaft), left(NULL), right(NULL), state(getState())
+        , show(NULL) {
             pthread_mutex_init(&mutex, NULL);
             Assert(shaft);
         }
@@ -71,6 +116,7 @@ namespace shaft {
         ShaftState state;
         
         bool is_leaf;
+        bool *show;
         
         bool RayInShaft(const Ray &ray) {
             if (!shaft->receiverNode->bounding_box.Inside(ray.o))
@@ -78,18 +124,6 @@ namespace shaft {
             
             Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
             return RayBBoxIntersect(shaft->lightNode->bounding_box, r);
-        }
-        
-        bool Intersect(const Ray &ray, Intersection *isect) {
-            if (state == SHAFT_UNSET) {
-                split();
-            }
-            
-            if (is_leaf) {
-                return shaft->Intersect(ray, isect);
-            } else {
-                return left->Intersect(ray, isect) || right->Intersect(ray, isect);
-            }
         }
         
         bool IntersectP(const Ray &ray, bool showShafts = false) {
@@ -109,38 +143,82 @@ namespace shaft {
                     return false;
                 case SHAFT_UNDECIDED:
                 default:
-                    if (showShafts)
-                        if (is_leaf) {
-                            return shaft->GeomIntersectP(ray);
-                        } else {
-                            return shaft->GeomIntersectP(ray);
-                        }
-                    else
-                        if (is_leaf) {
+                    if (is_leaf) {
+                        if (show == NULL)
                             return shaft->IntersectP(ray);
-                        } else {
-                            return left->IntersectP(ray) || right->IntersectP(ray);
+                        else {
+                            return *show ? shaft->IntersectP(ray) : false;
                         }
+                    } else {
+                        return left->IntersectP(ray) || right->IntersectP(ray);
+                    }
             }
         }
         
-        void preSplit() {
+        void split() {
             if (state != SHAFT_UNSET) return;
             
-            split();
+            doSplit();
             
             if (is_leaf)
                 return;
             else {
-                left->preSplit();
-                right->preSplit();
+                left->split();
+                right->split();
             }
+        }
+        
+        void showShaft(const Point &shaftPoint, BVHAccelCreator &accel) {
+            Assert(state != SHAFT_UNSET);
+            
+            if (!is_leaf) {
+                left->showShaft(shaftPoint, accel);
+                right->showShaft(shaftPoint, accel);
+                return;
+            }
+            
+            show = new bool;
+            if (shaft->receiverNode->bounding_box.Inside(shaftPoint)) {
+                Info("showShaft actually doing it's work at ShaftTreeNode %p, depth: %u", this, shaft->depth);
+                Info("showShaft for point (%f, %f, %f)", shaftPoint.x, shaftPoint.y, shaftPoint.z);
+                *show = true;
+                
+                BVHAccelCreator::trisset triangles;
+                const ElementTreeNode::nblist &nodeTris = shaft->receiverNode->inside_triangles;
+                const Shaft::nbllist &shaftTris = shaft->triangles;
+                
+                Mesh &mesh = shaft->getMesh();
+                
+                size_t nodeRetained = 0, shaftRetained = 0;
+                for (ElementTreeNode::nbciter tidx = nodeTris.begin(); tidx != nodeTris.end(); tidx++) {
+                    ::Triangle *triangle = &*mesh.getTriangle(*tidx)->getOriginal();
+
+                    if (triangles.insert(static_cast<Shape *>(triangle)).second)
+                        nodeRetained++;
+                }
+                for (Shaft::nblciter tidx = shaftTris.begin(); tidx != shaftTris.end(); tidx++) {
+                    ::Triangle *triangle = &*mesh.getTriangle(*tidx)->getOriginal();
+                    
+                    if (triangles.insert(static_cast<Shape *>(triangle)).second)
+                        shaftRetained++;
+                }
+                
+                Info("Retaining %lu triangles (%lu/%lu from node, %lu/%lu from shaft)", triangles.size(),
+                        nodeRetained, nodeTris.size(),
+                        shaftRetained, shaftTris.size());
+                Info("Total size of mesh: %u", mesh.getNbTriangles());
+                accel.set(triangles);
+                
+            } else *show = false;
         }
         
     private:
         pthread_mutex_t mutex;
+                     
+        typedef std::vector<Reference<Primitive> > primlist;
+        typedef primlist::iterator primiter;
         
-        void split() {
+        void doSplit() {
             pthread_mutex_lock(&mutex);
             
             // we just acquired the lock, check if not set already
@@ -223,30 +301,36 @@ namespace shaft {
         }
     };
     
-    ShaftAccel::ShaftAccel(const prim_list &primitives, const prim_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPoitnsInLightLeaf, bool b)
-    : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPoitnsInLightLeaf)),
-    fallback_accel(new BVHAccel(primitives)), showShafts(b)
+    ShaftAccel::ShaftAccel(const prim_list &primitives, const prim_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPoitnsInLightLeaf, bool b, const Point &shaftPoint)
+    : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPoitnsInLightLeaf)), showShafts(b), shaftPoint(shaftPoint)
     {
         prim = *primitives.begin();
         bounding_box = Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box);
         shaft_tree = new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node));
         
-        //if (showShafts) {
-            shaft_tree->preSplit();
-        //}
+        shaft_tree->split();
+        
+        BVHAccelCreator fallbackCreator(primitives, receiver_tree->mesh);
+        if (showShafts) {
+            shaft_tree->showShaft(shaftPoint, fallbackCreator);
+        }
+        fallback_accel = fallbackCreator.createAccel();
     }
     
-    ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool b)
-    : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPointsInLightLeaf)),
-    fallback_accel(new BVHAccel(primitives)), showShafts(b)
+    ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool b, const Point &shaftPoint)
+    : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPointsInLightLeaf)), showShafts(b), shaftPoint(shaftPoint)
     {
         prim = *primitives.begin();
         bounding_box = Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box);
         shaft_tree = new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node));
         
-        //if (showShafts) {
-            shaft_tree->preSplit();
-        //}
+        shaft_tree->split();
+        
+        BVHAccelCreator fallbackCreator(primitives, receiver_tree->mesh);
+        if (showShafts) {
+            shaft_tree->showShaft(shaftPoint, fallbackCreator);
+        }
+        fallback_accel = fallbackCreator.createAccel();
     }
     
     ShaftAccel::~ShaftAccel() {
@@ -256,14 +340,7 @@ namespace shaft {
     }
     
     bool ShaftAccel::Intersect(const Ray &ray, Intersection *isect) const {
-        if (showShafts) {
-            if (!shaft_tree->Intersect(ray, isect))
-                return false;
-            isect->primitive = &*prim;
-            return true;
-        } else {
-            return fallback_accel->Intersect(ray, isect);
-        }
+        return fallback_accel->Intersect(ray, isect);
     }
     
     bool ShaftAccel::IntersectP(const Ray &ray) const {
@@ -277,11 +354,15 @@ namespace shaft {
         uint32_t nbPointsInReceiverNode = (uint32_t)ps.FindOneInt("receiver_treshold", 15);
         uint32_t nbPointsInLightNode = (uint32_t)ps.FindOneInt("light_treshold", 15);
         bool showShafts = ps.FindOneBool("draw_shafts", false);
+        Point shaftPoint;
+        if (showShafts) {
+            shaftPoint = ps.FindOnePoint("shaft_point", Point(0, 0, 0));
+        }
         ps.ReportUnused();
         
         return new ShaftAccel(receivers, lights,
                               nbPointsInReceiverNode, nbPointsInLightNode,
-                              showShafts);
+                              showShafts, shaftPoint);
     }
     
 } // namespace shaft

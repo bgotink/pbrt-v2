@@ -22,16 +22,7 @@ using std::set;
 
 namespace shaft {
     
-    typedef vector<Point> point_v;
-    typedef point_v::iterator point_v_iter;
-    
-    typedef vector<Reference<Primitive> > prim_list;
-    typedef prim_list::const_iterator prim_iter;
-    
-    typedef list<Reference<TriangleMesh> > shape_list;
-    typedef shape_list::iterator shape_iter;
-    
-    shape_list filter(const vector<Reference<Shape> > &list) {
+    Mesh::shape_list Mesh::filter(const vector<Reference<Shape> > &list) {
         shape_list res;
         
         for (vector<Reference<Shape> >::const_iterator shape = list.begin(); shape != list.end(); shape++) {
@@ -47,9 +38,8 @@ namespace shaft {
         return res;
     }
     
-    shape_list filter(const prim_list &primitives) {
+    Mesh::shape_list Mesh::filter(const prim_list &primitives) {
         shape_list meshes;
-        
         {
             prim_iter prim_end = primitives.end();
             for (prim_iter prim = primitives.begin(); prim != prim_end; prim++) {
@@ -62,6 +52,7 @@ namespace shaft {
                         Warning("The shape is not a TriangleMesh, skipping...");
                     } else {
                         meshes.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*shape)));
+                        shape_prim_map[&*shape] = Reference<Primitive>(*prim);
                     }
                 }
             }
@@ -87,6 +78,8 @@ namespace shaft {
         map< Point, uint32_t> vmap;
         list<Reference<Triangle> > new_triangles;
         
+        vector<Reference<Primitive> > prims;
+        
         int vertex_idx = 0;
         const shape_iter meshes_end = meshes.end();
         for (shape_iter shape = meshes.begin(); shape != meshes_end; shape++) {
@@ -94,16 +87,13 @@ namespace shaft {
         
             Reference< ::Triangle> cur_triangle = mesh.getTriangle(0);
         
-            const int ntris = mesh.getNbTriangles();
-            if (ntris == 0)
-                Warning("Empty trianglemesh!!");
-        
             set<RawEdge::idtype> edges_created;
         
             const ::Point *point;
             while (cur_triangle->isValid()) {
                 Triangle *t = new Triangle;
                 Triangle &new_triangle = *t;
+                new_triangle.original = mesh.getTriangle(cur_triangle->getIndex());
             
                 for (int i = 0; i < 3; i++) {
                     point = &cur_triangle->getPoint(i);
@@ -112,20 +102,17 @@ namespace shaft {
                         new_triangle.vertices[i] = vmap[*point];
                     } else {
                         new_vertices.push_back(Point(*point));
-                        //                        Info("Adding point (%f,%f,%f)", point->x, point->y, point->z);
                         
                         vmap[*point] = vertex_idx;
                         new_triangle.vertices[i] = vertex_idx;
                         
                         vertex_idx++;
                     }
-                    //                    Info("Vertex %d = %u", i, new_triangle.vertices[i]);
                 }
             
                 for (int i = 0; i < 3; i++) {
                     uint32_t from = new_triangle.vertices[i];
                     uint32_t to = new_triangle.vertices[i == 2 ? 0 : (i+1)];
-                    //                    Info("Edge %u -> %u", from, to);
                 
                     RawEdge::idtype edge_id = new_triangle.edge_labels[i] = RawEdge::createId(from, to);
                     if (edges_created.count(edge_id) == 0) {
@@ -140,7 +127,19 @@ namespace shaft {
             
                 ++(*cur_triangle);
             }
+            
+            Reference<Primitive> prim = getPrimitive(Reference<Shape>(&mesh));
+            if (prim) {
+                prim->FullyRefine(prims);
+            }
         }
+        
+        shape_prim_map.clear();
+        for (vector<Reference<Primitive> >::iterator prim = prims.begin(); prim != prims.end(); prim++) {
+            shape_prim_map[&* (*prim)->getShape()] = Reference<Primitive>(*prim);
+        }
+        
+        Info("Nb of primitives in prims: %lu, in the shape_prim_map: %lu", prims.size(), shape_prim_map.size());
         
         nbVertices = new_vertices.size();
         vertex_pos.reserve(nbVertices);
@@ -189,6 +188,13 @@ namespace shaft {
         
         PBRT_RAY_TRIANGLE_INTERSECTIONP_HIT(const_cast<Ray *>(&ray), t);
         return true;
+    }
+    
+    Reference<Material> Mesh::getSomeMaterial() const {
+        if (shape_prim_map.size() == 0)
+            return Reference<Material>(NULL);
+        
+        return shape_prim_map.begin()->second->getMaterial();
     }
     
 }

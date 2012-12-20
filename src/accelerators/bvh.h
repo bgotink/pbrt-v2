@@ -69,6 +69,8 @@ private:
     SplitMethod splitMethod;
     vector<Reference<Primitive> > primitives;
     LinearBVHNode *nodes;
+    
+    friend class shaft::ShaftTreeNode;
 };
 
 
