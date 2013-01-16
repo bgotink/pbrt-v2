@@ -47,6 +47,10 @@ bool VisibilityTester::Unoccluded(const Scene *scene) const {
     return !scene->IntersectP(r);
 }
 
+float VisibilityTester::Visibility(const Scene *scene) const {
+    return scene->Visibility(r);
+}
+
 
 Spectrum VisibilityTester::Transmittance(const Scene *scene,
         const Renderer *renderer, const Sample *sample,

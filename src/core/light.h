@@ -124,6 +124,7 @@ struct VisibilityTester {
         Assert(!r.HasNaNs());
     }
     bool Unoccluded(const Scene *scene) const;
+    float Visibility(const Scene *scene) const;
     Spectrum Transmittance(const Scene *scene, const Renderer *renderer,
         const Sample *sample, RNG &rng, MemoryArena &arena) const;
     Ray r;

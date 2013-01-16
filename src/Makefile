@@ -72,7 +72,7 @@ LIBS=$(LEXLIB) $(EXR_LIBDIR) $(EXRLIBS) -lm
 
 LIB_CSRCS=core/targa.c
 LIB_CXXSRCS  = $(wildcard core/*.cpp) core/pbrtlex.cpp core/pbrtparse.cpp
-LIB_CXXSRCS += $(wildcard accelerators/*.cpp accelerators/shaft/*.cpp cameras/*.cpp film/*.cpp filters/*.cpp )
+LIB_CXXSRCS += $(wildcard accelerators/*.cpp accelerators/shaft/*.cpp accelerators/shaft/vis/*.cpp cameras/*.cpp film/*.cpp filters/*.cpp )
 LIB_CXXSRCS += $(wildcard integrators/*.cpp lights/*.cpp materials/*.cpp renderers/*.cpp )
 LIB_CXXSRCS += $(wildcard samplers/*.cpp shapes/*.cpp textures/*.cpp volumes/*.cpp)
 
@@ -108,6 +108,10 @@ objs/accelerators_%.o: accelerators/%.cpp
 	@$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 objs/accelerators_shaft_%.o: accelerators/shaft/%.cpp
+	@echo "Building object $@"
+	@$(CXX) $(CXXFLAGS) -o $@ -c $<
+
+objs/accelerators_shaft_vis_%.o: accelerators/shaft/vis/%.cpp
 	@echo "Building object $@"
 	@$(CXX) $(CXXFLAGS) -o $@ -c $<
 

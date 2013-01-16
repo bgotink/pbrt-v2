@@ -31,6 +31,9 @@ extern AtomicInt64 nb_total_prims_in_leave_nodes;
 extern AtomicInt64 nb_total_points_in_leave_nodes;
 extern AtomicInt64 nb_total_depth;
     
+extern AtomicInt64 nb_pa, nb_pb, nb_pc;
+extern AtomicInt64 nb_panh, nb_pbnh, nb_pcnh;
+    
 inline void ShaftStartIntersectP() {
     AtomicAdd(&nb_intersect_done, 1);
 }
@@ -57,6 +60,30 @@ inline void ShaftEmpty() {
     
 inline void ShaftAccelIntersectP() {
     AtomicAdd(&nb_shaftaccel_intersectp, 1);
+}
+    
+inline void ProbVis_pa() {
+    AtomicAdd(&nb_pa, 1);
+}
+    
+inline void ProbVis_pb() {
+    AtomicAdd(&nb_pb, 1);
+}
+    
+inline void ProbVis_pc() {
+    AtomicAdd(&nb_pc, 1);
+}
+    
+inline void ProbVis_pa_noHit() {
+    AtomicAdd(&nb_panh, 1);
+}
+    
+inline void ProbVis_pb_noHit() {
+    AtomicAdd(&nb_pbnh, 1);
+}
+    
+inline void ProbVis_pc_noHit() {
+    AtomicAdd(&nb_pcnh, 1);
 }
     
 inline void ShaftLeafCreated(uint32_t nbPrims, uint32_t nbPoints, uint32_t nbPrimsInShaft, uint32_t depth) {
@@ -93,6 +120,17 @@ inline void ShaftLogResult() {
             nb_total_prims_in_leave_nodes, static_cast<double>(nb_total_prims_in_leave_nodes) / static_cast<double>(nb_leave_shafts),
             nb_total_points_in_leave_nodes, static_cast<double>(nb_total_points_in_leave_nodes) / static_cast<double>(nb_leave_shafts),
             static_cast<float>(nb_total_depth) / static_cast<double>(nb_leave_shafts));
+    
+    if (nb_pc > 0 || nb_pb > 0 || nb_pa > 0) {
+        fprintf(stderr, "\n"
+                "# times A: %lld - %lld (%f %%) missed\n"
+                "# times B: %lld - %lld (%f %%) missed\n"
+                "# times C: %lld - %lld (%f %%) missed\n",
+                nb_pa, nb_panh, 100. * static_cast<double>(nb_panh) / static_cast<double>(nb_pa),
+                nb_pb, nb_pbnh, 100. * static_cast<double>(nb_pbnh) / static_cast<double>(nb_pb),
+                nb_pc, nb_pcnh, 100. * static_cast<double>(nb_pcnh) / static_cast<double>(nb_pc)
+        );
+    }
 }
 
 #else
@@ -106,7 +144,14 @@ inline void ShaftLogResult() {
 #define ShaftEmpty()
 #define ShaftAccelIntersectP()
 #define ShaftLeafCreated(uint32_t a, uint32_t b, uint32_t c, const Shaft &s)
-
+    
+#define ProbVis_pa()
+#define ProbVis_pb()
+#define ProbVis_pc()
+#define ProbVis_pa_noHit()
+#define ProbVis_pb_noHit()
+#define ProbVis_pc_noHit()
+    
 #endif
 
 }

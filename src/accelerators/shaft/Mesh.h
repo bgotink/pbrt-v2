@@ -35,6 +35,7 @@ namespace shaft {
         inline uint32_t getPoint(unsigned int i) const { return vertices[i]; }
         
         inline Reference< ::Triangle> &getOriginal() { return original; }
+        inline const Reference< ::Triangle> &getOriginal() const { return original; }
     };
     
     class Mesh {

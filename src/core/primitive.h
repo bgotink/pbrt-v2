@@ -67,6 +67,8 @@ public:
 
     virtual Reference<Shape> getShape() const { return Reference<Shape>(NULL); }
     
+    virtual float Visibility(const Ray &r) const { return IntersectP(r) ? 0. : 1.; }
+    
     // Primitive Public Data
     const uint32_t primitiveId;
 protected:

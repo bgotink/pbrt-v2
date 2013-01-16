@@ -59,6 +59,12 @@ public:
         PBRT_FINISHED_RAY_INTERSECTIONP(const_cast<Ray *>(&ray), int(hit));
         return hit;
     }
+    float Visibility(const Ray &ray) const {
+        PBRT_STARTED_RAY_INTERSECTIONP(const_cast<Ray *>(&ray));
+        float hit = aggregate->Visibility(ray);
+        PBRT_FINISHED_RAY_INTERSECTIONP(const_cast<Ray *>(&ray), int(hit));
+        return hit;
+    }
     const BBox &WorldBound() const;
 
     // Scene Public Data

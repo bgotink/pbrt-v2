@@ -20,6 +20,7 @@
 #include "surface.h"
 #include "log.h"
 #include "rng.h"
+#include "vis/visibility.h"
 
 namespace shaft {
     
@@ -68,6 +69,8 @@ namespace shaft {
         typedef nbllist::iterator nbliter;
         typedef nbllist::const_iterator nblciter;
         
+        typedef std::set<unsigned int> nbset;
+        
         Reference<ElementTreeNode> receiverNode;
         Reference<ElementTreeNode> lightNode;
         
@@ -79,6 +82,8 @@ namespace shaft {
 #ifdef SHAFT_LOG
         uint32_t depth;
 #endif
+        
+        const ::shaft::vis::VisibilityCalculator *vis;
         
         Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, Reference<ElementTreeNode> &split, Shaft &parent);
         Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light);
@@ -98,10 +103,9 @@ namespace shaft {
         inline Mesh &getMesh() { return receiverNode->tree->mesh; }
         inline const Mesh &getMesh() const { return receiverNode->tree->mesh; }
         
-        Reference<Triangle> mostBlockingOccluder;
-        RNG *rng;
-        
     public:
+        ~Shaft();
+        
         inline const Reference<Triangle> &getTriangle(int idx) const {
             return getMesh().getTriangle(idx);
         }
@@ -121,7 +125,8 @@ namespace shaft {
         inline bool Intersect(const Ray &ray, Intersection *isect) const {
             return geometry.Intersect(ray, isect);
         }
-        bool IntersectP(const Ray &ray, bool useProbVis) const;
+        bool IntersectP(const Ray &ray) const;
+        float Visibility(const Ray &ray) const;
         
         inline bool isLeaf() const {
             return receiverNode->is_leaf && lightNode->is_leaf;
@@ -131,7 +136,7 @@ namespace shaft {
         inline uint32_t getDepth() const { return depth; }
 #endif
         
-        void initProbVis(RNG &rng);
+        void initProbVis(bool useProbVis, RNG *rng = NULL, const string * const type = NULL);
         
         inline static Reference<Shaft> constructSubShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
                                                     Reference<ElementTreeNode> &split, Shaft &parent) {

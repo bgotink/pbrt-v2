@@ -35,6 +35,13 @@ namespace shaft {
     AtomicInt64 nb_total_prims_in_leave_nodes = 0;
     AtomicInt64 nb_total_points_in_leave_nodes = 0;
     AtomicInt64 nb_total_depth = 0;
+    
+    AtomicInt64 nb_pa = 0;
+    AtomicInt64 nb_pb = 0;
+    AtomicInt64 nb_pc = 0;
+    AtomicInt64 nb_panh = 0;
+    AtomicInt64 nb_pbnh = 0;
+    AtomicInt64 nb_pcnh = 0;
 #endif
     
     class BVHAccelCreator {
@@ -103,11 +110,11 @@ namespace shaft {
     
     struct ShaftTreeNode {
         ShaftTreeNode(const Reference<Shaft> &shaft) : shaft(shaft), left(NULL), right(NULL), state(getState())
-        , show(NULL), probVis(false) {
+        , show(NULL), probVis(NULL) {
             pthread_mutex_init(&mutex, NULL);
             Assert(shaft);
         }
-        ~ShaftTreeNode() { if (left) delete left; if (right) delete right; }
+        ~ShaftTreeNode() { if (left) delete left; if (right) delete right; if(show) delete show; if(probVis) delete probVis; }
         
         Reference<Shaft> shaft;
         
@@ -117,7 +124,7 @@ namespace shaft {
         
         bool is_leaf;
         bool *show;
-        bool probVis;
+        bool *probVis;
         
         bool RayInShaft(const Ray &ray) {
             if (!shaft->receiverNode->bounding_box.Inside(ray.o))
@@ -128,12 +135,8 @@ namespace shaft {
         }
         
         bool IntersectP(const Ray &ray, bool showShafts = false) {
-            if (!showShafts && !RayInShaft(ray))
+            if (!RayInShaft(ray))
                 return false;
-            
-            if (state == SHAFT_UNSET) {
-                split();
-            }
             
             switch (state) {
                 case SHAFT_BLOCKED:
@@ -146,13 +149,38 @@ namespace shaft {
                 default:
                     if (is_leaf) {
                         if (show == NULL)
-                            return shaft->IntersectP(ray, probVis);
+                            return shaft->IntersectP(ray);
                         else {
-                            return *show ? shaft->IntersectP(ray, false) : false;
+                            return *show ? shaft->IntersectP(ray) : false;
                         }
                     } else {
                         return left->IntersectP(ray) || right->IntersectP(ray);
                     }
+            }
+        }
+        
+        float Visibility(const Ray &ray, bool *set = NULL) {
+            if (!RayInShaft(ray)) {
+                return 0.;
+            }
+            if (set) *set = true;
+            
+            switch (state) {
+                case SHAFT_BLOCKED:
+                    return 0.;
+                case SHAFT_EMPTY:
+                    return 1.;
+                case SHAFT_UNDECIDED:
+                default:
+                    if (is_leaf) {
+                        return shaft->Visibility(ray);
+                    } else {
+                        bool s = false;
+                        float v = left->Visibility(ray, &s);
+                        if (s) return v;
+                        return right->Visibility(ray);
+                    }
+                    break;
             }
         }
         
@@ -213,17 +241,19 @@ namespace shaft {
             } else *show = false;
         }
         
-        void useProbVis() {
+        void setUseProbVis(bool useProbVis, RNG *rng = NULL, const string * const type = NULL) {
             if (probVis) return; // already run
-            probVis = true;
+            probVis = new bool;
+            *probVis = useProbVis;
             
-            RNG *rng = new RNG;
+            if (useProbVis && !rng)
+                rng = new RNG;
             
             if (is_leaf) {
-                shaft->initProbVis(*rng);
+                shaft->initProbVis(useProbVis, rng, type);
             } else {
-                left->useProbVis();
-                right->useProbVis();
+                left->setUseProbVis(useProbVis, rng, type);
+                right->setUseProbVis(useProbVis, rng, type);
             }
         }
         
@@ -316,7 +346,7 @@ namespace shaft {
         }
     };
     
-    ShaftAccel::ShaftAccel(const prim_list &primitives, const prim_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPoitnsInLightLeaf, bool b, const Point &shaftPoint, bool useProbVis)
+    ShaftAccel::ShaftAccel(const prim_list &primitives, const prim_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPoitnsInLightLeaf, bool b, const Point &shaftPoint, const string * const probVisType)
     : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPoitnsInLightLeaf)), showShafts(b), shaftPoint(shaftPoint)
     {
         prim = *primitives.begin();
@@ -331,12 +361,15 @@ namespace shaft {
         }
         fallback_accel = fallbackCreator.createAccel();
         
-        if (useProbVis) {
-            shaft_tree->useProbVis();
+        if (probVisType == NULL) {
+            shaft_tree->setUseProbVis(false);
+        } else {
+            RNG *rng = new RNG;
+            shaft_tree->setUseProbVis(true, rng, probVisType);
         }
     }
     
-    ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool b, const Point &shaftPoint, bool useProbVis)
+    ShaftAccel::ShaftAccel(const prim_list &primitives, const shape_list &lights, uint32_t nbPointsInReceiverLeaf, uint32_t nbPointsInLightLeaf, bool b, const Point &shaftPoint, const string * const probVisType)
     : receiver_tree(new ElementTree(primitives, nbPointsInReceiverLeaf)), light_tree(new ElementTree(lights, nbPointsInLightLeaf)), showShafts(b), shaftPoint(shaftPoint)
     {
         prim = *primitives.begin();
@@ -351,8 +384,11 @@ namespace shaft {
         }
         fallback_accel = fallbackCreator.createAccel();
         
-        if (useProbVis) {
-            shaft_tree->useProbVis();
+        if (probVisType == NULL) {
+            shaft_tree->setUseProbVis(false);
+        } else {
+            RNG *rng = new RNG;
+            shaft_tree->setUseProbVis(true, rng, probVisType);
         }
     }
     
@@ -371,6 +407,11 @@ namespace shaft {
         return shaft_tree->IntersectP(ray, showShafts);
     }
     
+    float ShaftAccel::Visibility(const Ray &ray) const {
+        ShaftAccelIntersectP();
+        return shaft_tree->Visibility(ray);
+    }
+    
     ShaftAccel *createShaftAccel(const std::vector<Reference<Primitive> > &receivers,
                                  const std::vector<Reference<Shape> > &lights,
                                  const ParamSet &ps) {
@@ -382,12 +423,16 @@ namespace shaft {
             shaftPoint = ps.FindOnePoint("shaft_point", Point(0, 0, 0));
         }
         bool useProbVis = ps.FindOneBool("use_probvis", !showShafts);
+        string probVisType;
+        if (useProbVis) {
+            probVisType = ps.FindOneString("probvis_type", "bjorn");
+        }
         
         ps.ReportUnused();
         
         return new ShaftAccel(receivers, lights,
                               nbPointsInReceiverNode, nbPointsInLightNode,
-                              showShafts, shaftPoint, useProbVis);
+                              showShafts, shaftPoint, useProbVis ? &probVisType : NULL);
     }
     
 } // namespace shaft

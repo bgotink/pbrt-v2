@@ -18,6 +18,7 @@
 #include <map>
 
 using namespace std;
+using namespace shaft::vis;
 
 namespace shaft {
 
@@ -539,19 +540,29 @@ namespace shaft {
             (*surf)->computeBoundingBox();
         }
         
+        nbset new_triangles;
+        
         Mesh &mesh = getMesh();
         for (nblciter tris = parent.triangles.begin(); tris != parent.triangles.end(); tris++) {
-            if (geometry.intersects(mesh.getTriangle(*tris), mesh))
-                triangles.push_back(*tris);
+            if (geometry.intersects(mesh.getTriangle(*tris), mesh)
+                    && !Intersects(receiverNode->bounding_box, mesh.getTriangle(*tris), mesh))
+                new_triangles.insert(*tris);
         }
         for (nbciter tris = split->gone_triangles.begin(); tris != split->gone_triangles.end(); tris++) {
-            if (geometry.intersects(mesh.getTriangle(*tris), mesh))
-                triangles.push_back(*tris);
+            if (geometry.intersects(mesh.getTriangle(*tris), mesh)
+                    && !Intersects(receiverNode->bounding_box, mesh.getTriangle(*tris), mesh))
+                new_triangles.insert(*tris);
         }
-            
+        
+        triangles.insert(triangles.begin(), new_triangles.begin(), new_triangles.end());
+        
 #ifdef SHAFT_LOG
         depth = parent.depth + 1;
 #endif
+    }
+    
+    Shaft::~Shaft() {
+        if (vis) delete vis;
     }
     
     // cf. [Laine, 06] fig 4.31
@@ -635,42 +646,55 @@ namespace shaft {
         }
     }
     
-#   define P_A  0.4
-#   define P_B  0.3
-    
-    bool Shaft::IntersectP(const Ray &ray, bool useProbVis) const {
+    bool Shaft::IntersectP(const Ray &ray) const {
         const Mesh &mesh = getMesh();
 
         ShaftStartIntersectP();
         
-        // if (!useProbVis) {
-            // check all triangles
-            for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
-                ShaftIntersectTest();
-                if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
-                    return true;
-            }
-            ShaftNotIntersected();
+        // check all triangles
+        for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+            ShaftIntersectTest();
+            if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
+                return true;
+        }
+        ShaftNotIntersected();
         
-            return receiverNode->IntersectP(ray);
-     /*   }
-        
-        float p = rng->RandomFloat();
-        if ((p -= P_A) < 0) {
-            return IntersectsTriangle(mostBlockingOccluder, mesh, ray);
-        }*/
+        return receiverNode->IntersectP(ray);
     }
     
-#   define PROBVIS_NBTESTS_RECEIVER 3
-#   define PROBVIS_NBTESTS_LIGHT    2
+    float Shaft::Visibility(const Ray &ray) const {
+        return vis->Visibility(ray);
+    }
     
-    void Shaft::initProbVis(RNG &rng) {
-        typedef std::map<uint32_t, unsigned int> countmap;
-        
+#   define PROBVIS_NBTESTS_RECEIVER 6
+#   define PROBVIS_NBTESTS_LIGHT    3
+    
+    void Shaft::initProbVis(bool useProbVis, RNG *rng, const string * const type) {
+        Assert(!useProbVis || rng != NULL);
         Assert(isLeaf());
         
+        if (!useProbVis) {
+            vis = new ExactVisibilityCalculator(getMesh(), triangles, receiverNode);
+            return;
+        }
+        
+        typedef std::map<uint32_t, unsigned int> countmap;
+        
+        nblist &receiverTris = receiverNode->inside_triangles;
+        
+        ProbabilisticVisibilityCalculator::nbllist allTriangles;
+        {
+            std::set<unsigned int> trisSet;
+            trisSet.insert(triangles.begin(), triangles.end());
+            //trisSet.insert(receiverTris.begin(), receiverTris.end());
+            Info("Set: %lu, triangles: %lu, receivers: %lu",
+                 trisSet.size(), triangles.size(), receiverTris.size());
+            
+            allTriangles.insert(allTriangles.end(), trisSet.begin(), trisSet.end());
+        }
+        
         countmap counts;
-        for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+        for (ProbabilisticVisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
             counts[*t] = 0;
         }
         
@@ -678,48 +702,55 @@ namespace shaft {
         BBox &lightBox = lightNode->bounding_box;
         
         Point &receiverStart = receiverBox.pMin;
-        Vector receiverStep = receiverBox.Extent() / PROBVIS_NBTESTS_RECEIVER;
+        Vector receiverStep = receiverBox.Extent() / (PROBVIS_NBTESTS_RECEIVER - 1.);
         
         Point &lightStart = lightBox.pMin;
-        Vector lightStep = lightBox.Extent() / PROBVIS_NBTESTS_LIGHT;
+        Vector lightStep = lightBox.Extent() / (PROBVIS_NBTESTS_LIGHT - 1.);
         
         const nbllist &triangles = this->triangles;
         const Mesh &mesh = getMesh();
         
-        for (int ir = 0; ir < PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER; ir++) {
-            int xr = ir % PROBVIS_NBTESTS_RECEIVER;
-            int yr = (ir / PROBVIS_NBTESTS_RECEIVER) % PROBVIS_NBTESTS_RECEIVER;
-            int zr = (ir / PROBVIS_NBTESTS_RECEIVER) / PROBVIS_NBTESTS_RECEIVER;
+        for (int xr = 0; xr < PROBVIS_NBTESTS_RECEIVER; xr++) {
+        for (int yr = 0; yr < PROBVIS_NBTESTS_RECEIVER; yr++) {
+        for (int zr = 0; zr < PROBVIS_NBTESTS_RECEIVER; zr++) {
             
             Point pr = receiverStart + Vector(receiverStep.x * xr, receiverStep.y * yr, receiverStep.z * zr);
             
-            for (int il = 0; il < PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT; il++) {
-                int xl = il % PROBVIS_NBTESTS_LIGHT;
-                int yl = (il / PROBVIS_NBTESTS_LIGHT) % PROBVIS_NBTESTS_LIGHT;
-                int zl = (il / PROBVIS_NBTESTS_LIGHT) / PROBVIS_NBTESTS_LIGHT;
-                
+            for (int xl = 0; xl < PROBVIS_NBTESTS_LIGHT; xl++) {
+            for (int yl = 0; yl < PROBVIS_NBTESTS_LIGHT; yl++) {
+            for (int zl = 0; zl < PROBVIS_NBTESTS_LIGHT; zl++) {
+
                 Point pl = lightStart + Vector(lightStep.x * xl, lightStep.y * yl, lightStep.z * zl);
                 
                 Ray ray(pr, pl - pr, 0.f);
                 
-                for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+                for (ProbabilisticVisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
                     if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray)) {
                         counts[*t]++;
                     }
                 }
-            }
-        }
+            }}}
+        }}}
         
-        unsigned int max = 0;
+        unsigned int max = 0, cur;
+        Reference<Triangle> mostBlockingOccluder;
         for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
-            if (counts[*t] > max) {
-                max = counts[*t];
-                mostBlockingOccluder = mesh.getTriangle(*t);
+            cur = *t;
+            if (counts[cur] > max) {
+                max = counts[cur];
+                mostBlockingOccluder = mesh.getTriangle(cur);
             }
         }
-        Info("Most blocking occluder blocked %u times", max);
         
-        this->rng = &rng;
+        Info("Most blocking occluder: (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
+        Info("Most blocking occluder blocked %u / %d times", max,
+             PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER
+                * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT);
+        Info("Most blocking occluder inside receiver node? %s",
+             Intersects(receiverBox, mostBlockingOccluder, mesh) ? "true" : "false"
+             );
+        
+        vis = createProbabilisticVisibilityCalculator(*type, mesh, mostBlockingOccluder, allTriangles, *rng);
     }
 
 }

@@ -153,6 +153,9 @@ namespace shaft {
     }
     
     bool IntersectsTriangle(const Reference<Triangle> &triangle, const Mesh &mesh, const Ray &ray) {
+#if     true
+        return triangle->getOriginal()->IntersectP(ray);
+#else
         PBRT_RAY_TRIANGLE_INTERSECTIONP_TEST(const_cast<Ray *>(&ray), const_cast<Triangle *>(&*triangle));
         // Compute $\VEC{s}_1$
         
@@ -188,6 +191,7 @@ namespace shaft {
         
         PBRT_RAY_TRIANGLE_INTERSECTIONP_HIT(const_cast<Ray *>(&ray), t);
         return true;
+#endif
     }
     
     Reference<Material> Mesh::getSomeMaterial() const {
@@ -196,5 +200,4 @@ namespace shaft {
         
         return shape_prim_map.begin()->second->getMaterial();
     }
-    
 }
