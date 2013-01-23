@@ -78,6 +78,7 @@ namespace shaft {
         surface_list surfaces;
         
         nbllist triangles;
+        nbllist filtered_triangles;
         
 #ifdef SHAFT_LOG
         uint32_t depth;
@@ -103,6 +104,8 @@ namespace shaft {
         inline Mesh &getMesh() { return receiverNode->tree->mesh; }
         inline const Mesh &getMesh() const { return receiverNode->tree->mesh; }
         
+        void filterTriangles();
+        
     public:
         ~Shaft();
         
@@ -119,7 +122,7 @@ namespace shaft {
         }
         
         inline bool empty() const {
-            return surfaces.empty() && receiverNode->empty();
+            return triangles.empty();
         }
         
         inline bool Intersect(const Ray &ray, Intersection *isect) const {
@@ -129,7 +132,8 @@ namespace shaft {
         float Visibility(const Ray &ray) const;
         
         inline bool isLeaf() const {
-            return receiverNode->is_leaf && lightNode->is_leaf;
+            return (receiverNode->is_leaf && lightNode->is_leaf)
+                        || empty();
         }
         
 #ifdef SHAFT_LOG

@@ -113,6 +113,10 @@ namespace shaft {
         , show(NULL), probVis(NULL) {
             pthread_mutex_init(&mutex, NULL);
             Assert(shaft);
+            
+            if (state != SHAFT_UNSET) {
+                is_leaf = true;
+            }
         }
         ~ShaftTreeNode() { if (left) delete left; if (right) delete right; if(show) delete show; if(probVis) delete probVis; }
         
@@ -199,6 +203,7 @@ namespace shaft {
         
         void showShaft(const Point &shaftPoint, BVHAccelCreator &accel) {
             Assert(state != SHAFT_UNSET);
+            Assert(isValid());
             
             if (!is_leaf) {
                 left->showShaft(shaftPoint, accel);
@@ -240,8 +245,16 @@ namespace shaft {
                 
             } else *show = false;
         }
-        
+
         void setUseProbVis(bool useProbVis, RNG *rng = NULL, const string * const type = NULL) {
+            Assert(state != SHAFT_UNSET);
+            Assert(isValid());
+            
+            if (state == SHAFT_EMPTY || state == SHAFT_BLOCKED) {
+                // we don't need ProbVis here
+                return;
+            }
+            
             if (probVis) return; // already run
             probVis = new bool;
             *probVis = useProbVis;
@@ -255,6 +268,14 @@ namespace shaft {
                 left->setUseProbVis(useProbVis, rng, type);
                 right->setUseProbVis(useProbVis, rng, type);
             }
+        }
+        
+        operator bool() const {
+            return isValid();
+        }
+        
+        bool isValid() const {
+            return is_leaf || (right && left);
         }
         
     private:
@@ -274,7 +295,7 @@ namespace shaft {
             
             Shaft &shaft = *this->shaft;
             Reference<ElementTreeNode> &receiver = shaft.receiverNode,
-                                    &light = shaft.lightNode;
+                                       &light = shaft.lightNode;
             
             if (shaft.isLeaf()) {
                 is_leaf = true;
@@ -282,13 +303,13 @@ namespace shaft {
                 pthread_mutex_unlock(&mutex);
                 
                 Warning("Shaft is leaf (#prims in shaft: %lu, #prims in node: %lu, #points in node: %lu",
-                        shaft.triangles.size(),
-                        shaft.receiverNode->inside_triangles.size(),
-                        shaft.receiverNode->points.size());
+                                shaft.triangles.size(),
+                                shaft.receiverNode->inside_triangles.size(),
+                                shaft.receiverNode->points.size());
                 ShaftLeafCreated(shaft.receiverNode->inside_triangles.size(),
-                                 shaft.receiverNode->points.size(),
-                                 shaft.triangles.size(),
-                                 shaft.getDepth());
+                                shaft.receiverNode->points.size(),
+                                shaft.triangles.size(),
+                                shaft.getDepth());
                 return;
             } else {
                 is_leaf = false;
@@ -305,8 +326,13 @@ namespace shaft {
             else {
                 // use a heuristic (todo: use the clean heuristic provided by Laine
                 int axis = shaft.geometry.main_axis;
-                split_light = (receiver->bounding_box[1][axis] - receiver->bounding_box[0][axis])
-                            < (light->bounding_box[1][axis] - light->bounding_box[0][axis]);
+                if (axis != -1) {
+                    split_light = (receiver->bounding_box[1][axis] - receiver->bounding_box[0][axis])
+                                < (light->bounding_box[1][axis] - light->bounding_box[0][axis]);
+                } else {
+                    split_light = receiver->bounding_box.Extent().LengthSquared()
+                                < receiver->bounding_box.Extent().LengthSquared();
+                }
             }
             
             if (split_light) {

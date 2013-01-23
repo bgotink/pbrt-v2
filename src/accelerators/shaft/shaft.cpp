@@ -17,13 +17,15 @@
 #include <set>
 #include <map>
 
+#include <sstream>
+
 using namespace std;
 using namespace shaft::vis;
 
 namespace shaft {
 
     bool ShaftGeometry::canBeBlockedBy(const BBox &bounding_box) const {
-        return false;
+        return true;
     }
     
     typedef list<Reference<RawEdge> > rawedge_list;
@@ -555,6 +557,7 @@ namespace shaft {
         }
         
         triangles.insert(triangles.begin(), new_triangles.begin(), new_triangles.end());
+        filterTriangles();
         
 #ifdef SHAFT_LOG
         depth = parent.depth + 1;
@@ -565,6 +568,18 @@ namespace shaft {
         if (vis) delete vis;
     }
     
+    void Shaft::filterTriangles() {
+        BBox &receiverBox = receiverNode->bounding_box,
+             &lightBox = lightNode->bounding_box;
+        Mesh &mesh = getMesh();
+        nbliter end = triangles.end();
+        for (nbliter tris = triangles.begin(); tris != end; tris++) {
+            if (!Intersects(receiverBox, mesh.getTriangle(*tris), mesh)
+                && !Intersects(lightBox, mesh.getTriangle(*tris), mesh))
+                filtered_triangles.push_back(*tris);
+        }
+    }
+    
     // cf. [Laine, 06] fig 4.31
     Shaft::Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light)
     : receiverNode(receiver), lightNode(light), geometry(receiver, light) {
@@ -573,6 +588,8 @@ namespace shaft {
         for (int i = 0; i < nbTris; i++) {
             triangles.push_back(i);
         }
+        
+        filterTriangles();
         
         nblist triangles_vector(nbTris);
         triangles_vector.insert(triangles_vector.begin(), triangles.begin(), triangles.end());
@@ -673,25 +690,16 @@ namespace shaft {
         Assert(!useProbVis || rng != NULL);
         Assert(isLeaf());
         
-        if (!useProbVis) {
-            vis = new ExactVisibilityCalculator(getMesh(), triangles, receiverNode);
+        if (!useProbVis || filtered_triangles.empty()) {
+            vis = new ExactVisibilityCalculator(getMesh(), filtered_triangles, receiverNode);
             return;
         }
         
         typedef std::map<uint32_t, unsigned int> countmap;
         
-        nblist &receiverTris = receiverNode->inside_triangles;
+        //nblist &receiverTris = receiverNode->inside_triangles;
         
-        ProbabilisticVisibilityCalculator::nbllist allTriangles;
-        {
-            std::set<unsigned int> trisSet;
-            trisSet.insert(triangles.begin(), triangles.end());
-            //trisSet.insert(receiverTris.begin(), receiverTris.end());
-            Info("Set: %lu, triangles: %lu, receivers: %lu",
-                 trisSet.size(), triangles.size(), receiverTris.size());
-            
-            allTriangles.insert(allTriangles.end(), trisSet.begin(), trisSet.end());
-        }
+        ProbabilisticVisibilityCalculator::nbllist &allTriangles = filtered_triangles;
         
         countmap counts;
         for (ProbabilisticVisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
@@ -724,33 +732,60 @@ namespace shaft {
                 
                 Ray ray(pr, pl - pr, 0.f);
                 
+                unsigned int tris;
                 for (ProbabilisticVisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
-                    if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray)) {
-                        counts[*t]++;
+                    tris = *t;
+                    if (IntersectsTriangle(mesh.getTriangle(tris), mesh, ray)) {
+                        counts[tris]++;
                     }
                 }
             }}}
         }}}
         
-        unsigned int max = 0, cur;
-        Reference<Triangle> mostBlockingOccluder;
+        unsigned int max = 0, secondMax, cur;
+        Reference<Triangle> mostBlockingOccluder, secondMostBlockingOccluder;
         for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
             cur = *t;
             if (counts[cur] > max) {
+                secondMax = max;
+                secondMostBlockingOccluder = mostBlockingOccluder;
+                
                 max = counts[cur];
                 mostBlockingOccluder = mesh.getTriangle(cur);
             }
         }
         
-        Info("Most blocking occluder: (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
-        Info("Most blocking occluder blocked %u / %d times", max,
-             PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER
-                * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT);
-        Info("Most blocking occluder inside receiver node? %s",
-             Intersects(receiverBox, mostBlockingOccluder, mesh) ? "true" : "false"
-             );
+        if (max == 0) {
+            Info("ProbVis initialisation found no blockers, falling back to exact visibility");
+            vis = new ExactVisibilityCalculator(mesh, filtered_triangles, receiverNode);
+            return;
+        }
         
-        vis = createProbabilisticVisibilityCalculator(*type, mesh, mostBlockingOccluder, allTriangles, *rng);
+        {
+            std::stringstream s;
+            s << "Shaft: ";
+            s << "[" << receiverStart << "->" << lightStart << "] -> ";
+            s << "[" << receiverBox.pMax << "->" << lightBox.pMax << "]";
+            string str = s.str();
+            Info("%s", str.c_str());
+        }
+        Info("Most blocking occluder blocked (%u,%u) / %d times", max, secondMax,
+             PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER
+             * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT);
+        Info("Most blocking occluder: (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
+        {
+            std::stringstream s;
+            s << "Which is coordinates ";
+            s << mesh.getPoint(mostBlockingOccluder->getPoint(0));
+            s << " - ";
+            s << mesh.getPoint(mostBlockingOccluder->getPoint(1));
+            s << " - ";
+            s << mesh.getPoint(mostBlockingOccluder->getPoint(2));
+            string str = s.str();
+            Info("%s", str.c_str());
+        }
+        
+        vis = createProbabilisticVisibilityCalculator(*type, mesh, secondMostBlockingOccluder ? secondMostBlockingOccluder : mostBlockingOccluder, allTriangles, *rng);
     }
 
 }

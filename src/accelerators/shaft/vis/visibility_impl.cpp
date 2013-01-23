@@ -30,8 +30,18 @@ namespace vis {
         if (p < P_A) {
             ProbVis_pa();
             // (Vis_A - alpha) / p_A
-            if (IntersectsTriangle(mostBlockingOccluder, mesh, ray))
+            if (IntersectsTriangle(mostBlockingOccluder, mesh, ray)) {
+                //Info("Wow, a hit (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
                 return - ALPHA / P_A;
+            }
+            {
+                Ray rayClone = ray;
+                rayClone.mint = 0;
+                if (IntersectsTriangle(mostBlockingOccluder, mesh, rayClone)) {
+                    Info("Second test succeeds...");
+                    return - ALPHA / P_A;
+                }
+            }
             ProbVis_pa_noHit();
             return (1. - ALPHA) / P_A;
         } else if (p < P_B + P_A) {
