@@ -72,7 +72,6 @@ struct Distribution1D {
             for (int i = 1; i < n+1; ++i)
                 cdf[i] /= funcInt;
         }
-        Error("count: %d; func: %ld; cdf: %ld; funcInt: %d", count, (long int)func, (long int)cdf, (int)funcInt);
     }
     ~Distribution1D() {
         delete[] func;
@@ -100,9 +99,6 @@ struct Distribution1D {
         // Find surrounding CDF segments and _offset_
         float *ptr = std::upper_bound(cdf, cdf+count+1, u);
         int offset = max(0, int(ptr-cdf-1));
-        if (count <= 0) {
-            Error("count: %d; func: %ld; cdf: %ld; funcInt: %d", count, (long int)func, (long int)cdf, (int)funcInt);
-        }
         Assert(count > 0);
         Assert(offset < count);
         Assert(u >= cdf[offset] && u < cdf[offset+1]);
