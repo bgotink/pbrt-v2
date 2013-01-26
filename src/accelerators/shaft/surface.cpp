@@ -170,7 +170,7 @@ namespace shaft {
             
             for(patch_siter p = merge_patches.begin(); p != merge_patches.end(); p++) {
                 Reference<Patch> patch = *p;
-                patch_remap.at(patch) = new_patch_ref;
+                patch_remap[patch] = new_patch_ref;
                 for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
                     if (merge_patches.count(Reference<Patch>((*e)->getNeighbour())) == 0) {
                         Reference<Edge> clone = (*e)->clone();
@@ -184,6 +184,8 @@ namespace shaft {
             
             new_patches.push_back(Reference<Patch>(&new_patch));
         }
+        
+        Info("Mergin patches: %lu -> %lu", patches.size(), new_patches.size());
         
         patches = new_patches;
         
@@ -205,7 +207,8 @@ namespace shaft {
             patch = *p;
             for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
                 edge = *e;
-                if ((&*edge->getNeighbour() == &*patch) && (&*edge->getOwner() == &*patch)) {
+                if (edge->getNeighbour() && edge->getOwner()
+                        && (&*edge->getNeighbour() == &*patch) && (&*edge->getOwner() == &*patch)) {
                     e = patch->edges.erase(e);
                 }
             }
@@ -218,11 +221,13 @@ namespace shaft {
     // cf [Laine, 06] fig 4.25
     void Surface::splitSurface(surf_list &target_surfaces) {
         patch_set processed;
+        Info("Splitting surface with %lu patches", patches.size());
         for (patch_iter sp = patches.begin(); sp != patches.end(); sp++) {
             Reference<Patch> seed_patch = *sp;
             
             if (processed.count(seed_patch) != 0)
                 continue;
+            Info("Patch has %lu edges", seed_patch->edges.size());
             
             patch_set component_patches;
             patch_stack traversal_stack;

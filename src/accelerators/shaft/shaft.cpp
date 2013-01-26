@@ -505,6 +505,8 @@ namespace shaft {
             new_surface.patches.push_back(p);
         }
         
+        Info("Created surface with %lu patches", new_surface.patches.size());
+        
         return Reference<Surface>(&new_surface);
     }
     
@@ -559,6 +561,8 @@ namespace shaft {
         triangles.insert(triangles.begin(), new_triangles.begin(), new_triangles.end());
         filterTriangles();
         
+        Info("# Surfaces: %lu", surfaces.size());
+        
 #ifdef SHAFT_LOG
         depth = parent.depth + 1;
 #endif
@@ -591,8 +595,8 @@ namespace shaft {
         
         filterTriangles();
         
-        nblist triangles_vector(nbTris);
-        triangles_vector.insert(triangles_vector.begin(), triangles.begin(), triangles.end());
+        nblist triangles_vector(filtered_triangles.size());
+        triangles_vector.insert(triangles_vector.begin(), filtered_triangles.begin(), filtered_triangles.end());
         
         Reference<Surface> surf = constructTriangleSurface(triangles_vector);
         
@@ -605,6 +609,8 @@ namespace shaft {
         for (surface_iter s = surfaces.begin(); s != surfaces.end(); s++) {
             (*s)->computeBoundingBox();
         }
+        
+        Info("# Surfaces: %lu", surfaces.size());
         
 #ifdef SHAFT_LOG
         depth = 0;
