@@ -685,12 +685,29 @@ namespace shaft {
         return receiverNode->IntersectP(ray);
     }
     
+    bool isRayBlockedByTriangles(const ElementTreeNode::nblist &triangles, const Mesh &mesh, const Ray &ray) {
+        ElementTreeNode::nbciter end = triangles.end();
+        for (ElementTreeNode::nbciter t = triangles.begin(); t != end; t++) {
+            if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
+                return true;
+        }
+        return false;
+    }
+    
     float Shaft::Visibility(const Ray &ray) const {
+        const Mesh &mesh = getMesh();
+        
+        if (isRayBlockedByTriangles(receiverNode->inside_triangles, mesh, ray)
+                || isRayBlockedByTriangles(lightNode->inside_triangles, mesh, ray))
+            return 0.f;
+        
         return vis->Visibility(ray);
     }
     
 #   define PROBVIS_NBTESTS_RECEIVER 6
 #   define PROBVIS_NBTESTS_LIGHT    3
+#   define TOTAL_NBTEST             PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER \
+                                    * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT
     
     void Shaft::initProbVis(bool useProbVis, RNG *rng, const string * const type) {
         Assert(!useProbVis || rng != NULL);
@@ -748,14 +765,11 @@ namespace shaft {
             }}}
         }}}
         
-        unsigned int max = 0, secondMax, cur;
-        Reference<Triangle> mostBlockingOccluder, secondMostBlockingOccluder;
+        unsigned int max = 0, cur;
+        Reference<Triangle> mostBlockingOccluder;
         for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
             cur = *t;
             if (counts[cur] > max) {
-                secondMax = max;
-                secondMostBlockingOccluder = mostBlockingOccluder;
-                
                 max = counts[cur];
                 mostBlockingOccluder = mesh.getTriangle(cur);
             }
@@ -775,9 +789,8 @@ namespace shaft {
             string str = s.str();
             Info("%s", str.c_str());
         }
-        Info("Most blocking occluder blocked (%u,%u) / %d times", max, secondMax,
-             PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER
-             * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT);
+        Info("Most blocking occluder blocked %u / %d times", max, TOTAL_NBTEST);
+        Error("Most blocking occluder blocked %f %% times", static_cast<float>(100 * max) / static_cast<float>(TOTAL_NBTEST));
         Info("Most blocking occluder: (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
         {
             std::stringstream s;
@@ -791,7 +804,7 @@ namespace shaft {
             Info("%s", str.c_str());
         }
         
-        vis = createProbabilisticVisibilityCalculator(*type, mesh, secondMostBlockingOccluder ? secondMostBlockingOccluder : mostBlockingOccluder, allTriangles, *rng);
+        vis = createProbabilisticVisibilityCalculator(*type, mesh, mostBlockingOccluder, allTriangles, *rng);
     }
 
 }

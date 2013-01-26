@@ -45,12 +45,11 @@ public:
 };
 
 struct ElementTreeNode : public ReferenceCounted {
-private:
+public:
     typedef std::vector<unsigned int> nblist;
     typedef nblist::iterator nbiter;
     typedef nblist::const_iterator nbciter;
     
-public:
     ElementTreeNode(ElementTree *tree);
     bool IntersectP(const Ray &ray) const;
     inline bool empty() const { return inside_triangles.empty();}
