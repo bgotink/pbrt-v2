@@ -49,16 +49,19 @@ namespace vis {
         const shaft::Mesh &mesh;
         const Reference<shaft::Triangle> mostBlockingOccluder;
         const nbllist triangles;
+        const float mostBlockingOccluderBlocking;
         
         virtual float evaluate(const Ray &ray, float p) const = 0;
+        bool hitsMostBlocking(const Ray &ray) const;
+        bool hitsOtherOccluder(const Ray &ray) const;
         
     public:
-        ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng);
+        ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
         
         virtual float Visibility(const Ray &ray) const;
     };
     
-    ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng);
+    ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
 }
 }
 

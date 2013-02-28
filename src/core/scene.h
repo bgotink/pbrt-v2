@@ -57,6 +57,7 @@ public:
         PBRT_STARTED_RAY_INTERSECTIONP(const_cast<Ray *>(&ray));
         bool hit = aggregate->IntersectP(ray);
         PBRT_FINISHED_RAY_INTERSECTIONP(const_cast<Ray *>(&ray), int(hit));
+        Assert(false);
         return hit;
     }
     float Visibility(const Ray &ray) const {

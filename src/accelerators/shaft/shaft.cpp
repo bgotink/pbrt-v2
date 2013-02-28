@@ -695,17 +695,51 @@ namespace shaft {
     }
     
     float Shaft::Visibility(const Ray &ray) const {
-        const Mesh &mesh = getMesh();
-        
-        if (isRayBlockedByTriangles(receiverNode->inside_triangles, mesh, ray)
-                || isRayBlockedByTriangles(lightNode->inside_triangles, mesh, ray))
-            return 0.f;
+//        const Mesh &mesh = getMesh();
+//        
+//        if (isRayBlockedByTriangles(receiverNode->inside_triangles, mesh, ray)
+//                || isRayBlockedByTriangles(lightNode->inside_triangles, mesh, ray))
+//            return 0.f;
         
         return vis->Visibility(ray);
     }
     
-#   define PROBVIS_NBTESTS_RECEIVER 6
-#   define PROBVIS_NBTESTS_LIGHT    3
+    Ray createMatterTestRay(const Ray &ray, const BBox &box) {
+        Ray r = ray;
+        float t = r.mint;
+        float newT;
+        
+        if (ray.d.x < 0) {
+            newT = (box.pMax.x - r.o.x) / r.d.x;
+        } else {
+            newT = (box.pMin.x - r.o.x) / r.d.x;
+        }
+        t = min(t, newT);
+        
+        if (ray.d.y < 0) {
+            newT = (box.pMax.y - r.o.y) / r.d.y;
+        } else {
+            newT = (box.pMin.y - r.o.y) / r.d.y;
+        }
+        t = min(t, newT);
+        
+        if (ray.d.z < 0) {
+            newT = (box.pMax.z - r.o.z) / r.d.z;
+        } else {
+            newT = (box.pMin.z - r.o.z) / r.d.z;
+        }
+        t = min(t, newT);
+        
+        //Info("t += %f", t);
+        r.o += t * r.d;
+        r.mint = 0;
+        r.maxt += t;
+        
+        return r;
+    }
+    
+#   define PROBVIS_NBTESTS_RECEIVER 10
+#   define PROBVIS_NBTESTS_LIGHT    5
 #   define TOTAL_NBTEST             PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER \
                                     * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT
     
@@ -732,6 +766,9 @@ namespace shaft {
         BBox &receiverBox = receiverNode->bounding_box;
         BBox &lightBox = lightNode->bounding_box;
         
+        ElementTreeNode::nblist &receiverTris = receiverNode->inside_triangles;
+        ElementTreeNode::nblist &lightTris = lightNode->inside_triangles;
+        
         Point &receiverStart = receiverBox.pMin;
         Vector receiverStep = receiverBox.Extent() / (PROBVIS_NBTESTS_RECEIVER - 1.);
         
@@ -740,22 +777,49 @@ namespace shaft {
         
         const nbllist &triangles = this->triangles;
         const Mesh &mesh = getMesh();
+        uint countMatters = 0;
+        
+//        ElementTreeNode::pointlist receiverPoints = receiverNode->sample(PROBVIS_NBTESTS_RECEIVER)
+//                                 , lightPoints = lightNode->sample(PROBVIS_NBTESTS_LIGHT);
         
         for (int xr = 0; xr < PROBVIS_NBTESTS_RECEIVER; xr++) {
         for (int yr = 0; yr < PROBVIS_NBTESTS_RECEIVER; yr++) {
         for (int zr = 0; zr < PROBVIS_NBTESTS_RECEIVER; zr++) {
-            
+//        for (int xi = 0; xi < PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER; xi++) {
+        
             Point pr = receiverStart + Vector(receiverStep.x * xr, receiverStep.y * yr, receiverStep.z * zr);
+//            Point &pr = receiverPoints[xi];
             
             for (int xl = 0; xl < PROBVIS_NBTESTS_LIGHT; xl++) {
             for (int yl = 0; yl < PROBVIS_NBTESTS_LIGHT; yl++) {
             for (int zl = 0; zl < PROBVIS_NBTESTS_LIGHT; zl++) {
+//            for (int yi = 0; yi < PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT; yi++) {
 
                 Point pl = lightStart + Vector(lightStep.x * xl, lightStep.y * yl, lightStep.z * zl);
+//                Point &pl = lightPoints[yi];
                 
                 Ray ray(pr, pl - pr, 0.f);
                 
                 unsigned int tris;
+                bool rayMatters = false;
+                
+                // test whether the ray hits anything in the block
+                Ray r = createMatterTestRay(ray, receiverBox);
+                for (ElementTreeNode::nbciter t = receiverTris.begin(); !rayMatters && t != receiverTris.end(); t++) {
+                    if (IntersectsTriangle(mesh.getTriangle(*t), mesh, r))
+                        rayMatters = true;
+                }
+                
+                if (!rayMatters) continue;
+                rayMatters = false;
+                for (ElementTreeNode::nbciter t = lightTris.begin(); !rayMatters && t != lightTris.end(); t++) {
+                    if (IntersectsTriangle(mesh.getTriangle(*t), mesh, r))
+                        rayMatters = true;
+                }
+                
+                if (!rayMatters) continue;
+                countMatters++;
+                
                 for (ProbabilisticVisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
                     tris = *t;
                     if (IntersectsTriangle(mesh.getTriangle(tris), mesh, ray)) {
@@ -763,7 +827,9 @@ namespace shaft {
                     }
                 }
             }}}
+//            }
         }}}
+//        }
         
         unsigned int max = 0, cur;
         Reference<Triangle> mostBlockingOccluder;
@@ -781,6 +847,8 @@ namespace shaft {
             return;
         }
         
+        float mostBlockingOccluderBlocking = static_cast<float>(max) / static_cast<float>(countMatters);
+        
         {
             std::stringstream s;
             s << "Shaft: ";
@@ -789,22 +857,16 @@ namespace shaft {
             string str = s.str();
             Info("%s", str.c_str());
         }
-        Info("Most blocking occluder blocked %u / %d times", max, TOTAL_NBTEST);
-        Error("Most blocking occluder blocked %f %% times", static_cast<float>(100 * max) / static_cast<float>(TOTAL_NBTEST));
+        Info("Most blocking occluder blocked %u / %d times", max, countMatters);
+        Info("Most blocking occluder blocked %f %% times", 100. * mostBlockingOccluderBlocking);
         Info("Most blocking occluder: (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
-        {
-            std::stringstream s;
-            s << "Which is coordinates ";
-            s << mesh.getPoint(mostBlockingOccluder->getPoint(0));
-            s << " - ";
-            s << mesh.getPoint(mostBlockingOccluder->getPoint(1));
-            s << " - ";
-            s << mesh.getPoint(mostBlockingOccluder->getPoint(2));
-            string str = s.str();
-            Info("%s", str.c_str());
-        }
         
-        vis = createProbabilisticVisibilityCalculator(*type, mesh, mostBlockingOccluder, allTriangles, *rng);
+        ProbabilisticVisibilityCalculator::nbllist tmpTriangles;
+        tmpTriangles.insert(tmpTriangles.begin(), allTriangles.begin(), allTriangles.end());
+        tmpTriangles.insert(tmpTriangles.end(), receiverTris.begin(), receiverTris.end());
+        tmpTriangles.insert(tmpTriangles.end(), lightTris.begin(), lightTris.end());
+        
+        vis = createProbabilisticVisibilityCalculator(*type, mesh, mostBlockingOccluder, tmpTriangles, *rng, mostBlockingOccluderBlocking);
     }
 
 }

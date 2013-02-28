@@ -16,6 +16,7 @@
 #include "pbrt.h"
 #include "mesh.h"
 #include "memory.h"
+#include "rng.h"
 
 #include <vector>
 
@@ -50,9 +51,15 @@ public:
     typedef nblist::iterator nbiter;
     typedef nblist::const_iterator nbciter;
     
+    typedef std::vector< ::Point> pointlist;
+    typedef pointlist::iterator pointiter;
+    typedef pointlist::const_iterator pointciter;
+    
     ElementTreeNode(ElementTree *tree);
     bool IntersectP(const Ray &ray) const;
     inline bool empty() const { return inside_triangles.empty();}
+    
+    pointlist sample(uint count) const;
     
     friend class ElementTree;
     friend class ShaftTreeNode;
@@ -72,8 +79,11 @@ public:
 private:
     ElementTreeNode(ElementTree *tree, ElementTreeNode *parent);
     
+    static RNG rng;
+    
     void split();
     void createBoundingBox();
+    void setIsLeaf();
 };
     
 }

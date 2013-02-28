@@ -8,6 +8,8 @@
 
 #include "tree.h"
 #include "log.h"
+#include "../../shapes/trianglemesh.h"
+#include <sstream>
 
 #define X 0
 #define Y 1
@@ -127,13 +129,13 @@ bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh
     AXISTEST_Z12(e2[Y], e2[X], fey, fex);
     
     FINDMINMAX(v0[X],v1[X],v2[X],min,max);
-    if(min>boxhalfsize[X] || max<-boxhalfsize[X]) return 0;
+    if(min>boxhalfsize[X] || max<-boxhalfsize[X]) return false;
     
     FINDMINMAX(v0[Y],v1[Y],v2[Y],min,max);
-    if(min>boxhalfsize[Y] || max<-boxhalfsize[Y]) return 0;
+    if(min>boxhalfsize[Y] || max<-boxhalfsize[Y]) return false;
     
     FINDMINMAX(v0[Z],v1[Z],v2[Z],min,max);
-    if(min>boxhalfsize[Z] || max<-boxhalfsize[Z]) return 0;
+    if(min>boxhalfsize[Z] || max<-boxhalfsize[Z]) return false;
     
     normal = e0 ^ e1;
     if (!planeBoxOverlap(box, Point(v0), normal))
@@ -217,29 +219,13 @@ void ElementTreeNode::split() {
     Info("left bounding box: (%f,%f,%f) -> (%f,%f,%f)", left->bounding_box.pMin.x, left->bounding_box.pMin.y, left->bounding_box.pMin.z,
          left->bounding_box.pMax.x, left->bounding_box.pMax.y, left->bounding_box.pMax.z);
     Info("right bounding box: (%f,%f,%f) -> (%f,%f,%f)", right->bounding_box.pMin.x, right->bounding_box.pMin.y, right->bounding_box.pMin.z,
-         right->bounding_box.pMax.x, right->bounding_box.pMax.y, right->bounding_box.pMax.z);
-    
-    if (left->points.size() < tree->max_points_in_leaf) {
-        Info("Left child is leaf (points: %lu/%u)", left->points.size(), tree->max_points_in_leaf);
-        left->is_leaf = true;
-    } else {
-        Info("Left child is not a leaf (points: %lu/%u)", left->points.size(), tree->max_points_in_leaf);
-        left->is_leaf = false;
-    }
-    if (right->points.size() < tree->max_points_in_leaf) {
-        right->is_leaf = true;
-        Info("Right child is leaf (points: %lu/%u)", right->points.size(), tree->max_points_in_leaf);
-    } else {
-        Info("Right child is not a leaf (points: %lu/%u)", right->points.size(), tree->max_points_in_leaf);
-        right->is_leaf = false;
-    }
-    
+         right->bounding_box.pMax.x, right->bounding_box.pMax.y, right->bounding_box.pMax.z);    
     vector<Reference<Triangle> > &triangles = mesh.triangles;
     Reference<Triangle> triangle;
     for (nbiter t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
         triangle = triangles[*t_idx];
 
-        float a = mesh.getPoint(triangle->getPoint(0))[split_axis],
+        /*float a = mesh.getPoint(triangle->getPoint(0))[split_axis],
             b = mesh.getPoint(triangle->getPoint(1))[split_axis],
             c = mesh.getPoint(triangle->getPoint(2))[split_axis];
         
@@ -253,9 +239,9 @@ void ElementTreeNode::split() {
             right->inside_triangles.push_back(*t_idx);
         } else {
             right->gone_triangles.push_back(*t_idx);
-        }
+        }*/
         
-        /*if (Intersects(left->bounding_box, triangle, mesh)) {
+        if (Intersects(left->bounding_box, triangle, mesh)) {
             left->inside_triangles.push_back(*t_idx);
         } else {
             left->gone_triangles.push_back(*t_idx);
@@ -265,7 +251,21 @@ void ElementTreeNode::split() {
             right->inside_triangles.push_back(*t_idx);
         } else {
             right->gone_triangles.push_back(*t_idx);
-        }*/
+        }
+    }
+    
+    left->setIsLeaf();
+    if (left->is_leaf) {
+        Info("Left child is leaf (points: %lu/%u)", left->points.size(), tree->max_points_in_leaf);
+    } else {
+        Info("Left child is not a leaf (points: %lu/%u)", left->points.size(), tree->max_points_in_leaf);
+    }
+    
+    right->setIsLeaf();
+    if (right->is_leaf) {
+        Info("Right child is leaf (points: %lu/%u)", right->points.size(), tree->max_points_in_leaf);
+    } else {
+        Info("Right child is not a leaf (points: %lu/%u)", right->points.size(), tree->max_points_in_leaf);
     }
     
     Info("After split: %lu prims in current, %lu in left, %lu in right", inside_triangles.size(), left->inside_triangles.size(), right->inside_triangles.size());
@@ -280,10 +280,10 @@ ElementTreeNode::ElementTreeNode(ElementTree *tree) : parent(NULL), tree(tree) {
     for (unsigned int i = 0; i < mesh.getNbVertices(); i++) {
         points.push_back(i);
     }
-    is_leaf = (points.size() < tree->max_points_in_leaf);
     for (unsigned int i = 0; i < mesh.getNbTriangles(); i++) {
         inside_triangles.push_back(i);
     }
+    setIsLeaf();
     createBoundingBox();
 }
 
@@ -323,6 +323,59 @@ bool ElementTreeNode::IntersectP(const Ray &ray) const {
     }
     
     return false;
+}
+    
+void ElementTreeNode::setIsLeaf() {
+    if (empty()) {is_leaf = true; return;}
+    if (points.size() > tree->max_points_in_leaf) {
+        is_leaf = false;
+        return;
+    }
+    
+    /*Vector size = bounding_box.Extent();
+    uint max = 25;
+    if (size.x > max || size.y > max || size.z > max) {
+        is_leaf = false;
+        return;
+    }*/
+    is_leaf = true;
+}
+    
+RNG ElementTreeNode::rng;
+
+ElementTreeNode::pointlist ElementTreeNode::sample(uint count) const {
+    pointlist result;
+    uint nbTris = inside_triangles.size();
+    
+    uint size= count * count;
+    result.reserve(size);
+    
+    const Mesh &mesh = tree->mesh;
+    ::Normal n;
+    
+    for (uint cur = 0; cur < size; cur++) {
+        float u = rng.RandomFloat() * nbTris, v;
+        
+        int i = static_cast<int>(u);
+        u -= i;
+        
+        const Reference< ::Triangle> triangle = mesh.getTriangle(inside_triangles[i])->getOriginal();
+        Point p;
+        do {
+            u = rng.RandomFloat();
+            v = rng.RandomFloat();
+            p = triangle->Sample(u, v, &n);
+
+            {
+                std::stringstream ss;
+                ss << "Point " << p << " inside bounding box " << bounding_box << " ?";
+                Warning("%s", ss.str().c_str());
+            }
+        } while (!bounding_box.Inside(p));
+        result[cur] = p;
+    }
+    
+    return result;
 }
 
 }

@@ -98,6 +98,8 @@ namespace shaft {
             
             return shape_prim_map.at(&*shape);
         }
+        
+        operator char*() const;
     };
     
     bool IntersectsTriangle(const Reference<Triangle> &triangle, const Mesh &mesh, const Ray &ray);

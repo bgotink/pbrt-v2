@@ -12,17 +12,17 @@
 namespace shaft {
 namespace vis {
         
-#   define P_A  0.4
-#   define P_B  0.3
-#   define ALPHA    P_A
-#   define BETA     P_B
-        
-#   define P_C  1 - P_A - P_B
+#   define P_A  (mostBlockingOccluderBlocking)*(1-P_C)
+#   define P_B  (1-mostBlockingOccluderBlocking)*(1-P_C)
+#   define ALPHA    1/3
+#   define BETA     1/3
+
+#   define P_C  0.3
 #   define GAMMA 1 - ALPHA - BETA
 
     
-    BjornProbVisCalculator::BjornProbVisCalculator(const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng)
-                    : ProbabilisticVisibilityCalculator(mesh, mostBlockingOccluder, triangles, rng)
+    BjornProbVisCalculator::BjornProbVisCalculator(const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking)
+                    : ProbabilisticVisibilityCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking)
     {
     }
     
@@ -30,7 +30,7 @@ namespace vis {
         if (p < P_A) {
             ProbVis_pa();
             // (Vis_A - alpha) / p_A
-            if (IntersectsTriangle(mostBlockingOccluder, mesh, ray)) {
+            if (hitsMostBlocking(ray)) {
                 //Info("Wow, a hit (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
                 return - ALPHA / P_A;
             }
@@ -40,42 +40,30 @@ namespace vis {
             ProbVis_pb();
             // (Vis_B - beta) / p_B
             Reference<Triangle> triangle;
-            for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
-                triangle = mesh.getTriangle(*t);
-                if (&*triangle == &*mostBlockingOccluder)
-                    continue;
-                
-                if (IntersectsTriangle(triangle, mesh, ray))
-                    return - BETA / P_B;
-            }
+            if (hitsOtherOccluder(ray))
+                return - BETA / P_B;
             ProbVis_pb_noHit();
             return (1. - BETA) / P_B;
         } else {
             ProbVis_pc();
             // ((!Vis_A * !Vis_B) - (1 - alpha - beta)) / (1 - p_A - p_B)
             
-            if (!IntersectsTriangle(mostBlockingOccluder, mesh, ray)) {
+            if (!hitsMostBlocking(ray)) {
                 ProbVis_pc_noHit();
                 return - GAMMA / P_C;
             } else {
                 Reference<Triangle> triangle;
-                for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
-                    triangle = mesh.getTriangle(*t);
-                    if (&*triangle == &*mostBlockingOccluder)
-                        continue;
-                    
-                    if (IntersectsTriangle(triangle, mesh, ray)) {
-                        ProbVis_pc_noHit();
-                        return 1. - GAMMA / P_C;
-                    }
+                if (hitsOtherOccluder(ray)) {
+                    ProbVis_pc_noHit();
+                    return 1. - GAMMA / P_C;
                 }
                 return (- GAMMA) / P_C;
             }
         }
     }
     
-    BramProbVisCalculator::BramProbVisCalculator(const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng)
-                    : ProbabilisticVisibilityCalculator(mesh, mostBlockingOccluder, triangles, rng)
+    BramProbVisCalculator::BramProbVisCalculator(const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking)
+                    : ProbabilisticVisibilityCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking)
     {
     }
     

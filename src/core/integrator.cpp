@@ -129,7 +129,7 @@ Spectrum EstimateDirect(const Scene *scene, const Renderer *renderer,
     if (lightPdf > 0. && !Li.IsBlack()) {
         Spectrum f = bsdf->f(wo, wi, flags);
         float pVis = 0;
-        if (!f.IsBlack() && (pVis = visibility.Visibility(scene) != 0.)) {
+        if (!f.IsBlack() && (pVis = visibility.Visibility(scene)) != 0.) {
             // Add light's contribution to reflected radiance
             Li *= pVis * visibility.Transmittance(scene, renderer, NULL, rng, arena);
             if (light->IsDeltaLight())

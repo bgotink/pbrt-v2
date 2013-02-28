@@ -122,13 +122,14 @@ inline void ShaftLogResult() {
             static_cast<float>(nb_total_depth) / static_cast<double>(nb_leave_shafts));
     
     if (nb_pc > 0 || nb_pb > 0 || nb_pa > 0) {
+        float tot = nb_pa + nb_pb + nb_pc;
         fprintf(stderr, "\n"
-                "# times A: %lld - %lld (%f %%) missed\n"
-                "# times B: %lld - %lld (%f %%) missed\n"
-                "# times C: %lld - %lld (%f %%) missed\n",
-                nb_pa, nb_panh, 100. * static_cast<double>(nb_panh) / static_cast<double>(nb_pa),
-                nb_pb, nb_pbnh, 100. * static_cast<double>(nb_pbnh) / static_cast<double>(nb_pb),
-                nb_pc, nb_pcnh, 100. * static_cast<double>(nb_pcnh) / static_cast<double>(nb_pc)
+                "# times A: %lld (%f %%) \t-\t %lld (%f %%) missed\n"
+                "# times B: %lld (%f %%) \t-\t %lld (%f %%) missed\n"
+                "# times C: %lld (%f %%) \t-\t %lld (%f %%) missed\n",
+                nb_pa, (static_cast<float>(nb_pa) / tot), nb_panh, 100. * static_cast<double>(nb_panh) / static_cast<double>(nb_pa),
+                nb_pb, (static_cast<float>(nb_pb) / tot), nb_pbnh, 100. * static_cast<double>(nb_pbnh) / static_cast<double>(nb_pb),
+                nb_pc, (static_cast<float>(nb_pc) / tot), nb_pcnh, 100. * static_cast<double>(nb_pcnh) / static_cast<double>(nb_pc)
         );
     }
 }
