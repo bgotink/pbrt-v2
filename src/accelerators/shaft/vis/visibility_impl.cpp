@@ -54,9 +54,9 @@ namespace vis {
             } else {
                 Reference<Triangle> triangle;
                 if (hitsOtherOccluder(ray)) {
-                    ProbVis_pc_noHit();
                     return 1. - GAMMA / P_C;
                 }
+                ProbVis_pc_noHit();
                 return (- GAMMA) / P_C;
             }
         }
@@ -68,7 +68,35 @@ namespace vis {
     }
     
     float BramProbVisCalculator::evaluate(const Ray &ray, float p) const {
-        return 1;
+        if (p < P_A) {
+            ProbVis_pa();
+            if (hitsMostBlocking(ray)) {
+                return 0;
+            }
+            ProbVis_pa_noHit();
+            return .5;
+        } else if (p < P_B + P_A) {
+            ProbVis_pb();
+            if (hitsOtherOccluder(ray)) {
+                return 0;
+            }
+            ProbVis_pb_noHit();
+            return .5;
+        } else {
+            ProbVis_pc();
+            int total = 0;
+            bool missed = true;
+            if (hitsMostBlocking(ray)) {
+                missed = false;
+                total++;
+            }
+            if (hitsOtherOccluder(ray)) {
+                missed = false;
+                total--;
+            }
+            if (missed) ProbVis_pc_noHit();
+            return - total * total / 2.;
+        }
     }
     
 }

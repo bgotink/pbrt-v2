@@ -127,9 +127,9 @@ inline void ShaftLogResult() {
                 "# times A: %lld (%f %%) \t-\t %lld (%f %%) missed\n"
                 "# times B: %lld (%f %%) \t-\t %lld (%f %%) missed\n"
                 "# times C: %lld (%f %%) \t-\t %lld (%f %%) missed\n",
-                nb_pa, (static_cast<float>(nb_pa) / tot), nb_panh, 100. * static_cast<double>(nb_panh) / static_cast<double>(nb_pa),
-                nb_pb, (static_cast<float>(nb_pb) / tot), nb_pbnh, 100. * static_cast<double>(nb_pbnh) / static_cast<double>(nb_pb),
-                nb_pc, (static_cast<float>(nb_pc) / tot), nb_pcnh, 100. * static_cast<double>(nb_pcnh) / static_cast<double>(nb_pc)
+                nb_pa, 100 * (static_cast<float>(nb_pa) / tot), nb_panh, 100. * static_cast<double>(nb_panh) / static_cast<double>(nb_pa),
+                nb_pb, 100 * (static_cast<float>(nb_pb) / tot), nb_pbnh, 100. * static_cast<double>(nb_pbnh) / static_cast<double>(nb_pb),
+                nb_pc, 100 * (static_cast<float>(nb_pc) / tot), nb_pcnh, 100. * static_cast<double>(nb_pcnh) / static_cast<double>(nb_pc)
         );
     }
 }

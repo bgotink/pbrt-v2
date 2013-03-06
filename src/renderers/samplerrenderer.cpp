@@ -131,6 +131,11 @@ void SamplerRendererTask::Run() {
                       "for image sample.  Setting to black.");
                 Ls[i] = Spectrum(0.f);
             }
+             
+                //#define NEGATIVE_RADIANCE
+#if defined(NEGATIVE_RADIANCE)
+            Ls[i] *= -1.;
+#endif
             }
             PBRT_FINISHED_CAMERA_RAY_INTEGRATION(&rays[i], &samples[i], &Ls[i]);
         }
