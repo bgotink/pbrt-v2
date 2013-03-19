@@ -74,14 +74,14 @@ namespace vis {
                 return 0;
             }
             ProbVis_pa_noHit();
-            return .5;
+            return .5 / P_A;
         } else if (p < P_B + P_A) {
             ProbVis_pb();
             if (hitsOtherOccluder(ray)) {
                 return 0;
             }
             ProbVis_pb_noHit();
-            return .5;
+            return .5 / P_B;
         } else {
             ProbVis_pc();
             int total = 0;
@@ -95,7 +95,7 @@ namespace vis {
                 total--;
             }
             if (missed) ProbVis_pc_noHit();
-            return - total * total / 2.;
+            return - total * total / (2. * P_C);
         }
     }
     
