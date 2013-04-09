@@ -29,6 +29,7 @@ namespace vis {
         printf("alpha: %f\nbeta: %f\ngamma: %f\n", ALPHA, BETA, GAMMA);
     }
     
+    // a*b = a + b + (1 - a)*(1 - b) - 1
     float BjornProbVisCalculator::evaluate(const Ray &ray, float p) const {
         if (p < P_A) {
             ProbVis_pa();
@@ -41,7 +42,7 @@ namespace vis {
             
             return (0. - ALPHA) / P_A;
         }
-        else if (p < P_B + P_A) {
+        else if (p < (1-P_C)) {
             ProbVis_pb();
             // (Vis_B - beta) / p_B
             
@@ -71,6 +72,7 @@ namespace vis {
     {
     }
     
+    // a*b = ( a + b - (a-b)^2 ) / 2
     float BramProbVisCalculator::evaluate(const Ray &ray, float p) const {
         if (p < P_A) {
             ProbVis_pa();
@@ -81,7 +83,7 @@ namespace vis {
             }
             
             return 0;
-        } else if (p < P_B + P_A) {
+        } else if (p < (1- P_C)) {
             ProbVis_pb();
             
             if (vis_b(ray)) {
@@ -104,6 +106,58 @@ namespace vis {
             }
             if (missed) ProbVis_pc_noHit();
             return - total * total / (2. * P_C);
+        }
+    }
+    
+    NielsProbVisCalculator::NielsProbVisCalculator(const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking)
+    : ProbabilisticVisibilityCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking)
+    {
+    }
+
+    // a*b = ( (a+b)^8 - a - b ) / 254
+#   define POW_2_8  256.
+    float NielsProbVisCalculator::evaluate(const Ray &ray, float p) const {
+        if (p < P_A) {
+            ProbVis_pa();
+            
+            if (vis_a(ray)) {
+                ProbVis_pa_noHit();
+                
+                return - 1. / 254.;
+            }
+            
+            return 0.;
+        } else if (p < (1 - P_C)) {
+            ProbVis_pb();
+            
+            if (vis_b(ray)) {
+                ProbVis_pb_noHit();
+                
+                return - 1. / 254.;
+            }
+            
+            return 0.;
+        } else {
+            ProbVis_pc();
+            
+            if (vis_a(ray)) {
+                if (vis_b(ray)) {
+                    // a+b == 2
+                    ProbVis_pc_noHit();
+                    return POW_2_8 / 254.;
+                } else {
+                    // a+b == 1
+                    return 1. / 254.;
+                }
+            } else {
+                if (vis_b(ray)) {
+                    // a+b == 1
+                    return 1. / 254.;
+                } else {
+                    // a+b == 0
+                    return 0.;
+                }
+            }
         }
     }
     

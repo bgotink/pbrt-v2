@@ -27,6 +27,14 @@ namespace shaft { namespace vis {
         BramProbVisCalculator(const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
     };
     
+    class NielsProbVisCalculator : public ProbabilisticVisibilityCalculator {
+    protected:
+        virtual float evaluate(const Ray &ray, float p) const;
+    public:
+        NielsProbVisCalculator(const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockinOccluder, const nbllist &triangles,
+                               const RNG &rng, float mostBlockingOccluderBlocking);
+    };
+    
 }}
 
 #endif

@@ -40,6 +40,9 @@ namespace shaft { namespace vis {
         if (type == "bram")
             return new BramProbVisCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking);
         
+        if (type == "niels")
+            return new NielsProbVisCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking);
+        
         if (type != "bjorn") {
             Error("Unknown type of ProbabilisticVisibilityCalculator: %s, using bjorn instead.", type.c_str());
         }
