@@ -163,6 +163,8 @@ RWMutexLock::RWMutexLock(RWMutex &m, RWMutexLockType t) : type(t), mutex(m) {
     int err;
     if (t == READ) err = pthread_rwlock_rdlock(&m.mutex);
     else           err = pthread_rwlock_wrlock(&m.mutex);
+    if (err != 0)
+        Severe("Error from pthread_rwlock_%slock: %s", (t == READ ? "rd" : "wr"), strerror(err));
 }
 
 

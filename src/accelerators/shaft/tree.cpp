@@ -176,7 +176,6 @@ void ElementTreeNode::split() {
     Assert(!is_leaf);
     
     typedef vector<Point> pointlist;
-    typedef pointlist::iterator pointiter;
     
     typedef nblist pidxlist;
     typedef pidxlist::iterator pidxiter;
