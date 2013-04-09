@@ -20,7 +20,7 @@ namespace shaft { namespace vis {
     {}
     
     float ExactVisibilityCalculator::Visibility(const Ray &ray) const {
-        /*ShaftStartIntersectP();
+        ShaftStartIntersectP();
         
         // check all triangles
         for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
@@ -30,8 +30,7 @@ namespace shaft { namespace vis {
         }
         ShaftNotIntersected();
         
-        return receiver_node.IntersectP(ray) ? 0.f : 1.f;*/
-        return 0.f;
+        return receiver_node.IntersectP(ray) ? 0.f : 1.f;
     }
     
 }}
