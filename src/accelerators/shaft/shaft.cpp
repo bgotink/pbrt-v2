@@ -748,13 +748,11 @@ namespace shaft {
         Assert(isLeaf());
         
         if (!useProbVis || filtered_triangles.empty()) {
-            vis = new ExactVisibilityCalculator(getMesh(), filtered_triangles, receiverNode);
+            vis = new ExactVisibilityCalculator(getMesh(), triangles, receiverNode);
             return;
         }
         
         typedef std::map<uint32_t, unsigned int> countmap;
-        
-        //nblist &receiverTris = receiverNode->inside_triangles;
         
         ProbabilisticVisibilityCalculator::nbllist &allTriangles = filtered_triangles;
         
@@ -862,7 +860,7 @@ namespace shaft {
         Info("Most blocking occluder: (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
         
         ProbabilisticVisibilityCalculator::nbllist tmpTriangles;
-        tmpTriangles.insert(tmpTriangles.begin(), allTriangles.begin(), allTriangles.end());
+        tmpTriangles.insert(tmpTriangles.begin(), triangles.begin(), triangles.end());
         tmpTriangles.insert(tmpTriangles.end(), receiverTris.begin(), receiverTris.end());
         tmpTriangles.insert(tmpTriangles.end(), lightTris.begin(), lightTris.end());
         

@@ -55,6 +55,14 @@ namespace vis {
         bool hitsMostBlocking(const Ray &ray) const;
         bool hitsOtherOccluder(const Ray &ray) const;
         
+        inline bool vis_a(const Ray &ray) const {
+            return !hitsMostBlocking(ray);
+        }
+        
+        inline bool vis_b(const Ray &ray) const {
+            return !hitsOtherOccluder(ray);
+        }
+        
     public:
         ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
         

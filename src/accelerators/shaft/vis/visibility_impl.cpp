@@ -12,53 +12,57 @@
 namespace shaft {
 namespace vis {
         
-#   define P_A  (mostBlockingOccluderBlocking)*(1-P_C)
-#   define P_B  (1-mostBlockingOccluderBlocking)*(1-P_C)
-#   define ALPHA    1/3
-#   define BETA     1/3
+#   define P_A   ((mostBlockingOccluderBlocking)*(1-P_C))
+#   define P_B   ((1-mostBlockingOccluderBlocking)*(1-P_C))
+    //#   define ALPHA    (1.f / 3.f)
+    //#   define BETA     (1.f / 3.f)
+#   define ALPHA P_A
+#   define BETA  P_B
 
-#   define P_C  0.3
-#   define GAMMA 1 - ALPHA - BETA
-
+#   define P_C   0.3
+#   define GAMMA (1 - ALPHA - BETA)
     
     BjornProbVisCalculator::BjornProbVisCalculator(const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking)
                     : ProbabilisticVisibilityCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking)
     {
+        printf("\nP_A: %f\nP_B: %f\nP_C: %f\n", P_A, P_B, P_C);
+        printf("alpha: %f\nbeta: %f\ngamma: %f\n", ALPHA, BETA, GAMMA);
     }
     
     float BjornProbVisCalculator::evaluate(const Ray &ray, float p) const {
         if (p < P_A) {
             ProbVis_pa();
             // (Vis_A - alpha) / p_A
-            if (hitsMostBlocking(ray)) {
-                //Info("Wow, a hit (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
-                return - ALPHA / P_A;
+            
+            if (vis_a(ray)) {
+                ProbVis_pa_noHit();
+                return (1. - ALPHA) / P_A;
             }
-            ProbVis_pa_noHit();
-            return (1. - ALPHA) / P_A;
-        } else if (p < P_B + P_A) {
+            
+            return (0. - ALPHA) / P_A;
+        }
+        else if (p < P_B + P_A) {
             ProbVis_pb();
             // (Vis_B - beta) / p_B
-            Reference<Triangle> triangle;
-            if (hitsOtherOccluder(ray))
-                return - BETA / P_B;
-            ProbVis_pb_noHit();
-            return (1. - BETA) / P_B;
-        } else {
+            
+            if (vis_b(ray)) {
+                ProbVis_pb_noHit();
+                return (1. - BETA) / P_B;
+            }
+            
+            return (0. - BETA) / P_B;
+        }
+        else {
             ProbVis_pc();
             // ((!Vis_A * !Vis_B) - (1 - alpha - beta)) / (1 - p_A - p_B)
             
-            if (!hitsMostBlocking(ray)) {
+            if (vis_a(ray) || vis_b(ray)) {
                 ProbVis_pc_noHit();
-                return - GAMMA / P_C;
-            } else {
-                Reference<Triangle> triangle;
-                if (hitsOtherOccluder(ray)) {
-                    return 1. - GAMMA / P_C;
-                }
-                ProbVis_pc_noHit();
-                return (- GAMMA) / P_C;
+                
+                return (0. - GAMMA) / P_C;
             }
+            
+            return (1. - GAMMA) / P_C;
         }
     }
     
@@ -70,27 +74,31 @@ namespace vis {
     float BramProbVisCalculator::evaluate(const Ray &ray, float p) const {
         if (p < P_A) {
             ProbVis_pa();
-            if (hitsMostBlocking(ray)) {
-                return 0;
+            
+            if (vis_a(ray)) {
+                ProbVis_pa_noHit();
+                return .5 / P_A;
             }
-            ProbVis_pa_noHit();
-            return .5 / P_A;
+            
+            return 0;
         } else if (p < P_B + P_A) {
             ProbVis_pb();
-            if (hitsOtherOccluder(ray)) {
-                return 0;
+            
+            if (vis_b(ray)) {
+                ProbVis_pb_noHit();
+                return .5 / P_B;
             }
-            ProbVis_pb_noHit();
-            return .5 / P_B;
+            return 0;
         } else {
             ProbVis_pc();
+            
             int total = 0;
             bool missed = true;
-            if (hitsMostBlocking(ray)) {
+            if (!vis_a(ray)) {
                 missed = false;
                 total++;
             }
-            if (hitsOtherOccluder(ray)) {
+            if (!vis_b(ray)) {
                 missed = false;
                 total--;
             }
