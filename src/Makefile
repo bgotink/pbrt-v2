@@ -27,7 +27,7 @@ MARCH=-m64
 OPT=-O2
 #OPT=-g3
 # comment out this line to enable assertions at runtime
-#DEFS += -DNDEBUG
+DEFS += -DNDEBUG
 
 #########################################################################
 # nothing below this line should need to be changed (usually)
