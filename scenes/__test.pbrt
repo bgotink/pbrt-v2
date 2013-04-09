@@ -3,11 +3,18 @@ LookAt 278 273 -800  278 273 0   0 1 0
 Camera "perspective" "float fov" [37.5]
 #PixelFilter "mitchell" "float xwidth" [3] "float ywidth" [3]
 #Accelerator "shaft" "bool draw_shafts" "true" "point shaft_point" [ 500.0  250.0 0.0 ]
-Accelerator "shaft" "bool use_probvis" "false"
+#Accelerator "shaft" "bool use_probvis" "false"
+#Accelerator "shaft" "bool use_probvis" "false"  "integer receiver_treshold" [2] #"integer light_treshold" [3]
+Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "niels"
 #Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "bram"
-#Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "bjorn" "integer light_treshold" [3] "integer receiver_treshold" [5]
-Sampler "random" "integer pixelsamples" [64]
-Film "image" "integer xresolution" [480] "integer yresolution" [480]
+#Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "bjorn" 
+	#"integer light_treshold" [3] 
+	"integer receiver_treshold" [8]
+#Sampler "random" "integer pixelsamples" [64]
+#Sampler "random" "integer pixelsamples" [1024]
+Sampler "random" "integer pixelsamples" [10240]
+#Film "image" "integer xresolution" [480] "integer yresolution" [480]
+Film "image" "integer xresolution" [240] "integer yresolution" [240]
 
 SurfaceIntegrator "directlighting" "string strategy" ["one"]
 
@@ -2897,5 +2904,15 @@ AttributeBegin
 	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
 		Include "geometry/triangle.pbrt"
 AttributeEnd
+
+
+# TEST
+#AttributeBegin
+#	Translate 152.73486 53.75073 253.04858
+#	Scale 70.9428573 70.8285713 70.985714
+#	Rotate 29.940426 0.2105397 0.9746744 0.25376356
+#	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+#		Include "geometry/triangle.pbrt"
+#AttributeEnd
 
 WorldEnd
