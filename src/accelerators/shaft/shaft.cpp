@@ -512,7 +512,7 @@ namespace shaft {
     
     // see [Laine, 06] fig 4.19
     Shaft::Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, Reference<ElementTreeNode> &split, Shaft &parent)
-    : receiverNode(receiver), lightNode(light), geometry(receiver, light) {
+    : receiverNode(receiver), lightNode(light), geometry(receiver, light), vis(NULL) {
         // copy main_axis from the parent?
         
         for (surface_iter surf = parent.surfaces.begin(); surf != parent.surfaces.end(); surf++) {
@@ -586,7 +586,7 @@ namespace shaft {
     
     // cf. [Laine, 06] fig 4.31
     Shaft::Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light)
-    : receiverNode(receiver), lightNode(light), geometry(receiver, light) {
+    : receiverNode(receiver), lightNode(light), geometry(receiver, light), vis(NULL) {
         Mesh &mesh = getMesh();
         int nbTris = mesh.triangles.size();
         for (int i = 0; i < nbTris; i++) {
