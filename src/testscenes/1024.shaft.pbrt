@@ -1,0 +1,2919 @@
+
+LookAt 278 273 -800  278 273 0   0 1 0
+Camera "perspective" "float fov" [37.5]
+#PixelFilter "mitchell" "float xwidth" [3] "float ywidth" [3]
+#Accelerator "shaft" "bool draw_shafts" "true" "point shaft_point" [ 500.0  250.0 0.0 ]
+Accelerator "shaft" "bool use_probvis" "false"
+#Accelerator "shaft" "bool use_probvis" "false"  "integer receiver_treshold" [2] #"integer light_treshold" [3]
+#Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "niels"
+#Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "bram"
+#Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "bjorn" 
+	#"integer light_treshold" [3] 
+	"integer receiver_treshold" [8]
+#Sampler "random" "integer pixelsamples" [64]
+Sampler "random" "integer pixelsamples" [1024]
+#Sampler "random" "integer pixelsamples" [10240]
+Film "image" "string filename" "1024.shaft.exr" 
+	#"integer xresolution" [480] "integer yresolution" [480]
+	"integer xresolution" [240] "integer yresolution" [240]
+
+SurfaceIntegrator "directlighting" "string strategy" ["one"]
+
+WorldBegin
+
+# light source
+
+AttributeBegin
+   AreaLightSource "diffuse" "spectrum L"    [400.0 0.0 500.0 8.0 600.0 15.6 700.0 18.4]
+   Material "matte"
+   "spectrum Kd" [400.0 0.0 500.0 8.0 600.0 15.6 700.0 18.4]
+
+   Shape "trianglemesh"
+   "integer indices" [ 0 1 2  2 3 0 ]
+   "point P" [
+      345.0 546.7 229.0
+      345.0 546.7 330.0
+      215.0 546.7 330.0
+      215.0 546.7 229.0 ]
+AttributeEnd
+
+#red wall
+
+AttributeBegin
+   Material "matte"
+   "spectrum Kd" [
+      400 0.040 404 0.046 408 0.048 412 0.053 416 0.049 420 0.050
+      424 0.053 428 0.055 432 0.057 436 0.056 440 0.059 444 0.057
+      448 0.061 452 0.061 456 0.060 460 0.062 464 0.062 468 0.062
+      472 0.061 476 0.062 480 0.060 484 0.059 488 0.057 492 0.058
+      496 0.058 500 0.058 504 0.056 508 0.055 512 0.056 516 0.059
+      520 0.057 524 0.055 528 0.059 532 0.059 536 0.058 540 0.059
+      544 0.061 548 0.061 552 0.063 556 0.063 560 0.067 564 0.068
+      568 0.072 572 0.080 576 0.090 580 0.099 584 0.124 588 0.154
+      592 0.192 596 0.255 600 0.287 604 0.349 608 0.402 612 0.443
+      616 0.487 620 0.513 624 0.558 628 0.584 632 0.620 636 0.606
+      640 0.609 644 0.651 648 0.612 652 0.610 656 0.650 660 0.638
+      664 0.627 668 0.620 672 0.630 676 0.628 680 0.642 684 0.639
+      688 0.657 692 0.639 696 0.635 700 0.642]
+   
+   Shape "trianglemesh"
+   "integer indices" [ 0 1 2  2 3 0 ]
+   "point P" [
+      552.8   0.0   0.0
+      549.6   0.0 559.2
+      556.0 548.8 559.2
+      556.0 548.8   0.0 ]
+AttributeEnd
+
+# green wall
+
+AttributeBegin
+   Material "matte"
+   "spectrum Kd" [
+      400 0.092 404 0.096 408 0.098 412 0.097 416 0.098 420 0.095
+      424 0.095 428 0.097 432 0.095 436 0.094 440 0.097 444 0.098
+      448 0.096 452 0.101 456 0.103 460 0.104 464 0.107 468 0.109
+      472 0.112 476 0.115 480 0.125 484 0.140 488 0.160 492 0.187
+      496 0.229 500 0.285 504 0.343 508 0.390 512 0.435 516 0.464
+      520 0.472 524 0.476 528 0.481 532 0.462 536 0.447 540 0.441
+      544 0.426 548 0.406 552 0.373 556 0.347 560 0.337 564 0.314
+      568 0.285 572 0.277 576 0.266 580 0.250 584 0.230 588 0.207
+      592 0.186 596 0.171 600 0.160 604 0.148 608 0.141 612 0.136
+      616 0.130 620 0.126 624 0.123 628 0.121 632 0.122 636 0.119
+      640 0.114 644 0.115 648 0.117 652 0.117 656 0.118 660 0.120
+      664 0.122 668 0.128 672 0.132 676 0.139 680 0.144 684 0.146
+      688 0.150 692 0.152 696 0.157 700 0.159]
+
+   Shape "trianglemesh"
+   "integer indices" [ 0 1 2  2 3 0 ]
+   "point P" [
+      0.0   0.0 559.2
+      0.0   0.0   0.0
+      0.0 548.8   0.0
+      0.0 548.8 559.2 ]
+AttributeEnd
+
+# everything else is white
+
+
+
+Material "matte"
+
+"spectrum Kd" [
+      400 0.343 404 0.445 408 0.551 412 0.624 416 0.665 420 0.687
+      424 0.708 428 0.723 432 0.715 436 0.710 440 0.745 444 0.758
+      448 0.739 452 0.767 456 0.777 460 0.765 464 0.751 468 0.745
+      472 0.748 476 0.729 480 0.745 484 0.757 488 0.753 492 0.750
+      496 0.746 500 0.747 504 0.735 508 0.732 512 0.739 516 0.734
+      520 0.725 524 0.721 528 0.733 532 0.725 536 0.732 540 0.743
+      544 0.744 548 0.748 552 0.728 556 0.716 560 0.733 564 0.726
+      568 0.713 572 0.740 576 0.754 580 0.764 584 0.752 588 0.736
+      592 0.734 596 0.741 600 0.740 604 0.732 608 0.745 612 0.755
+      616 0.751 620 0.744 624 0.731 628 0.733 632 0.744 636 0.731
+      640 0.712 644 0.708 648 0.729 652 0.730 656 0.727 660 0.707
+      664 0.703 668 0.729 672 0.750 676 0.760 680 0.751 684 0.739
+      688 0.724 692 0.730 696 0.740 700 0.737 ]
+
+#
+# floor
+#
+
+AttributeBegin
+   Shape "trianglemesh"
+   "integer indices" [ 0 1 2  2 3 0 ]
+   "point P" [
+      552.8 0.0   0.0
+      0.0 0.0   0.0
+      0.0 0.0 559.2
+    549.6 0.0 559.2 ]
+AttributeEnd
+
+
+#
+# ceiling
+#
+
+AttributeBegin
+   Shape "trianglemesh"
+   "integer indices" [ 0 1 2  2 3 0 ]
+   "point P" [
+    556.0 548.8 0.0
+    556.0 548.8 559.2
+      0.0 548.8 559.2
+      0.0 548.8   0.0 ]
+AttributeEnd
+
+
+#
+# back wall
+#
+
+AttributeBegin
+   Shape "trianglemesh"
+   "integer indices" [ 0 1 2  2 3 0 ]
+   "point P" [
+    549.6   0.0 559.2
+      0.0   0.0 559.2
+      0.0 548.8 559.2
+    556.0 548.8 559.2]
+AttributeEnd
+
+#####################################
+# Generated by RandomSceneGenerator #
+#####################################
+
+AttributeBegin
+	Translate 24.735813 2.757127 2.4604793
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 221.39548 0.22827953 0.024257839 0.3412922
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 141.1033 74.48244 1.3084179
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 251.33344 0.21342206 0.38699448 0.009505868
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 226.88039 11.838866 3.6170673
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 191.12057 0.17289126 0.6105085 0.017656684
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 258.54028 14.770812 10.967137
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 6.8484306 0.81215775 0.730091 0.33831865
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 318.2807 7.046972 30.306005
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 309.47342 0.8559124 0.648596 0.07116234
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 419.11365 6.2364216 29.161808
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 280.44034 0.96959716 0.6201863 0.08651388
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 497.1843 51.085163 41.79132
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 343.96555 0.02968347 0.7917682 0.7989753
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 13.783765 148.6959 74.72696
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 189.5209 0.47586215 0.41131562 0.4558993
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 92.287636 139.98212 78.37996
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 72.60135 0.7198771 0.031621218 0.09811455
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 171.43088 103.09716 41.78258
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 10.559707 0.570279 0.46101522 0.16714978
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 294.37204 79.94553 68.990395
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 244.13545 0.54447424 0.95744324 0.47419
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 384.85342 93.15482 35.095284
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 220.88577 0.66679025 0.4877659 0.6191264
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 443.80698 94.77372 64.160126
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 336.2772 0.7346869 0.92965937 0.7394618
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 532.237 138.60297 8.050198
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 209.56477 0.11866981 0.16909051 0.79276663
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 30.301517 205.32124 24.500633
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 38.249588 0.44196618 0.8226829 0.12522578
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 115.19818 168.52353 58.415195
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 35.966343 0.16380817 0.1126616 0.3730899
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 222.13727 226.37097 21.231258
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 38.837185 0.318551 0.45438933 0.38216484
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 252.16843 186.10568 35.156975
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 334.98785 0.7982781 0.9353124 0.73961514
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 384.19412 172.72319 29.345804
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 137.03288 0.4185859 0.81259674 0.19718742
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 435.2753 227.2933 36.473595
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 69.501724 0.08858776 0.8186339 0.05849868
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 531.5798 232.69878 49.59422
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 269.62122 0.18265611 0.7133473 0.91640794
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 66.989815 300.9318 35.178745
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 313.44604 0.35197306 0.57488096 0.6989562
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 147.20824 291.1624 64.94907
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 88.51187 0.64065766 0.5814513 0.13130635
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 165.19359 284.64975 50.069607
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 53.07894 0.70927626 0.95319676 0.5920425
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 297.24207 311.3745 33.652103
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 140.3633 0.9962407 0.6306672 0.15873736
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 324.08832 252.08405 44.896004
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 279.26874 0.74640286 0.643707 0.95161796
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 466.3097 269.6958 42.916798
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 102.01383 0.44063622 0.8390563 0.82534146
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 479.88132 309.01978 62.80582
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 210.2947 0.4080457 0.1958226 0.9853408
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 55.46059 386.40353 10.97126
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 27.463245 0.38449365 0.76446456 0.25304455
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 107.32594 358.99088 30.511026
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 332.4826 0.79130775 0.85712886 0.8377808
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 223.69075 369.97305 7.0503325
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 285.62512 0.29342997 0.4257475 0.5347142
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 294.34097 370.43262 8.594772
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 115.10316 0.20705312 0.16052818 0.028258443
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 323.96378 329.8535 2.1705136
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 92.796104 0.9663097 0.18726963 0.28767407
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 439.6219 385.88727 73.36805
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 306.3112 0.7332597 0.93984354 0.07277048
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 491.9291 389.67114 78.52804
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 309.76562 0.40484577 0.8273717 0.0776605
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 46.985264 452.19138 74.60112
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 288.50607 0.49734205 0.33787668 0.8123717
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 88.65448 442.21814 3.9964325
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 80.71533 0.38893163 0.74591595 0.61693895
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 181.42421 409.03027 65.23855
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 344.34482 0.09335935 0.28595692 0.20964056
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 298.45007 407.17245 17.40121
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 139.53484 0.4941861 0.5716805 0.4576794
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 369.06824 433.62076 52.656822
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 178.7414 0.8652177 0.88030285 0.020362675
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 455.39505 420.9262 44.154404
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 358.90616 0.5665106 0.26729095 0.6253238
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 525.6513 461.43137 69.13905
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 297.5369 0.26842183 0.05806011 0.7993258
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 55.1789 481.9024 45.509953
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 48.486443 0.6030312 0.19753909 0.2665608
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 132.83234 502.30057 18.499067
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 300.1268 0.16062641 0.984667 0.15712667
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 214.3295 502.1449 50.227104
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 300.74512 0.5796169 0.52635425 0.9226567
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 253.8151 524.961 18.835384
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 1.1835408 0.66518265 0.6042378 0.049147844
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 389.48682 544.24835 23.02125
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 16.487152 0.012235582 0.738356 0.4812727
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 418.4103 532.7007 46.866516
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 195.71393 0.20207065 0.87594455 0.14837146
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 553.07306 512.82227 6.697556
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 276.82248 0.942731 0.042830825 0.20853275
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 52.69306 33.53408 98.643776
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 62.04194 0.38705456 0.3219151 0.030453503
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 144.89818 41.582256 81.740616
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 144.31639 0.5991719 0.9111407 0.51798975
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 208.85645 9.230139 134.3278
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 178.91035 0.7625909 0.64595646 0.9824905
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 273.34085 0.71006846 113.10461
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 293.28326 0.19674742 0.022984028 0.29426783
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 358.3916 6.891331 93.6835
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 355.7445 0.74296755 0.3474489 0.73616844
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 437.23108 70.2931 146.59467
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 207.66283 0.21725196 0.45259434 0.65654427
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 518.9334 27.927734 119.840965
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 139.22473 0.7313458 0.45104814 0.32149166
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 10.452148 125.86248 146.89832
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 284.64337 0.033521473 0.012876213 0.02066648
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 90.30664 103.389084 120.349754
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 4.66434 0.09782183 0.7003701 0.5390462
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 233.99907 134.18547 102.50313
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 163.17442 0.9297576 0.2936411 0.1985805
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 251.60152 118.806465 119.31199
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 307.29196 0.59532166 0.8226218 0.2567621
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 369.88608 85.25829 132.2001
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 318.73718 0.40949106 0.079521716 0.059883833
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 455.5654 115.16754 111.97787
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 176.38899 0.8340864 0.76118314 0.8513941
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 482.52112 125.684074 109.17568
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 269.2175 0.18001115 0.513805 0.97269416
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 41.71949 172.47385 115.27653
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 324.3341 0.6357025 0.09442949 0.6354509
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 120.13574 169.84164 116.68105
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 141.45287 0.35540432 0.5863398 0.83966243
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 210.22768 214.50024 134.02394
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 332.95798 0.44407386 0.2116288 0.037058115
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 307.9929 209.9247 94.55129
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 294.00198 0.229918 0.26683962 0.04983765
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 359.563 180.19183 118.68474
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 251.214 0.48343205 0.20053202 0.6332507
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 413.4958 188.04022 107.9793
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 98.91105 0.4391846 0.8793124 0.078226686
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 492.14362 193.25453 92.351685
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 251.02101 0.022422135 0.8163165 0.87644625
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 72.060936 293.3689 111.36452
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 253.72826 0.4489116 0.11901665 0.7822733
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 112.16986 279.39584 141.60313
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 42.23698 0.9284992 0.34783155 0.49935925
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 168.89227 252.52579 107.93544
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 164.7442 0.08896363 0.45025456 0.6681145
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 298.53116 250.59496 94.11475
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 63.072723 0.6783161 0.6746327 0.13537407
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 324.26898 245.83994 120.04015
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 173.41254 0.28533286 0.49147886 0.52935433
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 463.22818 295.69598 106.811005
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 218.8577 0.12747711 0.31708235 0.64940286
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 510.0322 253.3175 102.44136
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 10.131905 0.23331463 0.39360225 0.8972286
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 12.874512 370.75977 150.26823
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 19.92038 0.636978 0.8218313 0.03851098
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 82.00283 353.22 86.46695
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 53.046432 0.0022748113 0.14806455 0.68341655
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 232.96297 321.49963 141.51323
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 88.44784 0.6038487 0.3962872 0.532102
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 273.87067 328.61673 95.657
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 264.24896 0.9657164 0.22312462 0.24538833
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 338.9225 378.36905 128.36053
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 324.5407 0.04995984 0.30821246 0.69821054
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 474.04852 349.4051 122.5722
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 231.74751 0.50992364 0.9200096 0.85906047
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 521.1364 315.5086 117.54858
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 23.281101 0.68564874 0.20038533 0.94546103
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 18.353403 404.45175 134.45013
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 162.78226 0.19027954 0.3649674 0.244663
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 132.9758 468.92194 141.96399
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 37.482285 0.7837683 0.13529593 0.79950535
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 175.7172 443.45908 126.64152
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 272.5566 0.8764279 0.10893297 0.35910636
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 297.29776 446.5936 142.17587
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 4.891813 0.27495396 0.8811379 0.72826356
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 383.01974 451.0914 122.14217
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 192.17274 0.45576578 0.89343226 0.14176822
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 463.09122 463.5761 91.40294
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 263.9692 0.7063531 0.6778957 0.092047155
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 497.24045 432.81833 136.89218
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 340.53848 0.34932655 0.2595122 0.28050244
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 30.399628 493.53253 127.60303
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 48.96321 0.09375286 0.4811176 0.0026531816
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 126.07591 505.3173 80.91495
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 67.238754 0.4349327 0.3258996 0.3508069
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 194.29771 482.40656 89.97221
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 2.8631186 0.2409907 0.47100103 0.48977482
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 308.9692 471.6125 117.54235
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 136.8419 0.96956724 0.2432549 0.87346816
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 366.006 491.03336 96.67198
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 295.9019 0.80072576 0.4357087 0.39358306
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 432.7046 536.3633 102.41437
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 109.836975 0.756234 0.54330117 0.9346349
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 477.73468 498.6419 89.420364
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 127.63918 0.20709395 0.49037153 0.82909
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 44.644676 41.307755 225.21992
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 261.3755 0.11014664 0.8447735 0.01715368
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 144.4686 69.33285 222.3452
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 82.25447 0.6234672 0.47702312 0.9009137
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 215.03421 55.792007 238.21672
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 146.21715 0.14490688 0.15254718 0.6031346
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 299.6967 2.1490707 223.86284
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 99.53236 0.21747959 0.30575144 0.5863223
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 363.3534 44.308746 201.3621
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 166.75551 0.5214029 0.29196727 0.9250966
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 414.57623 49.094105 217.00652
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 78.122665 0.4006812 0.44363976 0.34994096
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 541.4009 2.9032533 223.96689
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 210.727 0.08047819 0.85731626 0.966675
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 70.464066 83.641655 187.30566
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 183.01064 0.15162414 0.7356103 0.105265975
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 80.17781 102.73618 221.05147
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 276.18182 0.7149931 0.4215209 0.44375694
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 180.18094 153.3847 207.19762
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 145.73344 0.17888087 0.7500724 0.59613574
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 255.90796 139.14629 234.338
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 233.52345 0.42772007 0.653613 0.03304249
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 380.03656 98.06896 189.60632
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 63.730873 0.4744404 0.882315 0.13556767
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 452.2665 142.94292 189.56056
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 87.8985 0.76858497 0.42112285 0.55741304
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 528.11816 97.51744 227.30902
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 64.31991 0.7581239 0.5198735 0.9098764
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 61.051685 179.35078 194.08752
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 299.94644 0.74808645 0.91649944 0.1861211
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 118.47129 201.72049 236.3742
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 339.13397 0.4201045 0.6766408 0.73274845
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 235.26027 169.61795 183.58466
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 18.894854 0.8832961 0.33981216 0.9626973
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 287.55405 212.48584 181.03699
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 276.46973 0.8313146 0.6362785 0.21695459
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 345.82947 225.68483 198.36905
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 279.21158 0.24866223 0.69440824 0.13460511
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 467.05484 212.61949 211.25595
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 121.83542 0.31046593 0.3105269 0.8206395
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 504.87418 163.99951 169.43156
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 70.50379 0.27591056 0.80785835 0.8260551
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 20.150372 256.31213 206.96515
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 261.0968 0.61160487 0.2142989 0.12063682
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 135.77193 241.71222 192.97238
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 230.07787 0.5756553 0.77744144 0.5690241
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 166.62996 271.6546 186.00224
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 285.9675 0.5275713 0.18698269 0.96701425
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 281.02695 290.4145 189.96709
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 8.553135 0.23790455 0.65758145 0.08740705
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 325.65646 240.86559 203.15517
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 148.19315 0.09242302 0.24816859 0.88106227
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 413.0242 259.9427 226.26003
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 201.1469 0.90946376 0.356063 0.5153627
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 489.94568 290.63248 191.8143
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 16.629417 0.9098331 0.26605117 0.17319727
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 57.178707 372.19684 191.15268
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 80.72651 0.4433126 0.38651836 0.92329615
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 98.969505 315.4902 186.48642
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 120.51624 0.33466524 0.43805104 0.777758
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 203.14879 348.53552 175.25356
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 293.4495 0.068348825 0.33659047 0.62355554
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 257.68115 368.8764 163.57907
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 332.60147 0.59137434 0.9357359 0.7284316
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 372.54794 375.79745 231.91133
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 303.78998 0.8374652 0.65434164 0.23280114
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 463.90906 352.05444 185.36182
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 157.36926 0.4255771 0.44991243 0.53105366
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 534.99536 327.07364 238.57167
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 142.97627 0.5777449 0.62989223 0.87913936
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 47.258606 459.3674 190.19751
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 262.4799 0.55408144 0.78679746 0.4297853
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 131.75902 399.65955 178.54694
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 43.340508 0.6886295 0.2549364 0.25949705
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 233.34612 451.1071 189.23732
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 245.62932 0.0038596988 0.112467825 0.7081757
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 247.93951 442.12976 169.9383
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 310.80835 0.9122384 0.9796966 0.47634238
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 326.4962 462.5486 197.40376
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 244.38803 0.4118954 0.92032576 0.71837944
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 470.27213 400.91763 205.74849
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 58.732933 0.6345834 0.2550432 0.7127445
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 477.8795 398.9626 196.93794
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 193.18094 0.495529 0.30510658 0.28980356
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 56.74215 521.0204 237.39178
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 238.50427 0.3672462 0.14691883 0.84089357
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 92.20972 494.25327 239.21774
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 49.420795 0.19687283 0.6669947 0.5327176
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 221.78535 530.18146 190.56535
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 275.84106 0.8061561 0.24087113 0.0015887618
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 273.15213 495.2095 235.97502
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 69.91021 0.4550616 0.54070234 0.82286835
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 357.62265 524.62476 183.0608
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 116.39967 0.26742452 0.5164127 0.040832043
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 443.72888 521.0073 216.36452
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 218.9778 0.16654891 0.84690475 0.9298985
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 500.84824 526.93805 197.92955
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 320.30984 0.35976416 0.864089 0.4445501
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 12.928766 32.44805 253.59216
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 231.41643 0.6563572 0.4972152 0.83537525
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 154.69777 28.120037 318.055
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 62.475666 0.46884084 0.44255233 0.07359856
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 197.8722 64.42074 250.7335
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 256.14246 0.90213215 0.9489209 0.7754942
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 254.66902 34.85695 305.90042
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 213.95409 9.7608566E-4 0.12859982 0.5685863
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 379.4615 67.8151 288.34723
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 330.5972 0.828049 0.0019915104 0.43903136
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 428.99612 69.52823 271.3551
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 179.45242 0.36193877 0.90005136 0.7676894
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 483.98773 72.04819 242.09625
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 221.26228 0.21706337 0.8584105 0.052872717
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 17.250319 117.2143 271.783
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 166.9609 0.3311355 0.109505415 0.86050874
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 119.03582 111.14235 283.261
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 52.2634 0.17769378 0.2226671 0.29546005
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 169.45418 152.2698 249.43434
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 107.7641 0.83232766 0.25642437 0.28715527
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 287.0119 121.86868 291.9815
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 231.88737 0.64546955 0.012289047 0.5927489
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 361.46237 106.822685 241.0387
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 288.55118 0.09907532 0.04566723 0.58413374
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 402.05936 133.66103 285.42804
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 75.94003 0.09937227 0.06858152 0.37178236
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 520.3237 83.97628 285.38388
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 22.07121 0.88642824 0.23249847 0.47722477
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 51.523148 184.40076 297.6493
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 17.222916 0.53004396 0.11027932 0.27374256
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 96.157684 176.49992 245.03543
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 48.757065 0.6899526 0.9972696 0.52644956
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 238.17876 162.16571 256.37595
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 62.009518 0.7092319 0.05660844 0.16134834
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 247.34201 210.23917 256.3708
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 68.9671 0.89900553 0.3673799 0.53933555
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 383.3861 163.21718 302.61792
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 47.252197 0.97888374 0.7612895 0.99472743
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 418.61246 162.34457 293.238
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 293.9713 0.43323696 0.50979143 0.78608096
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 537.75586 170.46817 291.44724
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 266.35345 0.10350245 0.14530867 0.29539758
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 72.026115 290.0233 311.18958
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 13.534298 0.68962014 0.5542826 0.7738528
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 132.80678 275.13956 297.8872
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 86.68614 0.21081656 0.6938175 0.96974945
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 186.12198 289.3687 281.0723
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 268.9248 0.5618828 0.97579336 0.96733236
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 288.01407 261.0494 297.54834
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 158.64908 0.48351574 0.29131263 0.72143185
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 333.7833 257.1348 295.29648
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 232.40732 0.88502926 0.46362507 0.3787573
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 411.40265 255.83241 301.10052
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 113.89593 0.058746755 0.40928805 0.14629823
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 514.6752 293.22363 303.94376
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 187.74863 0.90471697 0.6359255 0.39309096
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 55.313396 345.69135 275.4338
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 109.47698 0.5422616 0.7318374 0.87408
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 97.78899 353.53326 252.92967
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 240.99803 0.27456862 0.91980094 0.5425835
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 232.25897 334.3367 313.06787
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 354.9847 0.65055317 0.40722698 0.7977113
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 242.32312 345.4517 256.24988
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 186.77689 0.6440728 0.410563 0.1998707
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 318.64145 315.24048 255.45161
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 61.395893 0.7570104 0.24724591 0.514237
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 447.26575 366.09192 310.61838
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 32.539917 0.115546525 0.548031 0.31989032
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 499.24445 361.7941 252.66664
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 153.15457 0.53706956 0.3611812 0.5904931
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 61.403866 440.01157 253.0248
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 261.7464 0.720702 0.0034753084 0.42827892
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 146.44286 453.95502 290.51086
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 349.14108 0.4825337 0.9075536 0.16225809
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 195.34384 427.39783 292.1513
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 236.60736 0.5956818 0.25770116 0.027543545
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 311.87726 399.80338 270.75647
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 163.52542 0.78667825 0.87428886 0.6773295
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 355.9072 422.81107 274.18323
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 122.049675 0.71799606 0.96893525 0.47218645
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 398.92343 397.0737 278.42044
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 204.10258 0.9894543 0.0567891 0.30098945
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 552.6266 462.08652 281.98022
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 74.76634 0.9096159 0.37859416 0.15009385
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 72.13686 477.50656 274.20163
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 213.56166 0.81604946 0.69340694 0.6165799
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 98.19965 533.11865 311.91556
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 144.69734 0.30754733 0.6836742 0.49988246
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 184.46191 541.8074 256.05832
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 8.239403 0.8422572 0.5391151 0.7744163
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 272.9858 506.41953 252.16713
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 101.01274 0.65653116 0.51642007 0.99252933
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 384.25888 495.28247 283.63452
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 19.26294 0.9765564 0.5107022 0.16902691
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 410.54062 532.6226 293.7418
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 20.646358 0.5880823 0.41508996 0.71049565
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 550.4057 506.1669 282.26355
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 132.58597 0.26149195 0.4206159 0.05771041
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 33.54044 1.2732638 346.59705
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 244.65437 0.51590645 0.44405276 0.5686852
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 127.049416 59.550327 381.49823
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 317.2755 0.16589826 0.7316118 0.2726664
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 216.77464 50.201736 389.3242
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 56.150116 0.89979714 0.9271132 0.5389628
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 297.81674 4.874864 340.63065
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 85.5073 0.36469865 0.7106576 0.32445687
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 319.8852 58.892067 384.7978
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 323.29324 0.4084412 0.594878 0.46359128
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 400.07086 29.40105 351.47412
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 263.07996 0.98446155 0.83807945 0.7463175
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 536.1352 42.65636 378.7685
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 101.786804 0.9461278 0.31513858 0.17282563
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 33.98588 111.59893 338.52728
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 345.8587 0.43058807 0.83672726 0.4868436
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 99.49257 118.88646 320.59305
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 203.56413 0.5991786 0.97465956 0.6580392
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 189.81032 120.9533 357.0087
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 355.41223 0.20595193 0.22597444 0.52283525
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 254.33723 96.860085 335.89944
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 171.8222 0.30498517 0.01142776 0.99413776
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 385.18524 91.22518 358.67065
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 346.20676 0.58100754 0.8766575 0.6345921
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 416.13638 155.24117 373.11752
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 117.28579 0.449861 0.5583297 0.55364937
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 540.9527 79.89983 350.4763
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 77.073494 0.58182704 0.6455981 0.46270663
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 33.696358 197.85614 330.33884
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 66.563286 0.6614869 0.15238899 0.809763
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 134.21463 229.61928 374.1043
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 201.26732 0.52522355 0.80214214 0.5484136
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 162.92314 164.69315 365.6793
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 290.68082 0.77754587 0.48811048 0.6867201
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 247.66891 201.61803 367.0639
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 52.28548 0.24906164 0.6241857 0.048810244
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 355.9328 207.0969 372.25024
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 80.35879 0.34421712 0.74914104 0.98334545
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 463.91904 197.13792 380.29483
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 186.71736 0.26105273 0.23745048 0.2137689
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 488.89856 194.89696 395.12216
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 214.3209 0.026516795 0.63937134 0.8691397
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 6.956172 267.61047 374.93204
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 250.74762 0.26077724 0.49930853 0.5131232
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 100.56872 312.87933 358.31598
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 287.9028 0.9970451 0.3527668 0.83223367
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 199.44107 306.25146 375.15414
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 343.53635 0.877372 0.48724437 0.51071584
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 242.22058 257.68436 374.0642
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 131.45322 0.71051806 0.37063026 0.7446429
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 340.5008 235.2543 348.6068
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 258.55197 0.009265661 0.94208395 0.1961537
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 462.63446 290.50085 339.7173
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 311.4982 0.46853435 0.15566295 0.90263945
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 501.26917 306.66113 344.5442
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 153.03372 0.85253966 0.83740675 0.5056238
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 6.319724 354.26727 320.14706
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 212.36446 0.8323458 0.52410394 0.9986926
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 113.5178 387.1765 386.49307
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 166.11227 0.5609401 0.09909803 0.18988276
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 215.62299 353.124 371.24115
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 121.93536 0.25097317 0.7203926 0.98631305
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 241.61452 319.69022 382.91443
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 117.718765 0.49325794 0.3827858 0.020537376
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 345.83145 362.21445 389.56265
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 172.43878 0.23782593 0.9932136 0.71026796
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 427.23163 358.05957 383.639
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 353.2636 0.17274272 0.7319481 0.56499535
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 517.6401 346.18185 380.64313
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 355.6433 0.051058292 0.7774458 0.9920153
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 56.65011 415.73352 393.57874
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 333.16888 0.40840912 0.8857623 0.40596992
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 144.91621 468.86752 374.28732
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 21.565777 0.11121112 0.4234528 0.58384174
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 212.79694 417.94073 340.86374
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 341.68842 0.50954145 0.9833113 0.73318183
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 316.83478 400.78522 391.1277
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 0.7687211 0.32426238 0.7833158 0.03506869
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 386.83847 436.58463 356.50677
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 226.05269 0.1623959 0.41954577 0.692909
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 449.25385 435.3533 389.0109
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 202.55481 0.06902677 0.863023 0.049825132
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 551.27325 432.21725 354.82462
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 214.82574 0.3320468 0.64844525 0.7452923
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 2.7249467 474.49185 348.21762
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 194.83951 0.8549169 0.18029588 0.35826814
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 119.95807 473.44403 389.49548
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 123.464226 0.5025172 0.80010617 0.54981416
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 203.72832 474.2036 322.79666
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 186.21198 0.5593984 0.42964357 0.4717648
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 288.32355 496.3162 326.66608
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 275.41937 0.67477995 0.08102691 0.5761235
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 322.06018 541.204 331.7316
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 286.66922 0.7140415 0.54940414 0.94743305
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 431.70816 513.1757 380.3656
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 8.724346 0.80491126 0.060646772 0.7203888
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 507.8046 484.50992 326.5337
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 80.73591 0.5238913 0.3099426 0.9485702
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 59.362827 66.14633 434.58978
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 100.861595 0.78362304 0.11223626 0.6966204
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 158.10051 70.659935 449.20532
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 125.15842 0.17695153 0.09784168 0.95488155
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 207.3459 63.975952 464.85083
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 268.80563 0.6335964 0.47252476 0.867907
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 247.9209 5.782098 450.10953
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 183.08864 0.52889323 0.6578341 0.450055
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 323.58456 76.45905 455.40652
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 46.4885 0.3324837 0.61199045 0.48427427
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 464.2863 14.781904 450.16992
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 307.64902 0.43267423 0.17239046 0.29410845
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 482.877 18.612642 469.54553
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 328.53723 0.5571418 0.86652637 0.0018770099
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 27.202707 135.89839 403.9243
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 329.9978 0.8235721 0.20828861 0.27407205
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 116.99412 113.89188 465.89673
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 56.983143 0.6886045 0.571236 0.27249664
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 200.38167 141.98012 451.57025
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 130.48853 0.16720569 0.7401581 0.0189479
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 239.44867 95.28357 446.09543
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 156.74557 0.6174981 0.2584014 0.9128223
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 334.8094 96.82336 410.7488
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 276.24655 0.03143984 0.6729029 0.06352419
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 461.60632 153.48647 452.10822
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 96.04304 0.2460481 0.83420324 0.089752555
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 514.6218 110.60603 433.29727
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 274.45947 0.35263884 0.028074324 0.35050255
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 37.225636 196.0031 458.148
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 359.48752 0.09552091 0.032565296 0.29096162
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 133.05055 186.00117 444.77386
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 257.90714 0.43255293 0.23367548 0.87153155
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 167.31111 226.55756 402.29065
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 114.467926 0.09689093 0.8595312 0.3892328
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 289.35944 191.96289 455.63736
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 67.73146 0.82419485 0.76254684 0.4651196
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 351.96008 165.63763 433.30923
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 265.53186 0.46771634 0.18787295 0.45456904
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 428.36182 166.33124 433.7823
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 268.17484 0.04338163 0.70139366 0.013037026
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 491.01367 194.30759 431.78574
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 86.824265 0.5596546 0.13916802 0.31984752
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 20.801212 285.00085 458.44977
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 138.99077 0.47718817 0.7006814 0.40669566
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 132.22708 263.49512 440.4285
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 339.2458 0.6987419 0.39937216 0.86379576
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 160.3021 312.7393 408.87418
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 263.4579 0.9513793 0.15503883 0.691131
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 240.45247 241.88751 407.41617
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 16.842535 0.33450812 0.1539535 0.33932084
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 338.74414 295.92273 464.8427
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 123.40494 0.16595727 0.3944735 0.73659176
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 411.24988 310.12305 443.03528
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 226.04234 0.26419246 0.89994216 0.8457342
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 512.77826 277.0948 466.7661
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 7.380388 0.611282 0.1286161 0.63637644
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 70.53791 313.3929 414.17822
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 261.70383 0.30477107 0.99479026 0.22017014
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 156.78087 369.55 399.40515
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 254.07784 0.6367915 0.37937766 0.78443885
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 205.82742 328.49283 431.51324
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 25.54506 0.54820347 0.43572372 0.2065062
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 316.3137 372.23337 399.52194
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 230.35373 0.06017077 0.6618143 0.24741572
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 346.16403 344.71893 426.76596
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 95.371864 0.2542491 0.028309286 0.7493487
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 451.9744 354.1735 434.8929
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 281.65167 0.076886475 0.2286601 0.6131162
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 526.9344 384.99985 473.21997
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 237.62614 0.5104017 0.79924667 0.65615666
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 21.262074 392.194 430.78482
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 32.373318 0.25832725 0.78090304 0.97114056
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 158.09459 449.23383 445.46902
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 81.126434 0.019933462 0.23593634 0.67233485
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 227.86807 459.09305 434.8219
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 54.712517 0.11135751 0.16494125 0.061183393
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 292.946 419.70297 421.5177
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 236.47473 0.7667365 0.6941621 0.22213298
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 329.18527 441.8361 415.8056
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 306.6967 0.012913942 0.2262727 0.91070604
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 441.92847 445.07077 476.4313
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 233.45508 0.8495957 0.105265856 0.682448
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 535.37115 421.64984 447.1721
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 63.654808 0.33034462 0.17033482 0.47604668
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 35.51589 503.82452 414.4625
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 257.85074 0.4787203 0.9354838 0.07713282
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 140.705 509.96835 410.13995
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 12.058911 0.19151038 0.4930238 0.8996703
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 180.29994 470.5166 449.66455
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 79.458664 0.9838082 0.20264757 0.50617284
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 273.50882 498.88293 451.08734
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 340.66205 0.6782381 0.7865892 0.0011419654
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 389.9979 476.00726 401.4154
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 94.68129 0.69561225 0.23924774 0.45710033
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 434.7177 528.31805 411.05685
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 291.08228 0.1825369 0.5010117 0.5305409
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 516.68787 488.71536 404.45477
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 339.9275 0.7319225 0.80589354 0.3852731
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 18.139288 0.3062422 517.40765
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 158.45923 0.28705746 0.046637237 0.530415
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 103.34821 20.694935 498.67477
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 26.155659 0.044074237 0.105492234 0.59515285
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 232.64363 35.64782 533.2636
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 202.53566 0.8095961 0.46075368 0.8760089
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 260.81998 41.05135 521.1197
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 280.24408 0.5615365 0.22601032 0.50647634
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 374.8943 24.687899 531.61
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 340.49356 0.58601415 0.22896153 0.69338024
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 429.842 0.018030167 551.9145
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 235.47482 0.9098316 0.5484691 0.84721893
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 514.08545 73.18834 492.1813
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 325.1006 0.15676498 0.75160325 0.8911529
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 3.1613557 146.23239 511.4407
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 351.26883 0.9709812 0.696864 0.17951053
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 126.614624 148.56584 484.9558
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 5.19958 0.7692901 0.37618017 0.48403913
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 197.1239 132.0367 538.11957
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 101.41231 0.5058693 0.67798895 0.43516874
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 247.78726 146.5541 503.03027
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 340.29965 0.011867166 0.87859976 0.7348925
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 356.60236 142.72818 530.2489
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 30.364773 0.16435933 0.961683 0.81427413
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 398.70178 134.22856 530.75214
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 177.00511 0.95406204 0.7692609 0.3969404
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 505.8126 152.58258 489.6295
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 278.84204 0.47169548 0.38580817 0.4832192
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 19.91323 204.02066 492.13318
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 192.24385 0.8847579 0.8243977 0.49897444
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 130.18488 225.6588 538.7999
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 302.71783 0.79866624 0.9353055 0.9979207
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 212.15475 192.62245 515.1025
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 146.73413 0.61080456 0.79876775 0.1836617
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 248.08022 189.29144 539.95917
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 133.38998 0.89820224 0.6409638 0.2733932
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 391.94482 216.31451 481.02692
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 111.85511 0.8076521 0.36268324 0.08277136
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 397.71582 234.21992 506.41208
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 153.10873 0.3225243 0.07107842 0.22263885
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 512.21545 222.55083 486.05807
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 274.0628 0.09790152 0.92454886 0.59299564
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 3.9835825 277.69482 522.7376
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 105.36543 0.92265683 0.14796227 0.89581627
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 128.48846 291.0483 545.86584
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 283.22006 0.37452757 0.14948392 0.20217478
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 182.38742 292.70895 487.40814
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 288.29282 0.6760625 0.31131303 0.06491017
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 305.25275 263.19998 545.5682
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 174.68517 0.3825981 0.66526955 0.7081204
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 359.2747 255.38562 512.0135
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 308.12827 0.2883529 0.37172884 0.7196301
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 456.5093 273.48105 523.8845
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 299.73135 0.72663385 0.6587774 0.7708635
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 490.61594 240.33643 524.3659
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 40.143936 0.3714729 0.7502036 0.8670246
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 62.50542 318.18872 498.00037
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 44.84426 0.28032476 0.8091983 0.7440361
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 139.54108 357.19827 506.25385
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 76.04871 0.51345366 0.18322253 0.36030573
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 181.48499 346.8957 490.61703
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 87.67302 0.44113803 0.2788059 0.14222884
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 250.20096 372.76178 550.6012
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 129.71886 0.22377324 0.38811654 0.2216357
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 370.4569 356.15485 525.6343
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 5.8854747 0.7944231 0.2876513 0.4185493
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 462.593 389.2219 522.409
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 27.215431 0.56355846 0.62962514 0.06913608
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 482.95068 332.78464 547.9338
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 104.90572 0.52993995 0.13550246 0.9502382
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 70.42097 423.2016 524.3302
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 302.39835 0.25130987 0.60615456 0.81013674
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 123.45149 404.07138 498.37366
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 1.4880896 0.38830703 0.40250194 0.26008546
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 168.59082 416.8618 488.43375
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 16.048536 0.17252332 0.583008 0.72069085
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 316.65588 453.04034 526.291
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 152.30853 0.0056858063 0.45943522 0.53751713
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 353.86057 426.7756 506.05933
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 14.260983 0.5155296 0.23990363 0.39563882
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 472.79422 463.2976 539.83167
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 350.23108 0.27208805 0.3491615 0.46561164
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 548.64294 421.50854 530.598
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 120.97344 0.20606774 0.271385 0.8240132
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 18.2339 472.30914 492.51004
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 185.63312 0.72201395 0.5626762 0.2089324
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 88.701485 537.0746 487.31818
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 359.84637 0.91955334 0.38126796 0.021332264
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 191.3654 475.3693 513.2
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 266.15 0.035698116 0.22643727 0.17194986
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 299.16873 472.10098 502.42117
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 22.312374 0.7126979 0.9460565 0.23334104
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 322.46793 487.81735 515.96765
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 125.426895 0.44506192 0.7420003 0.7989567
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 404.79352 534.43976 550.8519
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 121.46364 0.23508197 0.28729975 0.7150125
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+AttributeBegin
+	Translate 512.73486 513.75073 503.04858
+	Scale 7.9428573 7.8285713 7.985714
+	Rotate 29.940426 0.2105397 0.9746744 0.25376356
+	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+		Include "geometry/triangle.pbrt"
+AttributeEnd
+
+
+# TEST
+#AttributeBegin
+#	Translate 152.73486 53.75073 253.04858
+#	Scale 70.9428573 70.8285713 70.985714
+#	Rotate 29.940426 0.2105397 0.9746744 0.25376356
+#	Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]"float roughness" [.025]
+#		Include "geometry/triangle.pbrt"
+#AttributeEnd
+
+WorldEnd
