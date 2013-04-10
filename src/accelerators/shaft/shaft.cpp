@@ -25,7 +25,7 @@ using namespace shaft::vis;
 namespace shaft {
 
     bool ShaftGeometry::canBeBlockedBy(const BBox &bounding_box) const {
-        return true;
+        return false;
     }
     
     typedef list<Reference<RawEdge> > rawedge_list;
@@ -115,7 +115,7 @@ namespace shaft {
         }
         
         // TODO handle the case where the triangle overlaps the shaft, but no points lie in the shaft
-        Warning("TODO implement -- triangle may overlap with shaft, but no points lie inside");
+        // Warning("TODO implement -- triangle may overlap with shaft, but no points lie inside");
         // how?
         // clip away parts of the triangle that lie outside of a plane, then check if anything is left
         
@@ -385,7 +385,7 @@ namespace shaft {
             }
                 break;
             case -1:
-                Warning("TODO stub: using a bounding volume instead of shaft");
+                // Warning("TODO stub: using a bounding volume instead of shaft");
                 
                 BBox shaft_bbox = receiver_bbox.Union(light_bbox);
                 
@@ -561,7 +561,7 @@ namespace shaft {
         triangles.insert(triangles.begin(), new_triangles.begin(), new_triangles.end());
         filterTriangles();
         
-        Info("# Surfaces: %lu", surfaces.size());
+        //Info("# Surfaces: %lu", surfaces.size());
         
 #ifdef SHAFT_LOG
         depth = parent.depth + 1;
@@ -577,9 +577,11 @@ namespace shaft {
              &lightBox = lightNode->bounding_box;
         Mesh &mesh = getMesh();
         nbliter end = triangles.end();
-        for (nbliter tris = triangles.begin(); tris != end; tris++) {
-            if (!Intersects(receiverBox, mesh.getTriangle(*tris), mesh)
-                && !Intersects(lightBox, mesh.getTriangle(*tris), mesh))
+        Reference<Triangle> triangle;
+        for (nblciter tris = triangles.begin(); tris != end; tris++) {
+            triangle = mesh.getTriangle(*tris);
+            if (!Intersects(receiverBox, triangle, mesh)
+                && !Intersects(lightBox, triangle, mesh))
                 filtered_triangles.push_back(*tris);
         }
     }
@@ -610,7 +612,7 @@ namespace shaft {
             (*s)->computeBoundingBox();
         }
         
-        Info("# Surfaces: %lu", surfaces.size());
+        //Info("# Surfaces: %lu", surfaces.size());
         
 #ifdef SHAFT_LOG
         depth = 0;
@@ -695,12 +697,7 @@ namespace shaft {
     }
     
     float Shaft::Visibility(const Ray &ray) const {
-//        const Mesh &mesh = getMesh();
-//        
-//        if (isRayBlockedByTriangles(receiverNode->inside_triangles, mesh, ray)
-//                || isRayBlockedByTriangles(lightNode->inside_triangles, mesh, ray))
-//            return 0.f;
-        
+        Assert(vis);
         return vis->Visibility(ray);
     }
     
@@ -730,7 +727,6 @@ namespace shaft {
         }
         t = min(t, newT);
         
-        //Info("t += %f", t);
         r.o += t * r.d;
         r.mint = 0;
         r.maxt += t;
@@ -740,15 +736,15 @@ namespace shaft {
     
 #   define PROBVIS_NBTESTS_RECEIVER 10
 #   define PROBVIS_NBTESTS_LIGHT    5
-#   define TOTAL_NBTEST             PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER \
-                                    * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT
+#   define TOTAL_NBTEST             (PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER \
+                                    * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT)
     
     void Shaft::initProbVis(bool useProbVis, RNG *rng, const string * const type) {
         Assert(!useProbVis || rng != NULL);
         Assert(isLeaf());
         
         if (!useProbVis || filtered_triangles.empty()) {
-            vis = new ExactVisibilityCalculator(getMesh(), triangles, receiverNode);
+            vis = new ExactVisibilityCalculator(getMesh(), triangles, receiverNode, lightNode);
             return;
         }
         
@@ -841,7 +837,7 @@ namespace shaft {
         
         if (max == 0) {
             Info("ProbVis initialisation found no blockers, falling back to exact visibility");
-            vis = new ExactVisibilityCalculator(mesh, filtered_triangles, receiverNode);
+            vis = new ExactVisibilityCalculator(mesh, filtered_triangles, receiverNode, lightNode);
             return;
         }
         

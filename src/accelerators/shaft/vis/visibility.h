@@ -18,21 +18,29 @@ namespace shaft {
 namespace vis {
     
     class VisibilityCalculator {
+    protected:
+        typedef std::list<unsigned int> nbllist;
+        typedef nbllist::const_iterator nblciter;
+        
+        typedef std::list<Reference<shaft::Triangle> > trislist;
+        typedef trislist::const_iterator trisciter;
+        
+        static trislist getTriangles(const Mesh &mesh, const nbllist &tidx);
+        
     public:
         virtual float Visibility(const Ray &ray) const = 0;
         virtual ~VisibilityCalculator();
     };
     
-    class ExactVisibilityCalculator : public VisibilityCalculator {
-        typedef std::list<unsigned int> nbllist;
-        typedef nbllist::const_iterator nblciter;
-        
+    class ExactVisibilityCalculator : public VisibilityCalculator {        
         const shaft::Mesh &mesh;
-        const nbllist &triangles;
-        const shaft::ElementTreeNode &receiver_node;
+        const trislist triangles;
+        const shaft::ElementTreeNode &receiver_node, &light_node;
         
     public:
-        ExactVisibilityCalculator(const shaft::Mesh &mesh, const nbllist &triangles, const Reference<ElementTreeNode> &receiver_node);
+        ExactVisibilityCalculator(const shaft::Mesh &mesh, const nbllist &triangles,
+                                  const Reference<ElementTreeNode> &receiver_node,
+                                  const Reference<ElementTreeNode> &light_node);
         
         virtual float Visibility(const Ray &ray) const;
     };
@@ -42,13 +50,16 @@ namespace vis {
         const RNG &rng;
         
     public:
-        typedef std::list<unsigned int> nbllist;
-        typedef nbllist::const_iterator nblciter;
+        typedef VisibilityCalculator::nbllist nbllist;
+        typedef VisibilityCalculator::nblciter nblciter;
         
-    protected:
+    private:
         const shaft::Mesh &mesh;
         const Reference<shaft::Triangle> mostBlockingOccluder;
-        const nbllist triangles;
+        const trislist triangles;
+        
+    protected:
+        
         const float mostBlockingOccluderBlocking;
         
         virtual float evaluate(const Ray &ray, float p) const = 0;

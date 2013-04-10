@@ -11,7 +11,7 @@
 
 namespace shaft { namespace vis {
     
-    ProbabilisticVisibilityCalculator::ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) : rng(rng), mesh(mesh), mostBlockingOccluder(mostBlockingOccluder), triangles(triangles), mostBlockingOccluderBlocking(mostBlockingOccluderBlocking) {
+    ProbabilisticVisibilityCalculator::ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) : rng(rng), mesh(mesh), mostBlockingOccluder(mostBlockingOccluder), triangles(VisibilityCalculator::getTriangles(mesh, triangles)), mostBlockingOccluderBlocking(mostBlockingOccluderBlocking) {
     }
     
     float ProbabilisticVisibilityCalculator::Visibility(const Ray &ray) const {
@@ -24,8 +24,8 @@ namespace shaft { namespace vis {
     
     bool ProbabilisticVisibilityCalculator::hitsOtherOccluder(const Ray &ray) const {
         Reference<Triangle> triangle;
-        for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
-            triangle = mesh.getTriangle(*t);
+        for (trisciter t = triangles.begin(); t != triangles.end(); t++) {
+            triangle = *t;
             if (&*triangle == &*mostBlockingOccluder)
                 continue;
             

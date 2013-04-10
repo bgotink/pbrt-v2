@@ -25,8 +25,6 @@ namespace vis {
     BjornProbVisCalculator::BjornProbVisCalculator(const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking)
                     : ProbabilisticVisibilityCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking)
     {
-        printf("\nP_A: %f\nP_B: %f\nP_C: %f\n", P_A, P_B, P_C);
-        printf("alpha: %f\nbeta: %f\ngamma: %f\n", ALPHA, BETA, GAMMA);
     }
     
     // a*b = a + b + (1 - a)*(1 - b) - 1
@@ -123,7 +121,7 @@ namespace vis {
             if (vis_a(ray)) {
                 ProbVis_pa_noHit();
                 
-                return - 1. / 254.;
+                return - 1. / (254. * P_A);
             }
             
             return 0.;
@@ -133,7 +131,7 @@ namespace vis {
             if (vis_b(ray)) {
                 ProbVis_pb_noHit();
                 
-                return - 1. / 254.;
+                return - 1. / (254. * P_B);
             }
             
             return 0.;
@@ -144,15 +142,15 @@ namespace vis {
                 if (vis_b(ray)) {
                     // a+b == 2
                     ProbVis_pc_noHit();
-                    return POW_2_8 / 254.;
+                    return POW_2_8 / (254. * P_C);
                 } else {
                     // a+b == 1
-                    return 1. / 254.;
+                    return 1. / (254. * P_C);
                 }
             } else {
                 if (vis_b(ray)) {
                     // a+b == 1
-                    return 1. / 254.;
+                    return 1. / (254. * P_C);
                 } else {
                     // a+b == 0
                     return 0.;

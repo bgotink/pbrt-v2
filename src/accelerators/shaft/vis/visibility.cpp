@@ -12,5 +12,15 @@ namespace shaft {
 namespace vis {
     VisibilityCalculator::~VisibilityCalculator() {
     }
+    
+    VisibilityCalculator::trislist VisibilityCalculator::getTriangles(const Mesh &mesh, const nbllist &tidx) {
+        trislist result;
+        
+        const nblciter end = tidx.end();
+        for (nblciter iter = tidx.begin(); iter != end; iter++)
+            result.push_back(mesh.getTriangle(*iter));
+        
+        return result;
+    }
 }
 }

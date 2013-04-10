@@ -15,22 +15,24 @@ using shaft::ElementTreeNode;
 namespace shaft { namespace vis {
   
     ExactVisibilityCalculator::ExactVisibilityCalculator(const Mesh &mesh, const nbllist &triangles,
-                                                         const Reference<ElementTreeNode> &receiver)
-                    : mesh(mesh), triangles(triangles), receiver_node(*receiver)
+                                                         const Reference<ElementTreeNode> &receiver,
+                                                         const Reference<ElementTreeNode> &light)
+    : mesh(mesh), triangles(VisibilityCalculator::getTriangles(mesh, triangles)),
+    receiver_node(*receiver), light_node(*light)
     {}
     
     float ExactVisibilityCalculator::Visibility(const Ray &ray) const {
         ShaftStartIntersectP();
         
         // check all triangles
-        for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
+        for (trisciter t = triangles.begin(); t != triangles.end(); t++) {
             ShaftIntersectTest();
-            if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
+            if (IntersectsTriangle(*t, mesh, ray))
                 return 0.f;
         }
         ShaftNotIntersected();
         
-        return receiver_node.IntersectP(ray) ? 0.f : 1.f;
+        return (receiver_node.IntersectP(ray) || light_node.IntersectP(ray)) ? 0.f : 1.f;
     }
     
 }}

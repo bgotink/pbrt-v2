@@ -302,10 +302,10 @@ namespace shaft {
                 state = SHAFT_UNDECIDED;
                 pthread_mutex_unlock(&mutex);
                 
-                Warning("Shaft is leaf (#prims in shaft: %lu, #prims in node: %lu, #points in node: %lu",
+                /*Warning("Shaft is leaf (#prims in shaft: %lu, #prims in node: %lu, #points in node: %lu",
                                 shaft.triangles.size(),
                                 shaft.receiverNode->inside_triangles.size(),
-                                shaft.receiverNode->points.size());
+                                shaft.receiverNode->points.size());*/
                 ShaftLeafCreated(shaft.receiverNode->inside_triangles.size(),
                                 shaft.receiverNode->points.size(),
                                 shaft.triangles.size(),

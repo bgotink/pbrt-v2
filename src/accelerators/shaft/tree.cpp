@@ -224,7 +224,7 @@ void ElementTreeNode::split() {
     for (nbiter t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
         triangle = triangles[*t_idx];
 
-        /*float a = mesh.getPoint(triangle->getPoint(0))[split_axis],
+        float a = mesh.getPoint(triangle->getPoint(0))[split_axis],
             b = mesh.getPoint(triangle->getPoint(1))[split_axis],
             c = mesh.getPoint(triangle->getPoint(2))[split_axis];
         
@@ -238,9 +238,9 @@ void ElementTreeNode::split() {
             right->inside_triangles.push_back(*t_idx);
         } else {
             right->gone_triangles.push_back(*t_idx);
-        }*/
+        }
         
-        if (Intersects(left->bounding_box, triangle, mesh)) {
+        /*if (Intersects(left->bounding_box, triangle, mesh)) {
             left->inside_triangles.push_back(*t_idx);
         } else {
             left->gone_triangles.push_back(*t_idx);
@@ -250,7 +250,7 @@ void ElementTreeNode::split() {
             right->inside_triangles.push_back(*t_idx);
         } else {
             right->gone_triangles.push_back(*t_idx);
-        }
+        }*/
     }
     
     left->setIsLeaf();
