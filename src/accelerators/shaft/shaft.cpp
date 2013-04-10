@@ -548,13 +548,11 @@ namespace shaft {
         
         Mesh &mesh = getMesh();
         for (nblciter tris = parent.triangles.begin(); tris != parent.triangles.end(); tris++) {
-            if (geometry.intersects(mesh.getTriangle(*tris), mesh)
-                    && !Intersects(receiverNode->bounding_box, mesh.getTriangle(*tris), mesh))
+            if (geometry.intersects(mesh.getTriangle(*tris), mesh))
                 new_triangles.insert(*tris);
         }
         for (nbciter tris = split->gone_triangles.begin(); tris != split->gone_triangles.end(); tris++) {
-            if (geometry.intersects(mesh.getTriangle(*tris), mesh)
-                    && !Intersects(receiverNode->bounding_box, mesh.getTriangle(*tris), mesh))
+            if (geometry.intersects(mesh.getTriangle(*tris), mesh))
                 new_triangles.insert(*tris);
         }
         
