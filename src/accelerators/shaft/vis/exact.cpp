@@ -13,21 +13,35 @@ using shaft::Mesh;
 using shaft::ElementTreeNode;
 
 namespace shaft { namespace vis {
+    
+    std::list<const ::Triangle *> getTrisPtrs(const std::list<unsigned int> &idx, const Mesh &mesh) {
+        std::list<const ::Triangle *> result;
+        
+        std::list<unsigned int>::const_iterator i, end;
+        end = idx.end();
+        for (i = idx.begin(); i != end; i++) {
+            result.push_back(&*(mesh.getTriangle(*i)->getOriginal()));
+        }
+        
+        return result;
+    }
   
     ExactVisibilityCalculator::ExactVisibilityCalculator(const Mesh &mesh, const nbllist &triangles,
                                                          const Reference<ElementTreeNode> &receiver,
                                                          const Reference<ElementTreeNode> &light)
-    : mesh(mesh), triangles(VisibilityCalculator::getTriangles(mesh, triangles)),
-    receiver_node(*receiver), light_node(*light)
-    {}
+    : mesh(mesh), _triangles(VisibilityCalculator::getTriangles(mesh, triangles)),
+    receiver_node(*receiver), light_node(*light), triangles(getTrisPtrs(triangles, mesh))
+    {
+    }
     
     float ExactVisibilityCalculator::Visibility(const Ray &ray) const {
         ShaftStartIntersectP();
         
         // check all triangles
-        for (trisciter t = triangles.begin(); t != triangles.end(); t++) {
+        trisptrciter end = triangles.end();
+        for (trisptrciter t = triangles.begin(); t != end; t++) {
             ShaftIntersectTest();
-            if (IntersectsTriangle(*t, mesh, ray))
+            if ((*t)->IntersectP(ray))
                 return 0.f;
         }
         ShaftNotIntersected();

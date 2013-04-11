@@ -78,7 +78,11 @@ public:
     
 private:
     ElementTreeNode(ElementTree *tree, ElementTreeNode *parent);
+
+    typedef std::vector<const ::Triangle *> trislist;
+    typedef trislist::const_iterator trisciter;
     
+    trislist _inside_triangles;
     static RNG rng;
     
     void split();

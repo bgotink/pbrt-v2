@@ -32,9 +32,13 @@ namespace vis {
         virtual ~VisibilityCalculator();
     };
     
-    class ExactVisibilityCalculator : public VisibilityCalculator {        
+    class ExactVisibilityCalculator : public VisibilityCalculator {
+        typedef std::list<const ::Triangle *> trisptrlist;
+        typedef trisptrlist::const_iterator trisptrciter;
+        
         const shaft::Mesh &mesh;
-        const trislist triangles;
+        const trisptrlist triangles;
+        const trislist _triangles;
         const shaft::ElementTreeNode &receiver_node, &light_node;
         
     public:

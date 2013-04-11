@@ -230,12 +230,14 @@ void ElementTreeNode::split() {
         
         if (a <= split_pos || b <= split_pos || c <= split_pos) {
             left->inside_triangles.push_back(*t_idx);
+            left->_inside_triangles.push_back(&* mesh.getTriangle(*t_idx)->getOriginal());
         } else {
             left->gone_triangles.push_back(*t_idx);
         }
         
         if (a >= split_pos || b >= split_pos || c >= split_pos) {
             right->inside_triangles.push_back(*t_idx);
+            left->_inside_triangles.push_back(&* mesh.getTriangle(*t_idx)->getOriginal());
         } else {
             right->gone_triangles.push_back(*t_idx);
         }
@@ -281,6 +283,7 @@ ElementTreeNode::ElementTreeNode(ElementTree *tree) : parent(NULL), tree(tree) {
     }
     for (unsigned int i = 0; i < mesh.getNbTriangles(); i++) {
         inside_triangles.push_back(i);
+        _inside_triangles.push_back(&* mesh.getTriangle(i)->getOriginal());
     }
     setIsLeaf();
     createBoundingBox();
@@ -310,14 +313,10 @@ bool ElementTreeNode::IntersectP(const Ray &ray) const {
     Assert(is_leaf);
     Assert(!empty());
     
-    const Mesh &mesh = tree->mesh;
-
-    nbciter tidx_end = inside_triangles.end();
-    for (nbciter tidx = inside_triangles.begin(); tidx != tidx_end; tidx++) {
-        const Reference<Triangle> t = mesh.getTriangle(*tidx);
-        
+    const trisciter tris_end = _inside_triangles.end();
+    for (trisciter tris = _inside_triangles.begin(); tris != tris_end; tris++) {
         ShaftNodeIntersectionTest();
-        if (IntersectsTriangle(t, mesh, ray))
+        if ((*tris)->IntersectP(ray))
             return true;
     }
     

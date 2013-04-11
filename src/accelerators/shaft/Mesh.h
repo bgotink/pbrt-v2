@@ -57,6 +57,10 @@ namespace shaft {
         typedef std::list<Reference<TriangleMesh> > shape_list;
         typedef shape_list::iterator shape_iter;
         
+        typedef std::vector<Reference<Shape> > shape_vector;
+        typedef shape_vector::iterator shape_viter;
+        typedef shape_vector::const_iterator shape_vciter;
+        
         shape_list filter(const prim_list &);
         shape_list filter(const std::vector<Reference<Shape> > &);
         

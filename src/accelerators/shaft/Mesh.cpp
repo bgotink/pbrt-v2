@@ -22,16 +22,28 @@ using std::set;
 
 namespace shaft {
     
-    Mesh::shape_list Mesh::filter(const vector<Reference<Shape> > &list) {
+    Mesh::shape_list Mesh::filter(const shape_vector &list) {
         shape_list res;
         
-        for (vector<Reference<Shape> >::const_iterator shape = list.begin(); shape != list.end(); shape++) {
+        Warning("Filtering shape_vector");
+        
+        for (shape_vciter shape = list.begin(); shape != list.end(); shape++) {
             Reference<Shape> s = *shape;
             
-            if (!s->isTriangleMesh()) {
-                Warning("A non-TriangleMesh-shape, ignored!");
-            } else {
-                res.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*s)));
+            shape_vector todo;
+            todo.push_back(s);
+            
+            while (!todo.empty()) {
+                s = todo.back(); todo.pop_back();
+                
+                if (s->CanIntersect()) {
+                    Warning("Invalid primitive shape encountered, CanIntersect() returned true");
+                } else if (s->isTriangleMesh()) {
+                    res.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*s)));
+                } else {
+                    Warning("Refining...");
+                    s->Refine(todo);
+                }
             }
         }
         
@@ -39,6 +51,8 @@ namespace shaft {
     }
     
     Mesh::shape_list Mesh::filter(const prim_list &primitives) {
+        Warning("Filtering prim_list");
+        
         shape_list meshes;
         {
             prim_iter prim_end = primitives.end();
@@ -48,12 +62,22 @@ namespace shaft {
                 if (!shape) {
                     Warning("A non-GeometricPrimitive primitive in the scene -> ignoring!!");
                 } else {
-                    if (!shape->isTriangleMesh()) {
-                        Warning("The shape is not a TriangleMesh, skipping...");
-                    } else {
-                        meshes.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*shape)));
-                        shape_prim_map[&*shape] = Reference<Primitive>(*prim);
+                    shape_vector todo;
+                    todo.push_back(shape);
+                    
+                    while (!todo.empty()) {
+                        shape = todo.back(); todo.pop_back();
+                        
+                        if (shape->CanIntersect()) {
+                            Warning("Invalid primitive shape encountered, CanIntersect() returned true");
+                        } else if (shape->isTriangleMesh()) {
+                            meshes.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*shape)));
+                        } else {
+                            Warning("Refining...");
+                            shape->Refine(todo);
+                        }
                     }
+
                 }
             }
         }

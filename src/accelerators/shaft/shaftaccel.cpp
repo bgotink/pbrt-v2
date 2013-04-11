@@ -130,15 +130,19 @@ namespace shaft {
         bool *show;
         bool *probVis;
         
-        bool RayInShaft(const Ray &ray) {
+        bool RayInShaft(const Ray &ray) const {
             if (!shaft->receiverNode->bounding_box.Inside(ray.o))
                 return false;
             
+#ifdef SHAFT_LOG
             Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
+#else
+            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time);
+#endif
             return RayBBoxIntersect(shaft->lightNode->bounding_box, r);
         }
         
-        bool IntersectP(const Ray &ray, bool showShafts = false) {
+        bool IntersectP(const Ray &ray, bool showShafts = false) const {
             if (!RayInShaft(ray))
                 return false;
             
@@ -163,7 +167,7 @@ namespace shaft {
             }
         }
         
-        float Visibility(const Ray &ray, bool *set = NULL) {
+        float Visibility(const Ray &ray, bool *set = NULL) const {
             if (!RayInShaft(ray)) {
                 return 0.;
             }
@@ -213,7 +217,11 @@ namespace shaft {
             
             show = new bool;
             if (shaft->receiverNode->bounding_box.Inside(shaftPoint)) {
+#ifdef SHAFT_LOG
                 Info("showShaft actually doing it's work at ShaftTreeNode %p, depth: %u", this, shaft->depth);
+#else
+                Info("showShaft actually doing it's work at ShaftTreeNode %p", this);
+#endif
                 Info("showShaft for point (%f, %f, %f)", shaftPoint.x, shaftPoint.y, shaftPoint.z);
                 *show = true;
                 
@@ -306,10 +314,12 @@ namespace shaft {
                                 shaft.triangles.size(),
                                 shaft.receiverNode->inside_triangles.size(),
                                 shaft.receiverNode->points.size());*/
+#ifdef SHAFT_LOG
                 ShaftLeafCreated(shaft.receiverNode->inside_triangles.size(),
                                 shaft.receiverNode->points.size(),
                                 shaft.triangles.size(),
-                                shaft.getDepth());
+                                shaft.getDepth());          
+#endif
                 return;
             } else {
                 is_leaf = false;
