@@ -20,11 +20,14 @@ using std::stack;
 
 namespace shaft {
     
+    // RawEdge
+    
     RawEdge::RawEdge(uint32_t from, uint32_t to, const Mesh &mesh) {
         vertices[0].point = mesh.getPoint(from);
         vertices[1].point = mesh.getPoint(to);
         
         mesh_edge = createId(from, to);
+        is_inside = true;
     }
     
     Reference<RawEdge> RawEdge::clone() const {
@@ -38,6 +41,8 @@ namespace shaft {
         return Reference<RawEdge>(&clone);
     }
     
+    // Edge
+    
     Edge::Edge(uint32_t from, uint32_t to, const Mesh& mesh) : raw_edge(new RawEdge(from, to, mesh)), is_flipped(false) {
     }
     
@@ -46,6 +51,8 @@ namespace shaft {
     Reference<Edge> Edge::clone() const {
         return Reference<Edge>(new Edge(raw_edge->clone(), is_flipped));
     }
+    
+    // Patch
     
     Reference<Patch> Patch::clone() const {
         Patch &clone = *new Patch;
@@ -63,6 +70,8 @@ namespace shaft {
         
         return Reference<Patch>(&clone);
     }
+    
+    // Surface
     
     const list<Reference<RawEdge> > Surface::getRawEdges() const {
         list<Reference<RawEdge> > retVal;
@@ -105,7 +114,7 @@ namespace shaft {
             for (Patch::edge_iter edge = pclone->edges.begin(); edge != pclone->edges.end(); edge++) {
                 RawEdge::idtype label = (*edge)->getRawEdgeLabel();
                 if (edges.count(label) == 0) {
-                    edges.at(label) = *edge;
+                    edges[label] = *edge;
                 } else {
                     Reference<Edge> newEdge = edges.at(label)->flip();
                     newEdge->setOwner(&*pclone);
@@ -121,44 +130,46 @@ namespace shaft {
         return clone;
     }
     
-    typedef set<Reference<Patch> > patch_set;
+    typedef set<Patch *> patch_set;
     typedef patch_set::iterator patch_siter;
     
-    typedef stack<Reference<Patch> > patch_stack;
+    typedef stack<Patch *> patch_stack;
     
     // see [Laine, 06] fig 4.23
     void Surface::mergePatches() {
-        
         patch_list new_patches;
         patch_set patches_processed;
         
         map<Reference<Patch>, Reference<Patch> > patch_remap;
         
         for (patch_iter patch_seed = patches.begin(); patch_seed != patches.end(); patch_seed++) {
-            if (patches_processed.count(*patch_seed) != 0)
+            if (patches_processed.count(&* *patch_seed) != 0) {
                 // already processed
                 continue;
+            }
             
             patch_set merge_patches;
             patch_stack traversal_stack;
             
-            traversal_stack.push(*patch_seed);
+            merge_patches.insert(& **patch_seed);
+            traversal_stack.push(& **patch_seed);
             
             while (!traversal_stack.empty()) {
-                Reference<Patch> patch = traversal_stack.top();
+                Patch &patch = *traversal_stack.top();
                 traversal_stack.pop();
                 
-                patches_processed.insert(patch);
+                patches_processed.insert(&patch);
                 
-                for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
-                    const  Reference<Patch> &neighbour = (*e)->getNeighbour();
+                for (Patch::edge_citer e = patch.edges.begin(); e != patch.edges.end(); e++) {
+                    Reference<Patch> neighbour = (*e)->getNeighbour();
+                                            
                     if ((*e)->raw_edge->is_inside
                             && (neighbour)
-                            && (merge_patches.count(neighbour) == 0)
-                            && (patch->facing != INCONSISTENT) && (neighbour->facing != INCONSISTENT)
-                            && (patch->facing == neighbour->facing)) {
-                        merge_patches.insert(neighbour);
-                        traversal_stack.push(neighbour);
+                            && (merge_patches.count(&*neighbour) == 0)
+                            && (patch.facing != INCONSISTENT) && (neighbour->facing != INCONSISTENT)
+                            && (patch.facing == neighbour->facing)) {
+                        merge_patches.insert(&*neighbour);
+                        traversal_stack.push(&*neighbour);
                     }
                 }
             }
@@ -169,23 +180,24 @@ namespace shaft {
             new_patch.mesh_triangle = (*patch_seed)->mesh_triangle;
             
             for(patch_siter p = merge_patches.begin(); p != merge_patches.end(); p++) {
-                Reference<Patch> patch = *p;
+                Reference<Patch> patch(*p);
                 patch_remap[patch] = new_patch_ref;
                 for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
-                    if (merge_patches.count(Reference<Patch>((*e)->getNeighbour())) == 0) {
+                    Reference<Patch> neighbour = (*e)->getNeighbour();
+                    if (merge_patches.count(&* neighbour) == 0) {
                         Reference<Edge> clone = (*e)->clone();
                         clone->setOwner((*e)->getOwner());
-                        clone->setNeighbour((*e)->getNeighbour());
+                        clone->setNeighbour(neighbour);
                         
                         new_patch.edges.push_back(clone);
                     }
                 }
             }
             
-            new_patches.push_back(Reference<Patch>(&new_patch));
+            new_patches.push_back(new_patch_ref);
         }
         
-        Info("Mergin patches: %lu -> %lu", patches.size(), new_patches.size());
+        Info("Merging patches: %lu -> %lu", patches.size(), new_patches.size());
         
         patches = new_patches;
         
@@ -220,30 +232,29 @@ namespace shaft {
     
     // cf [Laine, 06] fig 4.25
     void Surface::splitSurface(surf_list &target_surfaces) {
+        int tmp = target_surfaces.size();
         patch_set processed;
-        Info("Splitting surface with %lu patches", patches.size());
         for (patch_iter sp = patches.begin(); sp != patches.end(); sp++) {
             Reference<Patch> seed_patch = *sp;
             
-            if (processed.count(seed_patch) != 0)
+            if (processed.count(&*seed_patch) != 0)
                 continue;
-            Info("Patch has %lu edges", seed_patch->edges.size());
             
             patch_set component_patches;
             patch_stack traversal_stack;
-            traversal_stack.push(seed_patch);
+            traversal_stack.push(&*seed_patch);
             
             while (!traversal_stack.empty()) {
                 Reference<Patch> patch = traversal_stack.top(); traversal_stack.pop();
-                processed.insert(patch);
+                processed.insert(&*patch);
                 
                 Reference<Patch> neighbour;
                 for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
                     neighbour = (*e)->getNeighbour();
                     if ((*e)->raw_edge->is_inside && neighbour
-                                    && component_patches.count(neighbour) == 0) {
-                        component_patches.insert(neighbour);
-                        traversal_stack.push(neighbour);
+                                    && component_patches.count(&*neighbour) == 0) {
+                        component_patches.insert(&*neighbour);
+                        traversal_stack.push(&*neighbour);
                     }
                 }
             }
@@ -254,8 +265,8 @@ namespace shaft {
                 component_surface.patches.push_back(patch);
                 for (Patch::edge_iter e = patch->edges.begin(); e != patch->edges.end(); e++) {
                     Reference<Edge> edge = *e;
-                    const Reference<Patch> &neighbour = edge->getNeighbour();
-                    if (neighbour && component_patches.count(Reference<Patch>(neighbour)) == 0) {
+                    Reference<Patch> &neighbour = edge->getNeighbour();
+                    if (neighbour && component_patches.count(&*neighbour) == 0) {
                         Reference<Edge> ourEdge = edge->clone();
                         ourEdge->setOwner(edge->getOwner());
                         edge->setOwner(NULL);
@@ -268,6 +279,7 @@ namespace shaft {
             }
             target_surfaces.push_back(Reference<Surface>(&component_surface));
         }
+        Info("Splitting surface with %lu patches into %lu surfaces", patches.size(), target_surfaces.size() - tmp);
     }
     
     typedef std::set<Reference<Surface> > surf_set;

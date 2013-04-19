@@ -94,6 +94,15 @@ namespace shaft{
     inline Vector4f CreatePlane(const Point &a, const Point &b, const Point&c) {
         ::Vector n = (b - a) ^ (c - a);
         float d = -n.x * a.x - n.y * a.y - n.z * a.z;
+        
+        if (n.x + n.y + n.z == 0) {
+            Severe("Creating plane between (%f,%f,%f), (%f,%f,%f), (%f,%f,%f) yields (0, 0, 0, %f)",
+                  a.x, a.y, a.z,
+                  b.x, b.y, b.z,
+                  c.x, c.y, c.z,
+                  d);
+        }
+        
         return Vector4f(n.x, n.y, n.z, d);
     }
     
@@ -103,7 +112,8 @@ namespace shaft{
         Assert(!isnan(t));
         
         if (t == 0) {
-            Error("This function doesn't work for a plane (a*x + b*y + c*z + d == 0) with (a + b + c) == 0");
+            Error("This function doesn't work for a plane (a*x + b*y + c*z + d == 0) with (a + b + c) == 0 (%f + %f + %f == 0)",
+                  p.x, p.y, p.z);
         }
         
         t = -p.w / t;

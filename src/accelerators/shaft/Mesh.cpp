@@ -25,7 +25,7 @@ namespace shaft {
     Mesh::shape_list Mesh::filter(const shape_vector &list) {
         shape_list res;
         
-        Warning("Filtering shape_vector");
+        Info("Filtering shape_vector");
         
         for (shape_vciter shape = list.begin(); shape != list.end(); shape++) {
             Reference<Shape> s = *shape;
@@ -41,7 +41,7 @@ namespace shaft {
                 } else if (s->isTriangleMesh()) {
                     res.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*s)));
                 } else {
-                    Warning("Refining...");
+                    Info("Refining...");
                     s->Refine(todo);
                 }
             }
@@ -51,7 +51,7 @@ namespace shaft {
     }
     
     Mesh::shape_list Mesh::filter(const prim_list &primitives) {
-        Warning("Filtering prim_list");
+        Info("Filtering prim_list");
         
         shape_list meshes;
         {
@@ -73,7 +73,7 @@ namespace shaft {
                         } else if (shape->isTriangleMesh()) {
                             meshes.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*shape)));
                         } else {
-                            Warning("Refining...");
+                            Info("Refining...");
                             shape->Refine(todo);
                         }
                     }

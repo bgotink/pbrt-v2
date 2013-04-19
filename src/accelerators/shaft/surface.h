@@ -41,7 +41,7 @@ namespace shaft {
         
         inline const Point &getPoint(int i) {
             Assert(i == 0 || i == 1);
-            return vertices[0].point;
+            return vertices[i].point;
         }
         
         Reference<RawEdge> clone() const;
@@ -79,12 +79,17 @@ namespace shaft {
                               : raw_edge->vertices[idx];
         }
         
-        inline const Reference<Patch> &getNeighbour() {
+        inline const Reference<Patch> &getNeighbour() const {
             return is_flipped ? raw_edge->neighbour[1]
                               : raw_edge->neighbour[0];
         }
         
-        inline const Reference<Patch> &getOwner() {
+        inline Reference<Patch> &getNeighbour() {
+            return is_flipped ? raw_edge->neighbour[1]
+                              : raw_edge->neighbour[0];
+        }
+        
+        inline const Reference<Patch> &getOwner() const {
             return is_flipped ? raw_edge->neighbour[0]
                               : raw_edge->neighbour[1];
         }

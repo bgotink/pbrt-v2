@@ -25,7 +25,7 @@ using namespace shaft::vis;
 namespace shaft {
 
     bool ShaftGeometry::canBeBlockedBy(const BBox &bounding_box) const {
-        return false;
+        return bounding_box.Overlaps(bbox);
     }
     
     typedef list<Reference<RawEdge> > rawedge_list;
@@ -122,19 +122,14 @@ namespace shaft {
         return true;
     }
     
-    bool ShaftGeometry::intersectsLine(Point one, Point two) const {        
-        float f, f2;
-
+    bool ShaftGeometry::intersectsLine(Point one, Point two) const {
         for (plane_citer plane = planes.begin(); plane != planes.end(); plane++) {
-            f = one * *plane;
-            f2 = two * *plane;
+            float f = one * *plane;
+            float f2 = two * *plane;
             
-            if (sign(f) == sign(f2)) {
-                if (f < 0)
-                    // both points are outside of the plane
-                    return false;
-                else
-                    continue;
+            if (sign(f) == sign(f2) && f < 0) {
+                // lies completely outside of one of the planes
+                return false;
             }
             
             // using http://www.softsurfer.com/Archive/algorithm_0104/algorithm_0104B.htm#intersect3D_SegPlane()
@@ -146,18 +141,29 @@ namespace shaft {
             float d = normal * u;
             float n = -normal * w;
             
-            if (fabs(d) < 16 * FLT_EPSILON)
+            if (fabs(d) < (16 * FLT_EPSILON)) {
                 // line segment || plane
                 // -> skip this plane
                 continue;
+            }
             
-            Point interstection = one + (n / d) * u;
+            float i = n / d;
+            
+            if (i < 0 || i > 1)
+                // intersection point of the line and the plane
+                // is beyond the edges of the line segment
+                continue;
+            
+            Point intersection = one + i * u;
             
             // replace the outside point with the intersection
             if (f < 0)
-                one = interstection;
+                one = intersection;
             else
-                two = interstection;
+                two = intersection;
+            
+            if (one.epsilonEquals(two))
+                return false;
         }
         
         return !one.epsilonEquals(two);
@@ -471,7 +477,7 @@ namespace shaft {
     Reference<Surface> Shaft::constructTriangleSurface(nblist &triangles) {
         Surface &new_surface = *(new Surface);
         
-        map<RawEdge::idtype, Reference<Edge> > edge_map;
+        map<RawEdge::idtype, Edge *> edge_map;
         Mesh &mesh = getMesh();
         
         for (nbiter tidx = triangles.begin(); tidx != triangles.end(); tidx++) {
@@ -491,12 +497,12 @@ namespace shaft {
             
             for (Patch::edge_iter e = p->edges.begin(); e != p->edges.end(); e++) {
                 RawEdge::idtype elabel = (*e)->getRawEdgeLabel();
-                
+            
                 if (edge_map.count(elabel) == 0) {
-                    edge_map[elabel] = *e;
+                    edge_map[elabel] = &**e;
                 } else {
-                    Reference<Edge> &other = edge_map[elabel];
-                    *e = other->flip();
+                    Edge &other = *edge_map[elabel];
+                    *e = other.flip();
                     
                     (*e)->setOwner(&*p);
                 }
@@ -505,7 +511,7 @@ namespace shaft {
             new_surface.patches.push_back(p);
         }
         
-        Info("Created surface with %lu patches", new_surface.patches.size());
+        Info("Created surface with %lu patches from %lu triangles", new_surface.patches.size(), triangles.size());
         
         return Reference<Surface>(&new_surface);
     }
@@ -525,6 +531,10 @@ namespace shaft {
         Reference<Surface> surf;
         for (surface_iter s = surfaces.begin(); s != surfaces.end(); s++) {
             surf = *s;
+            
+            if (surf->patches.empty())
+                continue;
+            
             classifyEdges(surf);
             updatePatchFacings(surf);
             surf->mergePatches();
@@ -635,38 +645,59 @@ namespace shaft {
         }
     }
     
-    typedef set<Reference<Surface> > surf_set;
+    typedef set<Surface *> surf_set;
     typedef surf_set::iterator surf_siter;
     
-    typedef map<RawEdge::idtype, surf_set> union_find;
+    typedef map<Surface *, surf_set> union_find;
     typedef union_find::iterator uf_iter;
+    
+    typedef map<RawEdge::idtype, Surface *> loose_edge_map;
+    typedef loose_edge_map::iterator le_iter;
     
     // cf [Laine, 06] fig 4.27
     void Shaft::combineSurfaces(surface_list &input_list) {
         union_find combine_union;
+        loose_edge_map loose_edges;
         
-        for (surface_iter s = input_list.begin(); s != input_list.end(); s++) {
+        for (surface_iter s = input_list.begin(), il_end = input_list.end(); s != il_end; s++) {
             Reference<Surface> surf = *s;
-            for (Surface::nbiter el = surf->loose_edges.begin(); el != surf->loose_edges.end(); el++) {
+            
+            combine_union[&* surf] = set<Surface *>();
+            combine_union[&* surf].insert(&* surf);
+            
+            for (Surface::nbiter el = surf->loose_edges.begin(), el_end = surf->loose_edges.end(); el != el_end; el++) {
                 RawEdge::idtype elabel = *el;
-                if (combine_union.count(elabel)) {
-                    // label seen already?
-                    combine_union[elabel].insert(surf);
+                
+                if (loose_edges.count(elabel) != 0) {
+                    Surface *surf_two = loose_edges[elabel];
+                    combine_union[&*surf].insert(surf_two);
+                    combine_union[surf_two] = combine_union[&* surf];
                 } else {
-                    combine_union[elabel] = set<Reference<Surface> >();
-                    combine_union[elabel].insert(surf);
+                    loose_edges[elabel] = &* surf;
                 }
             }
         }
+        
+        surf_set handled_surfaces;
         
         for (uf_iter s = combine_union.begin(); s != combine_union.end(); s++) {
             surf_set &set_surfaces = s->second;
             if (set_surfaces.size() == 1) {
                 surfaces.push_back(* set_surfaces.begin());
             } else {
-                surfaces.push_back(Surface::constructCombinedSurface(set_surfaces));
+                std::set<Reference<Surface> > surfaces_set;
+                
+                for (surf_siter surf = set_surfaces.begin(), send = set_surfaces.end(); surf != send; surf++) {
+                    surfaces_set.insert(Reference<Surface>(*surf));
+                }
+                
+                surfaces.push_back(Surface::constructCombinedSurface(surfaces_set));
             }
+            
+            handled_surfaces.insert(set_surfaces.begin(), set_surfaces.end());
         }
+        
+        Info("Combined %lu to %lu surfaces", input_list.size(), surfaces.size());
     }
     
     bool Shaft::IntersectP(const Ray &ray) const {

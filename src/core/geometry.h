@@ -502,7 +502,7 @@ public:
     }
     
     inline Point getCenter() const {
-        return (pMax + pMin) / 2;
+        return (pMax + pMin) / 2.f;
     }
     
     const Point & getXYZ() const { return pMax; }

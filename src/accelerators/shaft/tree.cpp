@@ -300,7 +300,16 @@ void ElementTreeNode::createBoundingBox() {
     // reset the bounding box
     bounding_box = BBox();
     
-    for(nbiter point = points.begin(); point != points.end(); point++) {
+    nbiter end = points.end();
+    nbiter point = points.begin();
+    
+    if (end == point) return;
+    
+    bounding_box.Insert(point_pos[*point]);
+    // this is crude, lets hope it works
+    bounding_box.Expand(.5f);
+    
+    for(; point != end; point++) {
         bounding_box.Insert(point_pos[*point]);
     }
     

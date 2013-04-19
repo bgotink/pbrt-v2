@@ -116,6 +116,7 @@ namespace shaft {
             
             if (state != SHAFT_UNSET) {
                 is_leaf = true;
+                Info("%s shaft created", state == SHAFT_BLOCKED ? "blocked" : "empty");
             }
         }
         ~ShaftTreeNode() { if (left) delete left; if (right) delete right; if(show) delete show; if(probVis) delete probVis; }
