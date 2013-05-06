@@ -71,6 +71,9 @@ namespace shaft {
                         if (shape->CanIntersect()) {
                             Warning("Invalid primitive shape encountered, CanIntersect() returned true");
                         } else if (shape->isTriangleMesh()) {
+                            // fugly, but hey, it works
+                            shape_prim_map[&* shape] = *prim;
+                            
                             meshes.push_back(Reference<TriangleMesh>(static_cast<TriangleMesh *>(&*shape)));
                         } else {
                             Info("Refining...");
@@ -219,8 +222,10 @@ namespace shaft {
     }
     
     Reference<Material> Mesh::getSomeMaterial() const {
-        if (shape_prim_map.size() == 0)
+        if (shape_prim_map.size() == 0) {
+            Error("Asking for some material, but I ain't got none");
             return Reference<Material>(NULL);
+        }
         
         return shape_prim_map.begin()->second->getMaterial();
     }

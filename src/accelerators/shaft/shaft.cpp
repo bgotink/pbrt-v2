@@ -188,7 +188,7 @@ namespace shaft {
             
             {
                 bool exit = false;
-                for (plane_citer p = planes.begin(); p != planes.end(); p++) {
+                for (plane_citer p = planes.begin(), pend = planes.end(); p != pend; p++) {
                     if (p == plane) continue;
                     if (*p * intersectPoint < 0) {
                         exit = true;
