@@ -30,33 +30,33 @@ namespace vis {
     // a*b = a + b + (1 - a)*(1 - b) - 1
     float BjornProbVisCalculator::evaluate(const Ray &ray, float p) const {
         if (p < P_A) {
-            ProbVis_pa();
+            log::ProbVis_pa();
             // (Vis_A - alpha) / p_A
             
             if (vis_a(ray)) {
-                ProbVis_pa_noHit();
+                log::ProbVis_pa_noHit();
                 return (1. - ALPHA) / P_A;
             }
             
             return (0. - ALPHA) / P_A;
         }
         else if (p < (1-P_C)) {
-            ProbVis_pb();
+            log::ProbVis_pb();
             // (Vis_B - beta) / p_B
             
             if (vis_b(ray)) {
-                ProbVis_pb_noHit();
+                log::ProbVis_pb_noHit();
                 return (1. - BETA) / P_B;
             }
             
             return (0. - BETA) / P_B;
         }
         else {
-            ProbVis_pc();
+            log::ProbVis_pc();
             // ((!Vis_A * !Vis_B) - (1 - alpha - beta)) / (1 - p_A - p_B)
             
             if (vis_a(ray) || vis_b(ray)) {
-                ProbVis_pc_noHit();
+                log::ProbVis_pc_noHit();
                 
                 return (0. - GAMMA) / P_C;
             }
@@ -73,24 +73,24 @@ namespace vis {
     // a*b = ( a + b - (a-b)^2 ) / 2
     float BramProbVisCalculator::evaluate(const Ray &ray, float p) const {
         if (p < P_A) {
-            ProbVis_pa();
+            log::ProbVis_pa();
             
             if (vis_a(ray)) {
-                ProbVis_pa_noHit();
+                log::ProbVis_pa_noHit();
                 return .5 / P_A;
             }
             
             return 0;
         } else if (p < (1- P_C)) {
-            ProbVis_pb();
+            log::ProbVis_pb();
             
             if (vis_b(ray)) {
-                ProbVis_pb_noHit();
+                log::ProbVis_pb_noHit();
                 return .5 / P_B;
             }
             return 0;
         } else {
-            ProbVis_pc();
+            log::ProbVis_pc();
             
             int total = 0;
             bool missed = true;
@@ -102,7 +102,7 @@ namespace vis {
                 missed = false;
                 total--;
             }
-            if (missed) ProbVis_pc_noHit();
+            if (missed) log::ProbVis_pc_noHit();
             return - total * total / (2. * P_C);
         }
     }
@@ -116,32 +116,32 @@ namespace vis {
 #   define POW_2_8  256.
     float NielsProbVisCalculator::evaluate(const Ray &ray, float p) const {
         if (p < P_A) {
-            ProbVis_pa();
+            log::ProbVis_pa();
             
             if (vis_a(ray)) {
-                ProbVis_pa_noHit();
+                log::ProbVis_pa_noHit();
                 
                 return - 1. / (254. * P_A);
             }
             
             return 0.;
         } else if (p < (1 - P_C)) {
-            ProbVis_pb();
+            log::ProbVis_pb();
             
             if (vis_b(ray)) {
-                ProbVis_pb_noHit();
+                log::ProbVis_pb_noHit();
                 
                 return - 1. / (254. * P_B);
             }
             
             return 0.;
         } else {
-            ProbVis_pc();
+            log::ProbVis_pc();
             
             if (vis_a(ray)) {
                 if (vis_b(ray)) {
                     // a+b == 2
-                    ProbVis_pc_noHit();
+                    log::ProbVis_pc_noHit();
                     return POW_2_8 / (254. * P_C);
                 } else {
                     // a+b == 1

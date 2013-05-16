@@ -21,6 +21,7 @@
 namespace shaft {
     
 #ifdef SHAFT_LOG
+namespace log {
     AtomicInt64 nb_intersect_operations = 0;
     AtomicInt64 nb_intersect_done = 0;
     AtomicInt64 nb_no_intersected_shaft = 0;
@@ -42,6 +43,25 @@ namespace shaft {
     AtomicInt64 nb_panh = 0;
     AtomicInt64 nb_pbnh = 0;
     AtomicInt64 nb_pcnh = 0;
+    
+    
+#ifdef SHAFT_SHOW_DEPTHS
+    FalseColorFilm *falseColorShafts;
+#endif
+#ifdef SHAFT_SHOW_INTERSECTS
+    FalseColorFilm *falseColorIntersects;
+#endif
+    
+    ParamSet filmParams;
+    Filter *filter;
+    
+#ifdef __GCC__
+    __thread CameraSample *cameraSample;
+#else
+    CameraSample *cameraSample;
+#endif
+
+}
 #endif
     
     class BVHAccelCreator {
@@ -149,10 +169,10 @@ namespace shaft {
             
             switch (state) {
                 case SHAFT_BLOCKED:
-                    ShaftBlocked();
+                    log::ShaftBlocked();
                     return true;
                 case SHAFT_EMPTY:
-                    ShaftEmpty();
+                    log::ShaftEmpty();
                     return false;
                 case SHAFT_UNDECIDED:
                 default:
@@ -316,7 +336,7 @@ namespace shaft {
                                 shaft.receiverNode->inside_triangles.size(),
                                 shaft.receiverNode->points.size());*/
 #ifdef SHAFT_LOG
-                ShaftLeafCreated(shaft.receiverNode->inside_triangles.size(),
+                log::ShaftLeafCreated(shaft.receiverNode->inside_triangles.size(),
                                 shaft.receiverNode->points.size(),
                                 shaft.triangles.size(),
                                 shaft.getDepth());          
@@ -430,7 +450,7 @@ namespace shaft {
     }
     
     ShaftAccel::~ShaftAccel() {
-        ShaftLogResult();
+        log::ShaftLogResult();
         delete shaft_tree;
         delete fallback_accel;
     }
@@ -440,12 +460,12 @@ namespace shaft {
     }
     
     bool ShaftAccel::IntersectP(const Ray &ray) const {
-        ShaftAccelIntersectP();
+        log::ShaftAccelIntersectP();
         return shaft_tree->IntersectP(ray, showShafts);
     }
     
     float ShaftAccel::Visibility(const Ray &ray) const {
-        ShaftAccelIntersectP();
+        log::ShaftAccelIntersectP();
         return shaft_tree->Visibility(ray);
     }
     

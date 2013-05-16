@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		253B286D1737FE3F008A072E /* falsecolor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 253B286B1737FE3F008A072E /* falsecolor.cpp */; };
 		25DEEE3B16555CF8008ABA50 /* shaft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE3916555CF8008ABA50 /* shaft.cpp */; };
 		25DEEE3F1655604F008ABA50 /* tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE3D1655604F008ABA50 /* tree.cpp */; };
 		25DEEE4316559287008ABA50 /* surface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE4116559287008ABA50 /* surface.cpp */; };
@@ -177,6 +178,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		253B286B1737FE3F008A072E /* falsecolor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = falsecolor.cpp; sourceTree = "<group>"; };
+		253B286C1737FE3F008A072E /* falsecolor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = falsecolor.h; sourceTree = "<group>"; };
 		25DEEE3916555CF8008ABA50 /* shaft.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = shaft.cpp; path = shaft/shaft.cpp; sourceTree = "<group>"; };
 		25DEEE3A16555CF8008ABA50 /* shaft.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = shaft.h; path = shaft/shaft.h; sourceTree = "<group>"; };
 		25DEEE3D1655604F008ABA50 /* tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tree.cpp; path = shaft/tree.cpp; sourceTree = "<group>"; };
@@ -644,6 +647,8 @@
 		B1D8EBD91170310E00A8A49E /* film */ = {
 			isa = PBXGroup;
 			children = (
+				253B286B1737FE3F008A072E /* falsecolor.cpp */,
+				253B286C1737FE3F008A072E /* falsecolor.h */,
 				B1D8EBDA1170310E00A8A49E /* image.cpp */,
 				B1D8EBDB1170310E00A8A49E /* image.h */,
 			);
@@ -1060,6 +1065,7 @@
 				25F8FCCB171457EB00E6D280 /* visibility_impl.cpp in Sources */,
 				25F8FCCC171457EB00E6D280 /* visibility.cpp in Sources */,
 				25F8FCD01715990000E6D280 /* shaftaccel.cpp in Sources */,
+				253B286D1737FE3F008A072E /* falsecolor.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

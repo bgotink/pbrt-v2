@@ -9,12 +9,22 @@
 #ifndef pbrt_log_h
 #define pbrt_log_h
 
+
+#define SHAFT_LOG
+#define SHAFT_SHOW_INTERSECTS
+#define SHAFT_SHOW_DEPTHS
+
+
+#ifdef SHAFT_LOG
+#include "film/falsecolor.h"
+#endif
+
+
 #include "memory.h"
 
-namespace shaft {
+namespace shaft { namespace log {
 
-#if true
-#define SHAFT_LOG
+#ifdef SHAFT_LOG
 
 extern AtomicInt64 nb_intersect_operations;
 extern AtomicInt64 nb_intersect_done;
@@ -133,6 +143,62 @@ inline void ShaftLogResult() {
         );
     }
 }
+    
+#ifdef SHAFT_SHOW_DEPTHS
+    extern FalseColorFilm *falseColorShafts;
+#endif
+#ifdef SHAFT_SHOW_INTERSECTS
+    extern FalseColorFilm *falseColorIntersects;
+#endif
+    
+    extern ParamSet filmParams;
+    extern Filter *filter;
+    
+#ifdef __GCC__
+    extern __thread CameraSample *cameraSample;
+#else
+    extern CameraSample *cameraSample;
+#endif
+    
+    inline void ShaftNewImage() {
+#ifdef SHAFT_SHOW_DEPTHS
+        falseColorShafts = ::CreateFalseColorFilm("depths", filmParams, filter);
+#endif
+#ifdef SHAFT_SHOW_INTERSECTS
+        falseColorIntersects = ::CreateFalseColorFilm("intersects", filmParams, filter);
+#endif
+    }
+    
+#ifdef SHAFT_SHOW_DEPTHS
+    inline void ShaftDepth(uint64_t depth) {
+        if (falseColorShafts != NULL) falseColorShafts->Set(*cameraSample, depth);
+    }
+#else
+#define ShaftDepth();
+#endif
+    
+#ifdef SHAFT_SHOW_INTERSECTS
+    inline void ShaftAddIntersect(uint64_t count = 1) {
+        if (falseColorIntersects != NULL) falseColorIntersects->Add(*cameraSample, count);
+    }
+#else
+#define ShaftAddIntersect();
+#endif
+    
+    inline void ShaftSaveFalseColor() {
+#ifdef SHAFT_SHOW_DEPTHS
+        if (falseColorShafts != NULL)
+            falseColorShafts->WriteImage();
+        delete falseColorShafts;
+        falseColorShafts = NULL;
+#endif
+#ifdef SHAFT_SHOW_INTERSECTS
+        if (falseColorIntersects != NULL)
+            falseColorIntersects->WriteImage();
+        delete falseColorIntersects;
+        falseColorIntersects = NULL;
+#endif
+    }
 
 #else
     
@@ -153,8 +219,13 @@ inline void ShaftLogResult() {
 #define ProbVis_pb_noHit()
 #define ProbVis_pc_noHit()
     
+#define ShaftNewImage();
+#define ShaftDepth();
+#define ShaftAddIntersect();
+#define ShaftSaveFalseColor();
+    
 #endif
 
-}
+}}
 
 #endif

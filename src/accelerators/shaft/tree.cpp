@@ -324,7 +324,7 @@ bool ElementTreeNode::IntersectP(const Ray &ray) const {
     
     const trisciter tris_end = _inside_triangles.end();
     for (trisciter tris = _inside_triangles.begin(); tris != tris_end; tris++) {
-        ShaftNodeIntersectionTest();
+        log::ShaftNodeIntersectionTest();
         if ((*tris)->IntersectP(ray))
             return true;
     }

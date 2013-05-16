@@ -80,7 +80,7 @@ namespace shaft {
         nbllist triangles;
         nbllist filtered_triangles;
         
-#ifdef SHAFT_LOG
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
         uint32_t depth;
 #endif
         
@@ -136,7 +136,7 @@ namespace shaft {
                         || empty();
         }
         
-#ifdef SHAFT_LOG
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
         inline uint32_t getDepth() const { return depth; }
 #endif
         

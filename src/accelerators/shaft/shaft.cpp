@@ -571,7 +571,7 @@ namespace shaft {
         
         //Info("# Surfaces: %lu", surfaces.size());
         
-#ifdef SHAFT_LOG
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
         depth = parent.depth + 1;
 #endif
     }
@@ -622,7 +622,7 @@ namespace shaft {
         
         //Info("# Surfaces: %lu", surfaces.size());
         
-#ifdef SHAFT_LOG
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
         depth = 0;
 #endif
     }
@@ -703,15 +703,15 @@ namespace shaft {
     bool Shaft::IntersectP(const Ray &ray) const {
         const Mesh &mesh = getMesh();
 
-        ShaftStartIntersectP();
+        log::ShaftStartIntersectP();
         
         // check all triangles
         for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
-            ShaftIntersectTest();
+            log::ShaftIntersectTest();
             if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
                 return true;
         }
-        ShaftNotIntersected();
+        log::ShaftNotIntersected();
         
         return receiverNode->IntersectP(ray);
     }
@@ -727,6 +727,9 @@ namespace shaft {
     
     float Shaft::Visibility(const Ray &ray) const {
         Assert(vis);
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
+        log::ShaftDepth(depth);
+#endif
         return vis->Visibility(ray);
     }
     

@@ -35,16 +35,17 @@ namespace shaft { namespace vis {
     }
     
     float ExactVisibilityCalculator::Visibility(const Ray &ray) const {
-        ShaftStartIntersectP();
+        log::ShaftStartIntersectP();
         
         // check all triangles
         trisptrciter end = triangles.end();
         for (trisptrciter t = triangles.begin(); t != end; t++) {
-            ShaftIntersectTest();
+            log::ShaftIntersectTest();
+            log::ShaftAddIntersect();
             if ((*t)->IntersectP(ray))
                 return 0.f;
         }
-        ShaftNotIntersected();
+        log::ShaftNotIntersected();
         
         return (receiver_node.IntersectP(ray) || light_node.IntersectP(ray)) ? 0.f : 1.f;
     }

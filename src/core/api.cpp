@@ -46,6 +46,7 @@
 #include "accelerators/bvh.h"
 #include "accelerators/grid.h"
 #include "accelerators/kdtreeaccel.h"
+#include "accelerators/shaft/log.h"
 #include "accelerators/shaft/shaftaccel.h"
 #include "cameras/environment.h"
 #include "cameras/orthographic.h"
@@ -825,6 +826,7 @@ void pbrtPixelFilter(const string &name, const ParamSet &params) {
 void pbrtFilm(const string &type, const ParamSet &params) {
     VERIFY_OPTIONS("Film");
     renderOptions->FilmParams = params;
+    shaft::log::filmParams = params;
     renderOptions->FilmName = type;
 }
 
@@ -1294,6 +1296,9 @@ Camera *RenderOptions::MakeCamera() const {
     Filter *filter = MakeFilter(FilterName, FilterParams);
     Film *film = MakeFilm(FilmName, FilmParams, filter);
     if (!film) Severe("Unable to create film.");
+    
+    shaft::log::filter = filter;
+    
     Camera *camera = ::MakeCamera(CameraName, CameraParams,
         CameraToWorld, renderOptions->transformStartTime,
         renderOptions->transformEndTime, film);

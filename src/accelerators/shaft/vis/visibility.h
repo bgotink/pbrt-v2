@@ -13,6 +13,7 @@
 #include "rng.h"
 #include "../Mesh.h"
 #include "../tree.h"
+#include "../log.h"
 
 namespace shaft {
 namespace vis {

@@ -41,6 +41,7 @@
 #include "progressreporter.h"
 #include "camera.h"
 #include "intersection.h"
+#include "accelerators/shaft/log.h"
 
 static uint32_t hash(char *key, uint32_t len)
 {
@@ -90,6 +91,10 @@ void SamplerRendererTask::Run() {
             float rayWeight = camera->GenerateRayDifferential(samples[i], &rays[i]);
             rays[i].ScaleDifferentials(1.f / sqrtf(sampler->samplesPerPixel));
             PBRT_FINISHED_GENERATING_CAMERA_RAY(&samples[i], &rays[i], rayWeight);
+            
+#if defined(SHAFT_LOG) && (defined(SHAFT_SHOW_INTERSECTS) || defined(SHAFT_SHOW_DEPTHS))
+            shaft::log::cameraSample = &samples[i];
+#endif
 
             // Evaluate radiance along camera ray
             PBRT_STARTED_CAMERA_RAY_INTEGRATION(&rays[i], &samples[i]);
@@ -195,6 +200,8 @@ SamplerRenderer::~SamplerRenderer() {
 
 
 void SamplerRenderer::Render(const Scene *scene) {
+    shaft::log::ShaftNewImage();
+    
     PBRT_FINISHED_PARSING();
     // Allow integrators to do preprocessing for the scene
     PBRT_STARTED_PREPROCESSING();
@@ -228,6 +235,8 @@ void SamplerRenderer::Render(const Scene *scene) {
     // Clean up after rendering and store final image
     delete sample;
     camera->film->WriteImage();
+    
+    shaft::log::ShaftSaveFalseColor();
 }
 
 

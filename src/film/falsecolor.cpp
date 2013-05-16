@@ -229,6 +229,7 @@ void FalseColorFilm::WriteImage(float splatScale) {
     
     for (int y = 0; y < yPixelCount; ++y) {
         for (int x = 0; x < xPixelCount; ++x) {
+            ++offset;
             GetRGB(&rgb[3*offset], (*pixels)(x, y).count, maxCount);
         }
     }
@@ -247,7 +248,7 @@ void FalseColorFilm::UpdateDisplay(int x0, int y0, int x1, int y1,
 }
 
 
-FalseColorFilm *CreateFalseColorFilm(const ParamSet &params, Filter *filter) {
+FalseColorFilm *CreateFalseColorFilm(string filePart, const ParamSet &params, Filter *filter) {
     string filename = params.FindOneString("filename", PbrtOptions.imageFile);
     if (filename == "")
 #ifdef PBRT_HAS_OPENEXR
@@ -255,6 +256,18 @@ FalseColorFilm *CreateFalseColorFilm(const ParamSet &params, Filter *filter) {
 #else
     filename = "pbrt.tga";
 #endif
+    
+    char realFileName[ filename.size() + filePart.size() + 1 + 1 ];
+    {
+        const char *filename_str = filename.c_str();
+        uint64_t extensionIdx = filename.size() - 4; // exr\0 or tga\0
+        
+        memcpy(realFileName, filename_str, extensionIdx);
+        *(realFileName + extensionIdx) = '.';
+        memcpy(realFileName + extensionIdx + 1, filePart.c_str(), filePart.size());
+        memcpy(realFileName + extensionIdx + filePart.size() + 1, filename_str + extensionIdx, 4);
+        realFileName[filename.size() + filePart.size() + 1] = '\0';
+    }
     
     int xres = params.FindOneInt("xresolution", 640);
     int yres = params.FindOneInt("yresolution", 480);
@@ -271,7 +284,7 @@ FalseColorFilm *CreateFalseColorFilm(const ParamSet &params, Filter *filter) {
         crop[3] = Clamp(max(cr[2], cr[3]), 0., 1.);
     }
     
-    return new FalseColorFilm(xres, yres, filter, crop, filename, openwin);
+    return new FalseColorFilm(xres, yres, filter, crop, realFileName, openwin);
 }
 
 

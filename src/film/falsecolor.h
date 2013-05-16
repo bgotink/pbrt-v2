@@ -30,7 +30,7 @@ public:
     void Splat(const CameraSample &sample, const Spectrum &L);
     void GetSampleExtent(int *xstart, int *xend, int *ystart, int *yend) const;
     void GetPixelExtent(int *xstart, int *xend, int *ystart, int *yend) const;
-    void WriteImage(float splatScale);
+    void WriteImage(float splatScale = 0);
     void UpdateDisplay(int x0, int y0, int x1, int y1, float splatScale);
     
     void Add(const CameraSample &sample, uint64_t value = 1);
@@ -52,6 +52,6 @@ private:
 };
 
 
-FalseColorFilm *CreateFalseColorFilm(const ParamSet &params, Filter *filter);
+FalseColorFilm *CreateFalseColorFilm(string filename, const ParamSet &params, Filter *filter);
 
 #endif // PBRT_FILM_FALSECOLOR_H

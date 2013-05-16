@@ -19,6 +19,9 @@ namespace shaft { namespace vis {
     }
     
     bool ProbabilisticVisibilityCalculator::hitsMostBlocking(const Ray &ray) const {
+        log::ShaftIntersectTest();
+        log::ShaftAddIntersect();
+        
         return IntersectsTriangle(mostBlockingOccluder, mesh, ray);
     }
     
@@ -28,6 +31,9 @@ namespace shaft { namespace vis {
             triangle = *t;
             if (&*triangle == &*mostBlockingOccluder)
                 continue;
+            
+            log::ShaftIntersectTest();
+            log::ShaftAddIntersect();
             
             if (IntersectsTriangle(triangle, mesh, ray)) {
                 return true;
