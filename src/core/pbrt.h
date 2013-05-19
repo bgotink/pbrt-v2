@@ -98,6 +98,13 @@ typedef unsigned __int64 uint64_t;
 
 #if defined(PBRT_IS_LINUX) || defined(PBRT_IS_APPLE)
 #include <stdint.h>
+#if __cplusplus > 199711L
+#define PBRT_CPP11
+// C++11
+#include <cmath>
+using std::isnan;
+using std::isinf;
+#endif // __cplusplus > 199711L
 #endif // PBRT_IS_LINUX || PBRT_IS_APPLE
 #if defined(PBRT_IS_WINDOWS)
 #define isnan _isnan

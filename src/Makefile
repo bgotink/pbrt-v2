@@ -61,7 +61,7 @@ ifeq ($(ARCH),Darwin)
 endif
 
 CC=gcc
-CXX=g++
+CXX=g++ -std=c++11
 LD=$(CXX) $(OPT) $(MARCH)
 INCLUDE=-I. -Icore $(EXR_INCLUDES) $(TIFF_INCLUDES)
 WARN=-Wall
