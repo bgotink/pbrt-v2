@@ -5,6 +5,7 @@
 # Build folders:
 src/objs
 src/bin
+src/images
 
 # Common renderer output file:
 *.exr

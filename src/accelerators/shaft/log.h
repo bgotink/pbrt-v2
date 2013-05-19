@@ -104,45 +104,7 @@ inline void ShaftLeafCreated(uint32_t nbPrims, uint32_t nbPoints, uint32_t nbPri
     AtomicAdd(&nb_total_depth, depth);
 }
     
-inline void ShaftLogResult() {
-    fprintf(stderr, "# ray intersectp tests done: %lld\n"
-            "# real intersect operations @ shaft: %lld\n"
-            "# intersects not done by shaft: %lld\n"
-            "# real intersect operations @ nodes: %lld\n",
-        nb_intersect_done, nb_intersect_operations,
-            nb_no_intersected_shaft, nb_node_intersect_done);
-    
-    fprintf(stderr, "\n"
-            "# shafts blocked: %lld\n"
-            "# shafts empty: %lld\n"
-            "# ShaftAccel::IntersectP: %lld\n",
-            nb_shaft_blocked, nb_shaft_empty,
-            nb_shaftaccel_intersectp);
-    
-    fprintf(stderr, "\n"
-            "# leave shafts: %lld\n"
-            "# nb prims in leave shafts: %lld (avg. %f)\n"
-            "# nb prims in leave nodes: %lld (avg. %f)\n"
-            "# nb points in leave nodes: %lld (avg. %f)\n"
-            "avg. depth: %f\n",
-            nb_leave_shafts,
-            nb_total_prims_in_leaves, static_cast<double>(nb_total_prims_in_leaves) / static_cast<double>(nb_leave_shafts),
-            nb_total_prims_in_leave_nodes, static_cast<double>(nb_total_prims_in_leave_nodes) / static_cast<double>(nb_leave_shafts),
-            nb_total_points_in_leave_nodes, static_cast<double>(nb_total_points_in_leave_nodes) / static_cast<double>(nb_leave_shafts),
-            static_cast<float>(nb_total_depth) / static_cast<double>(nb_leave_shafts));
-    
-    if (nb_pc > 0 || nb_pb > 0 || nb_pa > 0) {
-        float tot = nb_pa + nb_pb + nb_pc;
-        fprintf(stderr, "\n"
-                "# times A: %lld (%f %%) \t-\t %lld (%f %%) missed\n"
-                "# times B: %lld (%f %%) \t-\t %lld (%f %%) missed\n"
-                "# times C: %lld (%f %%) \t-\t %lld (%f %%) missed\n",
-                nb_pa, 100 * (static_cast<float>(nb_pa) / tot), nb_panh, 100. * static_cast<double>(nb_panh) / static_cast<double>(nb_pa),
-                nb_pb, 100 * (static_cast<float>(nb_pb) / tot), nb_pbnh, 100. * static_cast<double>(nb_pbnh) / static_cast<double>(nb_pb),
-                nb_pc, 100 * (static_cast<float>(nb_pc) / tot), nb_pcnh, 100. * static_cast<double>(nb_pcnh) / static_cast<double>(nb_pc)
-        );
-    }
-}
+void ShaftLogResult();
     
 #ifdef SHAFT_SHOW_DEPTHS
     extern FalseColorFilm *falseColorShafts;
@@ -171,7 +133,7 @@ inline void ShaftLogResult() {
     
 #ifdef SHAFT_SHOW_DEPTHS
     inline void ShaftDepth(uint64_t depth) {
-        if (falseColorShafts != NULL) falseColorShafts->Set(*cameraSample, depth);
+        if (falseColorShafts != NULL && cameraSample != NULL) falseColorShafts->Set(*cameraSample, depth);
     }
 #else
 #define ShaftDepth();
@@ -179,7 +141,7 @@ inline void ShaftLogResult() {
     
 #ifdef SHAFT_SHOW_INTERSECTS
     inline void ShaftAddIntersect(uint64_t count = 1) {
-        if (falseColorIntersects != NULL) falseColorIntersects->Add(*cameraSample, count);
+        if (falseColorIntersects != NULL && cameraSample != NULL) falseColorIntersects->Add(*cameraSample, count);
     }
 #else
 #define ShaftAddIntersect();
@@ -199,7 +161,9 @@ inline void ShaftLogResult() {
         falseColorIntersects = NULL;
 #endif
     }
-
+    
+    void ShaftSaveMetaData();
+    
 #else
     
 #define ShaftStartIntersectP()
@@ -223,6 +187,7 @@ inline void ShaftLogResult() {
 #define ShaftDepth();
 #define ShaftAddIntersect();
 #define ShaftSaveFalseColor();
+#define ShaftSaveMetaData();
     
 #endif
 

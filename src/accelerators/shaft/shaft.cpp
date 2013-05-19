@@ -96,7 +96,7 @@ namespace shaft {
             return false;
         
         // if every point lies to the wrong side of one of the planes, the triangle cannot intersect
-        for (plane_citer plane = planes.begin(); plane != planes.end(); plane++) {
+        for (plane_citer plane = planes.begin(), end = planes.end(); plane != end; plane++) {
             if (((*point[0] * *plane) < 0) && ((*point[1] * *plane) < 0) && ((*point[2] * *plane) < 0))
                 return false;
         }
@@ -123,7 +123,7 @@ namespace shaft {
     }
     
     bool ShaftGeometry::intersectsLine(Point one, Point two) const {
-        for (plane_citer plane = planes.begin(); plane != planes.end(); plane++) {
+        for (plane_citer plane = planes.begin(), end = planes.end(); plane != end; plane++) {
             float f = one * *plane;
             float f2 = two * *plane;
             
@@ -173,7 +173,7 @@ namespace shaft {
         Intersection intersect;
         float distance = INFINITY;
         
-        for (plane_citer plane = planes.begin(); plane != planes.end(); plane++) {
+        for (plane_citer plane = planes.begin(), end = planes.end(); plane != end; plane++) {
             float nominator = ray.d * *plane;
             if (nominator == 0.f) {
                 // plane || ray

@@ -19,51 +19,7 @@
 #include <vector>
 
 namespace shaft {
-    
-#ifdef SHAFT_LOG
-namespace log {
-    AtomicInt64 nb_intersect_operations = 0;
-    AtomicInt64 nb_intersect_done = 0;
-    AtomicInt64 nb_no_intersected_shaft = 0;
-    AtomicInt64 nb_node_intersect_done = 0;
-    
-    AtomicInt64 nb_shaft_blocked = 0;
-    AtomicInt64 nb_shaft_empty = 0;
-    AtomicInt64 nb_shaftaccel_intersectp = 0;
-    
-    AtomicInt64 nb_leave_shafts = 0;
-    AtomicInt64 nb_total_prims_in_leaves = 0;
-    AtomicInt64 nb_total_prims_in_leave_nodes = 0;
-    AtomicInt64 nb_total_points_in_leave_nodes = 0;
-    AtomicInt64 nb_total_depth = 0;
-    
-    AtomicInt64 nb_pa = 0;
-    AtomicInt64 nb_pb = 0;
-    AtomicInt64 nb_pc = 0;
-    AtomicInt64 nb_panh = 0;
-    AtomicInt64 nb_pbnh = 0;
-    AtomicInt64 nb_pcnh = 0;
-    
-    
-#ifdef SHAFT_SHOW_DEPTHS
-    FalseColorFilm *falseColorShafts;
-#endif
-#ifdef SHAFT_SHOW_INTERSECTS
-    FalseColorFilm *falseColorIntersects;
-#endif
-    
-    ParamSet filmParams;
-    Filter *filter;
-    
-#ifdef __GCC__
-    __thread CameraSample *cameraSample;
-#else
-    CameraSample *cameraSample;
-#endif
-
-}
-#endif
-    
+        
     class BVHAccelCreator {
         typedef std::vector<Reference<Primitive> > primarr;
         typedef primarr::iterator primaiter;

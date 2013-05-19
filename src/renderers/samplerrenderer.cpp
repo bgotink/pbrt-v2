@@ -169,6 +169,9 @@ void SamplerRendererTask::Run() {
         sampler->yPixelStart, sampler->xPixelEnd+1, sampler->yPixelEnd+1);
     delete sampler;
     delete[] samples;
+#if defined(SHAFT_LOG) && (defined(SHAFT_SHOW_INTERSECTS) || defined(SHAFT_SHOW_DEPTHS))
+    shaft::log::cameraSample = NULL;
+#endif
     delete[] rays;
     delete[] Ls;
     delete[] Ts;
@@ -236,6 +239,7 @@ void SamplerRenderer::Render(const Scene *scene) {
     delete sample;
     camera->film->WriteImage();
     
+    shaft::log::ShaftSaveMetaData();
     shaft::log::ShaftSaveFalseColor();
 }
 

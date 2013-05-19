@@ -26,6 +26,10 @@ public:
     // ImageFilm Public Methods
     FalseColorFilm(int xres, int yres, Filter *filt, const float crop[4],
               const string &filename, bool openWindow);
+    virtual ~FalseColorFilm() {
+        delete pixels;
+    }
+    
     void AddSample(const CameraSample &sample, const Spectrum &L);
     void Splat(const CameraSample &sample, const Spectrum &L);
     void GetSampleExtent(int *xstart, int *xend, int *ystart, int *yend) const;
@@ -35,6 +39,7 @@ public:
     
     void Add(const CameraSample &sample, uint64_t value = 1);
     void Set(const CameraSample &sample, uint64_t value = 0);
+    uint64_t GetMax() const;
 private:
     // ImageFilm Private Data
     Filter *filter;
@@ -48,7 +53,6 @@ private:
         uint64_t count;
     };
     BlockedArray<Pixel> *pixels;
-    float *filterTable;
 };
 
 
