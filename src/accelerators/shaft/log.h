@@ -104,6 +104,8 @@ inline void ShaftLeafCreated(uint32_t nbPrims, uint32_t nbPoints, uint32_t nbPri
     AtomicAdd(&nb_total_depth, depth);
 }
     
+void ShaftSaveBuildTime(double buildTime);
+    
 void ShaftLogResult();
     
 #ifdef SHAFT_SHOW_DEPTHS
@@ -116,7 +118,9 @@ void ShaftLogResult();
     extern ParamSet filmParams;
     extern Filter *filter;
     
-#ifdef __GCC__
+#if defined(PBRT_CPP11)
+    extern thread_local CameraSample *cameraSample;
+#elif defined(__GCC__)
     extern __thread CameraSample *cameraSample;
 #else
     extern CameraSample *cameraSample;
@@ -162,7 +166,7 @@ void ShaftLogResult();
 #endif
     }
     
-    void ShaftSaveMetaData();
+    void ShaftSaveMetaData(double timeSpent);
     
 #else
     
@@ -187,6 +191,7 @@ void ShaftLogResult();
 #define ShaftDepth();
 #define ShaftAddIntersect();
 #define ShaftSaveFalseColor();
+#define ShaftSaveBuildTime();
 #define ShaftSaveMetaData();
     
 #endif

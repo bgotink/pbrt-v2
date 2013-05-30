@@ -239,7 +239,7 @@ void SamplerRenderer::Render(const Scene *scene) {
     delete sample;
     camera->film->WriteImage();
     
-    shaft::log::ShaftSaveMetaData();
+    shaft::log::ShaftSaveMetaData(reporter.GetTime());
     shaft::log::ShaftSaveFalseColor();
 }
 
