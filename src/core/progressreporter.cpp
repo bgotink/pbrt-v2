@@ -114,6 +114,10 @@ void ProgressReporter::Done() {
     fflush(outFile);
 }
 
+double ProgressReporter::GetTime() const {
+    return timer->Time();
+}
+
 
 int TerminalWidth() {
 #if defined(PBRT_IS_WINDOWS)

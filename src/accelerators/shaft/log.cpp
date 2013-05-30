@@ -49,11 +49,15 @@ namespace shaft { namespace log {
     ParamSet filmParams;
     Filter *filter;
     
-#ifdef __GCC__
+#if defined(PBRT_CPP11)
+    thread_local CameraSample *cameraSample;
+#elif defined(__GCC__)
     __thread CameraSample *cameraSample;
 #else
     CameraSample *cameraSample;
 #endif
+    
+    static double buildTime;
 
 static void PrintStats(ostream &str) {
     str << "# ray intersectp tests done: " << nb_intersect_done << endl;
@@ -95,7 +99,11 @@ void ShaftLogResult() {
     PrintStats(cerr);
 }
     
-void ShaftSaveMetaData() {
+void ShaftSaveBuildTime(double bT) {
+    buildTime = bT;
+}
+
+void ShaftSaveMetaData(double timeSpent) {
     ofstream metadata;
     
     string img_filename = filmParams.FindOneString("filename", PbrtOptions.imageFile);
@@ -134,6 +142,10 @@ void ShaftSaveMetaData() {
         metadata << "Max Intersects: " << falseColorIntersects->GetMax() << endl;
     }
 #endif
+    
+    metadata << endl;
+    metadata << "Building took " << buildTime << " seconds." << endl;
+    metadata << "Rendering took " << timeSpent << " seconds." << endl;
     
     metadata.flush();
     metadata.close();

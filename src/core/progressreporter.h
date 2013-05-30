@@ -48,6 +48,7 @@ public:
     ~ProgressReporter();
     void Update(int num = 1);
     void Done();
+    double GetTime() const;
 private:
     // ProgressReporter Private Data
     const int totalWork;

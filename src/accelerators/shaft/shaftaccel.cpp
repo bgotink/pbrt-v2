@@ -6,6 +6,7 @@
 //
 //
 
+#include "core/timer.h"
 #include "shaftaccel.h"
 #include "../bvh.h"
 #include "shaft.h"
@@ -389,8 +390,13 @@ namespace shaft {
         bounding_box = Union(receiver_tree->root_node->bounding_box, light_tree->root_node->bounding_box);
         shaft_tree = new ShaftTreeNode(Shaft::constructInitialShaft(receiver_tree->root_node, light_tree->root_node));
         
+        Timer buildTimer;
+        buildTimer.Start();
+        
         shaft_tree->split();
         
+        log::ShaftSaveBuildTime(buildTimer.Time());
+
         BVHAccelCreator fallbackCreator(primitives, receiver_tree->mesh);
         if (showShafts) {
             shaft_tree->showShaft(shaftPoint, fallbackCreator);
