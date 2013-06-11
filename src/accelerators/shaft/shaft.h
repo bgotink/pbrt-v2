@@ -71,6 +71,11 @@ namespace shaft {
         
         typedef std::set<unsigned int> nbset;
         
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_LEAFS)
+        static uint32_t NEXT_UID;
+        const uint32_t uid;
+#endif
+        
         Reference<ElementTreeNode> receiverNode;
         Reference<ElementTreeNode> lightNode;
         

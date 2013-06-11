@@ -45,10 +45,22 @@
 #include "parallel.h"
 #include "imageio.h"
 
+#ifdef PBRT_FILM_FALSECOLOR_LOCK
+#define ACQUIRE_LOCK() \
+    MutexLock lock(mutex);
+#else
+#define ACQUIRE_LOCK()
+#endif
+
 // ImageFilm Method Definitions
 FalseColorFilm::FalseColorFilm(int xres, int yres, Filter *filt, const float crop[4],
                      const string &fn, bool openWindow)
-: Film(xres, yres) {
+#ifdef PBRT_FILM_FALSECOLOR_LOCK
+: Film(xres, yres), mutex(*Mutex::Create())
+#else
+: Film(xres, yres)
+#endif
+{
     filter = filt;
     memcpy(cropWindow, crop, 4 * sizeof(float));
     filename = fn;
@@ -79,6 +91,8 @@ void FalseColorFilm::Splat(const CameraSample &sample, const Spectrum &L) {
 }
 
 void FalseColorFilm::Add(const CameraSample &sample, uint64_t value) {
+    ACQUIRE_LOCK();
+    
     // Compute sample's raster extent
     float dimageX = sample.imageX - 0.5f;
     float dimageY = sample.imageY - 0.5f;
@@ -98,12 +112,14 @@ void FalseColorFilm::Add(const CameraSample &sample, uint64_t value) {
     
     for (int y = y0; y <= y1; ++y) {
         for (int x = x0; x <= x1; ++x) {
-            (*pixels)(x - xPixelStart, y - yPixelStart).count += value;
+            (*pixels)(x - xPixelStart, y - yPixelStart).Add(value);
         }
     }
 }
 
 void FalseColorFilm::Set(const CameraSample &sample, uint64_t value) {
+    ACQUIRE_LOCK();
+    
     // Compute sample's raster extent
     float dimageX = sample.imageX - 0.5f;
     float dimageY = sample.imageY - 0.5f;
@@ -123,7 +139,7 @@ void FalseColorFilm::Set(const CameraSample &sample, uint64_t value) {
     
     for (int y = y0; y <= y1; ++y) {
         for (int x = x0; x <= x1; ++x) {
-            (*pixels)(x - xPixelStart, y - yPixelStart).count = value;
+            (*pixels)(x - xPixelStart, y - yPixelStart).Set(value);
         }
     }
 }
@@ -173,6 +189,8 @@ void GetRGB(float *rgb, uint64_t count, uint64_t max) {
 
 
 void FalseColorFilm::WriteImage(float splatScale) {
+    ACQUIRE_LOCK();
+    
     // Convert image to RGB and compute final pixel values
     int nPix = xPixelCount * yPixelCount;
     float *rgb = new float[3*nPix];
@@ -200,38 +218,47 @@ void FalseColorFilm::UpdateDisplay(int x0, int y0, int x1, int y1,
 }
 
 uint64_t FalseColorFilm::GetMax() const {
+    ACQUIRE_LOCK();
+    
     uint64_t maxCount = 0;
     
     for (int y = 0; y < yPixelCount; ++y) {
         for (int x = 0; x < xPixelCount; ++x) {
-            maxCount = max(maxCount, (*pixels)(x, y).count);
+            maxCount = max(maxCount, static_cast<uint64_t>((*pixels)(x, y).count));
         }
     }
     
     return maxCount;
 }
 
-
-FalseColorFilm *CreateFalseColorFilm(string filePart, const ParamSet &params, Filter *filter) {
-    string filename = params.FindOneString("filename", PbrtOptions.imageFile);
+string FalseColorFilm::GetFilename(const string &filePart, const ParamSet &paramSet) {
+    string filename = paramSet.FindOneString("filename", PbrtOptions.imageFile);
+    
     if (filename == "")
 #ifdef PBRT_HAS_OPENEXR
         filename = "pbrt.exr";
 #else
-    filename = "pbrt.tga";
+        filename = "pbrt.tga";
 #endif
     
-    char realFileName[ filename.size() + filePart.size() + 1 + 1 ];
+    char realFilename[ filename.size() + filePart.size() + 1 + 1 ];
     {
         const char *filename_str = filename.c_str();
         uint64_t extensionIdx = filename.size() - 4; // exr\0 or tga\0
         
-        memcpy(realFileName, filename_str, extensionIdx);
-        *(realFileName + extensionIdx) = '.';
-        memcpy(realFileName + extensionIdx + 1, filePart.c_str(), filePart.size());
-        memcpy(realFileName + extensionIdx + filePart.size() + 1, filename_str + extensionIdx, 4);
-        realFileName[filename.size() + filePart.size() + 1] = '\0';
+        memcpy(realFilename, filename_str, extensionIdx);
+        *(realFilename + extensionIdx) = '.';
+        memcpy(realFilename + extensionIdx + 1, filePart.c_str(), filePart.size());
+        memcpy(realFilename + extensionIdx + filePart.size() + 1, filename_str + extensionIdx, 4);
     }
+    realFilename[ filename.size() + filePart.size() + 1 ] = '\0';
+    
+    return realFilename;
+}
+
+
+FalseColorFilm *CreateFalseColorFilm(string filePart, const ParamSet &params, Filter *filter) {
+    string realFilename = FalseColorFilm::GetFilename(filePart, params);
     
     int xres = params.FindOneInt("xresolution", 640);
     int yres = params.FindOneInt("yresolution", 480);
@@ -248,7 +275,7 @@ FalseColorFilm *CreateFalseColorFilm(string filePart, const ParamSet &params, Fi
         crop[3] = Clamp(max(cr[2], cr[3]), 0., 1.);
     }
     
-    return new FalseColorFilm(xres, yres, filter, crop, realFileName, openwin);
+    return new FalseColorFilm(xres, yres, filter, crop, realFilename, openwin);
 }
 
 

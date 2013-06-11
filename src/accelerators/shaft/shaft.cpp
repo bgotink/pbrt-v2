@@ -10,9 +10,11 @@
 #include <float.h>
 
 #include "pbrt.h"
-#include "log.h"
 #include "intersection.h"
 #include "geometry.h"
+
+#include "log.h"
+#include "break.h"
 
 #include <set>
 #include <map>
@@ -516,9 +518,17 @@ namespace shaft {
         return Reference<Surface>(&new_surface);
     }
     
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_LEAFS)
+    uint32_t Shaft::NEXT_UID = 0;
+#endif
+    
     // see [Laine, 06] fig 4.19
     Shaft::Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, Reference<ElementTreeNode> &split, Shaft &parent)
-    : receiverNode(receiver), lightNode(light), geometry(receiver, light), vis(NULL) {
+    :
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_LEAFS)
+    uid(++NEXT_UID),
+#endif
+    receiverNode(receiver), lightNode(light), geometry(receiver, light), vis(NULL) {
         // copy main_axis from the parent?
         
         for (surface_iter surf = parent.surfaces.begin(); surf != parent.surfaces.end(); surf++) {
@@ -596,7 +606,11 @@ namespace shaft {
     
     // cf. [Laine, 06] fig 4.31
     Shaft::Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light)
-    : receiverNode(receiver), lightNode(light), geometry(receiver, light), vis(NULL) {
+    :
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_LEAFS)
+    uid(++NEXT_UID),
+#endif
+    receiverNode(receiver), lightNode(light), geometry(receiver, light), vis(NULL) {
         Mesh &mesh = getMesh();
         int nbTris = mesh.triangles.size();
         for (int i = 0; i < nbTris; i++) {
@@ -727,9 +741,22 @@ namespace shaft {
     
     float Shaft::Visibility(const Ray &ray) const {
         Assert(vis);
-#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
+#if defined(SHAFT_LOG)
+#if defined(SHAFT_SHOW_DEPTHS)
         log::ShaftDepth(depth);
+#endif // defined(SHAFT_SHOW_DEPTHS)
+#if defined(SHAFT_SHOW_PRIMS)
+        log::ShaftSetPrimCount(triangles.size());
+#endif // defined(SHAFT_SHOW_PRIMS)
+#if defined(SHAFT_SHOW_LEAFS)
+        log::hitLeafId = uid;
 #endif
+#endif // defined(SHAFT_LOG)
+#if defined(SHAFT_ENABLE_BREAK) && defined(SHAFT_BREAK_MANYPRIMS)
+        if (triangles.size() > SHAFT_BREAK_MANYPRIMS_TRESHOLD) {
+            breakp::manyprims();
+        }
+#endif // defined(SHAFT_ENABLE_BREAK) && defined(SHAFT_BREAK_MANYPRIMS)
         return vis->Visibility(ray);
     }
     
@@ -868,8 +895,10 @@ namespace shaft {
         }
         
         if (max == 0) {
-            Info("ProbVis initialisation found no blockers, falling back to exact visibility");
-            vis = new ExactVisibilityCalculator(mesh, filtered_triangles, receiverNode, lightNode);
+//            Info("ProbVis initialisation found no blockers, falling back to exact visibility");
+//            vis = new ExactVisibilityCalculator(mesh, filtered_triangles, receiverNode, lightNode);
+            Warning("Trying BlockedVisibilityCalculator");
+            vis = createBlockedVisibilityCalculator();
             return;
         }
         

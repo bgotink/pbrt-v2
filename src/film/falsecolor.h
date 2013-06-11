@@ -20,6 +20,8 @@
 #include "filter.h"
 #include "paramset.h"
 
+//#define PBRT_FILM_FALSECOLOR_LOCK
+
 // ImageFilm Declarations
 class FalseColorFilm : public Film {
 public:
@@ -28,6 +30,9 @@ public:
               const string &filename, bool openWindow);
     virtual ~FalseColorFilm() {
         delete pixels;
+#ifdef PBRT_FILM_FALSECOLOR_LOCK
+        Mutex::Destroy(&mutex);
+#endif
     }
     
     void AddSample(const CameraSample &sample, const Spectrum &L);
@@ -40,6 +45,8 @@ public:
     void Add(const CameraSample &sample, uint64_t value = 1);
     void Set(const CameraSample &sample, uint64_t value = 0);
     uint64_t GetMax() const;
+    
+    static string GetFilename(const string& filePart, const ParamSet &params);
 private:
     // ImageFilm Private Data
     Filter *filter;
@@ -47,12 +54,26 @@ private:
     string filename;
     int xPixelStart, yPixelStart, xPixelCount, yPixelCount;
     struct Pixel {
-        Pixel() {
-            count = 0;
+        Pixel() : count(0) {
         }
-        uint64_t count;
+        
+        inline void Add(uint64_t value) {
+            AtomicAdd(&count, value);
+        }
+        
+        inline void Set(uint64_t value) {
+            if (set) return; set = true;
+            if (value > count) count = value;
+        }
+
+        bool set;
+        AtomicUInt64 count;
     };
     BlockedArray<Pixel> *pixels;
+    
+#ifdef PBRT_FILM_FALSECOLOR_LOCK
+    Mutex &mutex;
+#endif
 };
 
 

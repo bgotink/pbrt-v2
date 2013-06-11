@@ -43,6 +43,8 @@
 #include "filter.h"
 #include "paramset.h"
 
+#include "accelerators/shaft/log.h"
+
 // ImageFilm Declarations
 class ImageFilm : public Film {
 public:
@@ -51,14 +53,14 @@ public:
               const string &filename, bool openWindow);
     ~ImageFilm() {
         delete pixels;
-        delete filter;
+        if (deleteFilter) delete filter;
         delete[] filterTable;
     }
     void AddSample(const CameraSample &sample, const Spectrum &L);
     void Splat(const CameraSample &sample, const Spectrum &L);
     void GetSampleExtent(int *xstart, int *xend, int *ystart, int *yend) const;
     void GetPixelExtent(int *xstart, int *xend, int *ystart, int *yend) const;
-    void WriteImage(float splatScale);
+    void WriteImage(float splatScale = 1.f);
     void UpdateDisplay(int x0, int y0, int x1, int y1, float splatScale);
 private:
     // ImageFilm Private Data
@@ -78,9 +80,17 @@ private:
     };
     BlockedArray<Pixel> *pixels;
     float *filterTable;
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_LEAFS)
+    bool deleteFilter;
+public:
+    inline ImageFilm &SetNoDeleteFilter() {
+        deleteFilter = false;
+        return *this;
+    }
+#endif
 };
 
-
 ImageFilm *CreateImageFilm(const ParamSet &params, Filter *filter);
+ImageFilm *CreateImageFilm(const string& name, const ParamSet &params, Filter *filter);
 
 #endif // PBRT_FILM_IMAGE_H
