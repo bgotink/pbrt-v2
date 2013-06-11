@@ -32,6 +32,8 @@ namespace vis {
         virtual float Visibility(const Ray &ray) const = 0;
         virtual ~VisibilityCalculator();
     };
+
+    VisibilityCalculator *createBlockedVisibilityCalculator();
     
     class ExactVisibilityCalculator : public VisibilityCalculator {
         typedef std::list<const ::Triangle *> trisptrlist;

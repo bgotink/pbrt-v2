@@ -25,7 +25,7 @@ MARCH=-m64
 
 # change this to -g3 for debug builds
 OPT=-O3
-#OPT=-g3
+# OPT=-g3
 # comment out this line to enable assertions at runtime
 DEFS += -DNDEBUG
 
@@ -94,6 +94,8 @@ pbrt: bin/pbrt
 
 dirs:
 	/bin/mkdir -p bin objs
+
+rebuild: clean default
 
 $(LIBOBJS): $(HEADERS)
 

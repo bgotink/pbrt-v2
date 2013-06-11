@@ -71,6 +71,10 @@ ImageFilm::ImageFilm(int xres, int yres, Filter *filt, const float crop[4],
     if (openWindow || PbrtOptions.openWindow) {
         Warning("Support for opening image display window not available in this build.");
     }
+        
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_LEAFS)
+    deleteFilter = true;
+#endif
 }
 
 
@@ -226,6 +230,11 @@ ImageFilm *CreateImageFilm(const ParamSet &params, Filter *filter) {
 #else
         filename = "pbrt.tga";
 #endif
+    
+    return CreateImageFilm(filename, params, filter);
+}
+
+ImageFilm *CreateImageFilm(const string& filename, const ParamSet &params, Filter *filter) {
 
     int xres = params.FindOneInt("xresolution", 640);
     int yres = params.FindOneInt("yresolution", 480);

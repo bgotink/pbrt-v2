@@ -13,37 +13,48 @@
 #include <iostream>
 #include <fstream>
 
+#ifdef SHAFT_SHOW_LEAFS
+#include "film/image.h"
+#endif // defined(SHAFT_SHOW_LEAFS)
+
 using namespace std;
 
 namespace shaft { namespace log {
     
-    AtomicInt64 nb_intersect_operations = 0;
-    AtomicInt64 nb_intersect_done = 0;
-    AtomicInt64 nb_no_intersected_shaft = 0;
-    AtomicInt64 nb_node_intersect_done = 0;
+    AtomicUInt64 nb_intersect_operations(0);
+    AtomicUInt64 nb_intersect_done(0);
+    AtomicUInt64 nb_no_intersected_shaft(0);
+    AtomicUInt64 nb_node_intersect_done(0);
     
-    AtomicInt64 nb_shaft_blocked = 0;
-    AtomicInt64 nb_shaft_empty = 0;
-    AtomicInt64 nb_shaftaccel_intersectp = 0;
+    AtomicUInt64 nb_shaft_blocked(0);
+    AtomicUInt64 nb_shaft_empty(0);
+    AtomicUInt64 nb_shaftaccel_intersectp(0);
     
-    AtomicInt64 nb_leave_shafts = 0;
-    AtomicInt64 nb_total_prims_in_leaves = 0;
-    AtomicInt64 nb_total_prims_in_leave_nodes = 0;
-    AtomicInt64 nb_total_points_in_leave_nodes = 0;
-    AtomicInt64 nb_total_depth = 0;
+    uint64_t nb_leave_shafts = 0;
+    uint64_t nb_total_prims_in_leaves = 0;
+    uint64_t nb_total_prims_in_leave_nodes = 0;
+    uint64_t nb_total_points_in_leave_nodes = 0;
+    uint64_t nb_max_points_in_leave_nodes = 0;
+    uint64_t nb_total_depth = 0;
     
-    AtomicInt64 nb_pa = 0;
-    AtomicInt64 nb_pb = 0;
-    AtomicInt64 nb_pc = 0;
-    AtomicInt64 nb_panh = 0;
-    AtomicInt64 nb_pbnh = 0;
-    AtomicInt64 nb_pcnh = 0;
+    AtomicUInt64 nb_pa(0);
+    AtomicUInt64 nb_pb(0);
+    AtomicUInt64 nb_pc(0);
+    AtomicUInt64 nb_panh(0);
+    AtomicUInt64 nb_pbnh(0);
+    AtomicUInt64 nb_pcnh(0);
     
 #ifdef SHAFT_SHOW_DEPTHS
     FalseColorFilm *falseColorShafts;
 #endif
 #ifdef SHAFT_SHOW_INTERSECTS
     FalseColorFilm *falseColorIntersects;
+#endif
+#ifdef SHAFT_SHOW_PRIMS
+    FalseColorFilm *falseColorPrims;
+#endif
+#ifdef SHAFT_SHOW_LEAFS
+    Film *falseColorLeafs;
 #endif
     
     ParamSet filmParams;
@@ -56,6 +67,17 @@ namespace shaft { namespace log {
 #else
     CameraSample *cameraSample;
 #endif
+    
+    
+#if defined(SHAFT_SHOW_LEAFS)
+#if defined(PBRT_CPP11)
+    thread_local uint32_t hitLeafId;
+#elif defined(__GCC__)
+    __thread uint32_t hitLeafId;
+#else
+    uint32_t hitLeafId;
+#endif
+#endif // defined(SHAFT_SHOW_LEAFS)
     
     static double buildTime;
 
@@ -78,6 +100,7 @@ static void PrintStats(ostream &str) {
         << " (avg. " << static_cast<double>(nb_total_prims_in_leave_nodes) / static_cast<double>(nb_leave_shafts) << ")" << endl;
     str << "# nb points in leave nodes: " << nb_total_points_in_leave_nodes
         << " (avg. " << static_cast<double>(nb_total_points_in_leave_nodes) / static_cast<double>(nb_leave_shafts) << ")" << endl;
+    str << "\tmax: " << nb_max_points_in_leave_nodes << endl;
     str << "avg. depth: " << static_cast<float>(nb_total_depth) / static_cast<double>(nb_leave_shafts) << endl;
     str << endl;
     
@@ -92,6 +115,8 @@ static void PrintStats(ostream &str) {
         str << "# times C: " << nb_pc
             << " (" << 100 * (static_cast<float>(nb_pc) / tot) << " %) \t-\t " << nb_pcnh
             << " (" << 100. * static_cast<double>(nb_pcnh) / static_cast<double>(nb_pc) << " %) missed" << endl;
+        
+        str << endl;
     }
 }
 
@@ -140,15 +165,48 @@ void ShaftSaveMetaData(double timeSpent) {
     if (falseColorIntersects != NULL) {
         metadata << "Intersects:" << endl;
         metadata << "Max Intersects: " << falseColorIntersects->GetMax() << endl;
+        metadata << endl;
     }
 #endif
     
-    metadata << endl;
+#ifdef SHAFT_SHOW_PRIMS
+    if (falseColorPrims != NULL) {
+        metadata << "Prims:" << endl;
+        metadata << "Max primitives: " << falseColorPrims->GetMax() << endl;
+        metadata << endl;
+    }
+#endif
+    
     metadata << "Building took " << buildTime << " seconds." << endl;
     metadata << "Rendering took " << timeSpent << " seconds." << endl;
     
     metadata.flush();
     metadata.close();
+}
+    
+#define CREATE_FALSE_COLOR_ON_IMAGEFILM(ptr, name) \
+if (ptr != NULL) \
+delete ptr; \
+ptr = & ::CreateImageFilm(FalseColorFilm::GetFilename(name, filmParams), filmParams, filter)->SetNoDeleteFilter();
+    
+#define CREATE_FALSE_COLOR(ptr, name) \
+if (ptr != NULL) \
+delete ptr; \
+ptr = ::CreateFalseColorFilm(name, filmParams, filter);
+    
+void ShaftNewImage() {
+#ifdef SHAFT_SHOW_DEPTHS
+    CREATE_FALSE_COLOR(falseColorShafts, "depth");
+#endif
+#ifdef SHAFT_SHOW_INTERSECTS
+    CREATE_FALSE_COLOR(falseColorIntersects, "intersects");
+#endif
+#ifdef SHAFT_SHOW_PRIMS
+    CREATE_FALSE_COLOR(falseColorPrims, "primcounts");
+#endif
+#ifdef SHAFT_SHOW_LEAFS
+    CREATE_FALSE_COLOR_ON_IMAGEFILM(falseColorLeafs, "leafs");
+#endif
 }
 
 

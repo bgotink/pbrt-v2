@@ -55,7 +55,17 @@ static uint32_t hash(char *key, uint32_t len)
     hash ^= (hash >> 11);
     hash += (hash << 15);
     return hash;
-} 
+}
+
+Spectrum CreateSpectrum(uint32_t *ids, uint8_t size) {
+    uint32_t h = hash((char *)ids, size * sizeof(uint32_t));
+    float rgb[3] = {
+        static_cast<float>((h >>  0) & 0xff),
+        static_cast<float>((h >>  8) & 0xff),
+        static_cast<float>((h >> 16) & 0xff)
+    };
+    return Spectrum::FromRGB(rgb) / 255.f;
+}
 
 // SamplerRendererTask Definitions
 void SamplerRendererTask::Run() {
@@ -102,14 +112,7 @@ void SamplerRendererTask::Run() {
                 if (rayWeight > 0.f && scene->Intersect(rays[i], &isects[i])) {
                     // random shading based on shape id...
                     uint32_t ids[2] = { isects[i].shapeId, isects[i].primitiveId };
-                    uint32_t h = hash((char *)ids, sizeof(ids));
-                    float rgb[3] = {
-                        static_cast<float>((h >> 0) & 0xff),
-                        static_cast<float>((h >> 8) & 0xff),
-                        static_cast<float>((h >> 16) & 0xff)
-                    };
-                    Ls[i] = Spectrum::FromRGB(rgb);
-                    Ls[i] /= 255.f;
+                    Ls[i] = CreateSpectrum(ids, 2);
                 }
                 else
                     Ls[i] = 0.f;
@@ -140,6 +143,14 @@ void SamplerRendererTask::Run() {
                       "for image sample.  Setting to black.");
                 Ls[i] = Spectrum(0.f);
             }
+                
+#if defined(SHAFT_LOG) && defined(SHAFT_SHOW_LEAFS)
+                if (rayWeight > 0 && !Ls[i].IsBlack()) {
+                    if (shaft::log::falseColorLeafs != NULL) {
+                        shaft::log::falseColorLeafs->AddSample(samples[i], CreateSpectrum(&shaft::log::hitLeafId, 1));
+                    }
+                }
+#endif
              
                 //#define NEGATIVE_RADIANCE
 #if defined(NEGATIVE_RADIANCE)

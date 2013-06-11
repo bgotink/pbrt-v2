@@ -68,6 +68,7 @@
 	typedef volatile int32_t AtomicInt32;
 	#ifdef PBRT_HAS_64_BIT_ATOMICS
 		typedef volatile int64_t AtomicInt64;
+        typedef volatile uint64_t AtomicUInt64;
 	#endif
 #endif // !PBRT_IS_WINDOWS
 inline int32_t AtomicAdd(AtomicInt32 *v, int32_t delta) {
@@ -152,7 +153,7 @@ inline T *AtomicCompareAndSwapPointer(T **v, T *newValue, T *oldValue) {
 #ifdef PBRT_HAS_64_BIT_ATOMICS
 inline int64_t AtomicAdd(AtomicInt64 *v, int64_t delta) {
     PBRT_ATOMIC_MEMORY_OP();
-#ifdef PBRT_IS_WINDOWS
+#if defined(PBRT_IS_WINDOWS)
     return InterlockedAdd64(v, delta);
 #elif defined(PBRT_IS_APPLE_PPC)
     return OSAtomicAdd64Barrier(delta, v);
@@ -166,6 +167,21 @@ inline int64_t AtomicAdd(AtomicInt64 *v, int64_t delta) {
 #endif
 }
 
+inline uint64_t AtomicAdd(AtomicUInt64 *v, uint64_t delta) {
+    PBRT_ATOMIC_MEMORY_OP();
+#if defined(PBRT_IS_WINDOWS)
+    return InterlockedAdd64(v, delta);
+#elif defined(PBRT_IS_APPLE_PPC)
+    return OSAtomicAdd64Barrier(delta, v);
+#else
+    int64_t result;
+    __asm__ __volatile__("lock\nxaddq %0,%1"
+                         : "=r"(result), "=m"(*v)
+                         : "0"(delta)
+                         : "memory");
+    return result + delta;
+#endif
+}
 
 
 inline int64_t AtomicCompareAndSwap(AtomicInt64 *v, int64_t newValue, int64_t oldValue) {
