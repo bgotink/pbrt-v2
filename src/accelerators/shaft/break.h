@@ -12,7 +12,7 @@
 #define SHAFT_ENABLE_BREAK
 
 #define SHAFT_BREAK_MANYPRIMS
-#define SHAFT_BREAK_MANYPRIMS_TRESHOLD  10000
+//#define SHAFT_BREAK_MANYPRIMS_TRESHOLD  10000
 
 #if defined(SHAFT_ENABLE_BREAK)
 namespace shaft { namespace breakp {
