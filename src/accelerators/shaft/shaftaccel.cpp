@@ -18,6 +18,8 @@
 #include <list>
 #include <vector>
 
+#define SHAFT_REMOVE_EMPTY_SHAFTS
+
 namespace shaft {
         
     class BVHAccelCreator {
@@ -356,8 +358,45 @@ namespace shaft {
                 right = new ShaftTreeNode(Shaft::constructSubShaft(receiver->right, light, receiver, shaft));
                 Info("Prims in shaft: before: %lu; left: %lu, right %lu", shaft.triangles.size(), left->shaft->triangles.size(), right->shaft->triangles.size());
             }
+
+#ifdef SHAFT_REMOVE_EMPTY_SHAFTS
+            if (left->empty()) {
+                Info("Left subshaft is empty!");
+
+                this->shaft = right->shaft;
+                this->shaft->depth --;
+                this->state = right->state;
+                this->is_leaf = right->is_leaf;
+
+                delete left;
+                delete right;
+                left = right = NULL;
+
+                doSplit();
+                return;
+            }
+            if (right->empty()) {
+                Info("Right subshaft is empty!");
+
+                this->shaft = left->shaft;
+                this->shaft->depth --;
+                this->state = left->state;
+                this->is_leaf = left->is_leaf;
+
+                delete left;
+                delete right;
+                left = right = NULL;
+
+                doSplit();
+                return;
+            }
+#endif
             
             state = SHAFT_UNDECIDED;
+        }
+
+        inline bool empty() {
+            return shaft->receiverNode->empty();
         }
         
         ShaftState getState() const {
