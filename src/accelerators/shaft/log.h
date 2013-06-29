@@ -13,6 +13,7 @@
 #define SHAFT_SHOW_DEPTHS
 #define SHAFT_SHOW_PRIMS
 #define SHAFT_SHOW_LEAFS
+#define SHAFT_SHOW_SIDES
 
 // end of configuration
 
@@ -37,6 +38,9 @@
 #ifdef SHAFT_SHOW_LEAFS
 #undef SHAFT_SHOW_LEAFS
 #endif // defined(SHAFT_SHOW_LEAFS)
+#ifdef SHAFT_SHOW_SIDES
+#undef SHAFT_SHOW_SIDES
+#endif // defined(SHAFT_SHOW_SIDES)
 #endif // !defined(SHAFT_LOG)
 
 #include "memory.h"
@@ -145,6 +149,9 @@ void ShaftLogResult();
 #ifdef SHAFT_SHOW_LEAFS
     extern Film *falseColorLeafs;
 #endif // defined(SHAFT_SHOW_LEAFS)
+#ifdef SHAFT_SHOW_SIDES
+    extern FalseColorFilm *falseColorSides;
+#endif // defined(SHAFT_SHOW_SIDES)
     
     extern ParamSet filmParams;
     extern Filter *filter;
@@ -192,6 +199,14 @@ void ShaftLogResult();
 #else
 #define ShaftSetPrimCount();
 #endif
+
+#ifdef SHAFT_SHOW_SIDES
+    inline void ShaftSetSide(bool right) {
+        if (falseColorSides != NULL && cameraSample != NULL) falseColorSides->Set(*cameraSample, right ? 2 : 1);
+    }
+#else
+#define ShaftSetSide()
+#endif
     
 #define SAVE_FALSE_COLOR(image) \
     if (image != NULL) \
@@ -211,6 +226,9 @@ void ShaftLogResult();
 #endif
 #ifdef SHAFT_SHOW_LEAFS
         SAVE_FALSE_COLOR(falseColorLeafs);
+#endif
+#ifdef SHAFT_SHOW_SIDES
+        SAVE_FALSE_COLOR(falseColorSides);
 #endif
     }
     

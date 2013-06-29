@@ -56,6 +56,9 @@ namespace shaft { namespace log {
 #ifdef SHAFT_SHOW_LEAFS
     Film *falseColorLeafs;
 #endif
+#ifdef SHAFT_SHOW_SIDES
+    FalseColorFilm *falseColorSides;
+#endif
     
     ParamSet filmParams;
     Filter *filter;
@@ -206,6 +209,9 @@ void ShaftNewImage() {
 #endif
 #ifdef SHAFT_SHOW_LEAFS
     CREATE_FALSE_COLOR_ON_IMAGEFILM(falseColorLeafs, "leafs");
+#endif
+#ifdef SHAFT_SHOW_SIDES
+    CREATE_FALSE_COLOR(falseColorSides, "sides");
 #endif
 }
 
