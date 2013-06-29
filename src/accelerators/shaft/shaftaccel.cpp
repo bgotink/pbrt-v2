@@ -11,7 +11,6 @@
 #include "../bvh.h"
 #include "shaft.h"
 #include <iostream>
-#include <pthread.h>
 #include "log.h"
 #include "paramset.h"
 #include "intersection.h"
@@ -88,7 +87,6 @@ namespace shaft {
     struct ShaftTreeNode {
         ShaftTreeNode(const Reference<Shaft> &shaft) : shaft(shaft), left(NULL), right(NULL), state(getState())
         , show(NULL), probVis(NULL) {
-            pthread_mutex_init(&mutex, NULL);
             Assert(shaft);
             
             if (state != SHAFT_UNSET) {
@@ -265,17 +263,13 @@ namespace shaft {
         }
         
     private:
-        pthread_mutex_t mutex;
                      
         typedef std::vector<Reference<Primitive> > primlist;
         typedef primlist::iterator primiter;
         
         void doSplit() {
-            pthread_mutex_lock(&mutex);
-            
             // we just acquired the lock, check if not set already
             if (state != SHAFT_UNSET) {
-                pthread_mutex_unlock(&mutex);
                 return;
             }
             
@@ -286,7 +280,6 @@ namespace shaft {
             if (shaft.isLeaf()) {
                 is_leaf = true;
                 state = SHAFT_UNDECIDED;
-                pthread_mutex_unlock(&mutex);
                 
                 /*Warning("Shaft is leaf (#prims in shaft: %lu, #prims in node: %lu, #points in node: %lu",
                                 shaft.triangles.size(),
@@ -340,7 +333,6 @@ namespace shaft {
             }
             
             state = SHAFT_UNDECIDED;
-            pthread_mutex_unlock(&mutex);
         }
         
         ShaftState getState() const {
