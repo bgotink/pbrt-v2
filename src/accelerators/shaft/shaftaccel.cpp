@@ -143,7 +143,7 @@ namespace shaft {
             }
         }
         
-        float Visibility(const Ray &ray, bool *set = NULL) const {
+        float Visibility(const Ray &ray, bool *set = NULL, bool is_top = true) const {
             if (!RayInShaft(ray)) {
                 return 0.;
             }
@@ -157,12 +157,14 @@ namespace shaft {
                 case SHAFT_UNDECIDED:
                 default:
                     if (is_leaf) {
+                        if (!is_top)
+                            log::ShaftSetSide(set == NULL);
                         return shaft->Visibility(ray);
                     } else {
                         bool s = false;
-                        float v = left->Visibility(ray, &s);
+                        float v = left->Visibility(ray, &s, false);
                         if (s) return v;
-                        return right->Visibility(ray);
+                        return right->Visibility(ray, NULL, false);
                     }
                     break;
             }
