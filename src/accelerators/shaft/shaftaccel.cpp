@@ -107,15 +107,17 @@ namespace shaft {
         bool *probVis;
         
         bool RayInShaft(const Ray &ray) const {
-            if (!shaft->receiverNode->bounding_box.Inside(ray.o))
+            if (!shaft->receiverNode->bounding_box.Inside(ray(ray.mint)))
+//            if (!shaft->receiverNode->bounding_box.Inside(ray.o))
                 return false;
-            
+            /*
 #ifdef SHAFT_LOG
             Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
 #else
             Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time);
 #endif
-            return RayBBoxIntersect(shaft->lightNode->bounding_box, r);
+            */
+            return RayBBoxIntersect(shaft->lightNode->bounding_box, ray);
         }
         
         bool IntersectP(const Ray &ray, bool showShafts = false) const {
