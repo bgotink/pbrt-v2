@@ -312,11 +312,32 @@ namespace shaft {
                 // use a heuristic (todo: use the clean heuristic provided by Laine
                 int axis = shaft.geometry.main_axis;
                 if (axis != -1) {
-                    split_light = (receiver->bounding_box[1][axis] - receiver->bounding_box[0][axis])
-                                < (light->bounding_box[1][axis] - light->bounding_box[0][axis]);
+                    float diff[3];
+                    for (int i = 0; i < 3; i++)
+                        diff[i] = (light->bounding_box[1][i] - light->bounding_box[0][i])
+                                - (receiver->bounding_box[1][i] - receiver->bounding_box[0][i]);
+
+                    bool neg = false;
+                    float max = -1;
+
+                    for (int i = 0; i < 3; i++) {
+                        if (diff[i] < 0) {
+                            if (-diff[i] > max) {
+                                max = -diff[i];
+                                neg = true;
+                            }
+                        } else {
+                            if (diff[i] > max) {
+                                max = diff[i];
+                                neg = false;
+                            }
+                        }
+                    }
+
+                    split_light = !neg;
                 } else {
                     split_light = receiver->bounding_box.Extent().LengthSquared()
-                                < receiver->bounding_box.Extent().LengthSquared();
+                                < light->bounding_box.Extent().LengthSquared();
                 }
             }
             
