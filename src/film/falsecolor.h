@@ -63,7 +63,7 @@ private:
         
         inline void Set(uint64_t value) {
             if (set) return; set = true;
-            if (value > count) count = value;
+            count = value;
         }
 
         bool set;
