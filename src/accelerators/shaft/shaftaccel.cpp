@@ -19,6 +19,7 @@
 #include <vector>
 
 #define SHAFT_REMOVE_EMPTY_SHAFTS
+//#define SHAFT_HACK_ERRONOUS_BUT_FAST
 
 namespace shaft {
         
@@ -109,8 +110,17 @@ namespace shaft {
         bool *probVis;
         
         bool RayInShaft(const Ray &ray) const {
+#ifdef SHAFT_HACK_ERRONOUS_BUT_FAST
             if (!shaft->receiverNode->bounding_box.Inside(ray(ray.mint)))
-//            if (!shaft->receiverNode->bounding_box.Inside(ray.o))
+#else
+            if (!shaft->receiverNode->bounding_box.Inside(ray(-ray.mint)))
+#endif
+/*
+ note: it was originally ray.o,
+ and even though ray(ray.mint) _should_ also be correct,
+ neither of the above gives a correct answer.
+ ray(-ray.mint) does however, so let's use that
+ */
                 return false;
             /*
 #ifdef SHAFT_LOG
