@@ -306,15 +306,16 @@ void ElementTreeNode::createBoundingBox() {
     if (end == point) return;
     
     bounding_box.Insert(point_pos[*point]);
-    // this is crude, lets hope it works
     bounding_box.Expand(.5f);
     
     for(; point != end; point++) {
         bounding_box.Insert(point_pos[*point]);
     }
-    
-    //bounding_box.Expand(1.f);
-    
+
+    ::Vector extent = bounding_box.Extent();
+    float maxSize = max(extent.x, max(extent.y, extent.z));
+    bounding_box.Expand(maxSize * .01f);
+
     Info("Created BBox for ElementTreeNode");
 }
     
@@ -334,6 +335,7 @@ bool ElementTreeNode::IntersectP(const Ray &ray) const {
     
 void ElementTreeNode::setIsLeaf() {
     if (empty()) {is_leaf = true; return;}
+
     if (points.size() > tree->max_points_in_leaf) {
         is_leaf = false;
         return;

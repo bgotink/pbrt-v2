@@ -127,7 +127,7 @@ namespace shaft {
         }
         
         inline bool empty() const {
-            return triangles.empty();
+            return triangles.empty() && receiverNode->empty();
         }
         
         inline bool Intersect(const Ray &ray, Intersection *isect) const {
@@ -138,7 +138,7 @@ namespace shaft {
         
         inline bool isLeaf() const {
             return (receiverNode->is_leaf && lightNode->is_leaf)
-                        || empty();
+                                    || empty();
         }
         
 #if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)

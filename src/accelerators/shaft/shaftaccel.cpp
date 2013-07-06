@@ -110,25 +110,25 @@ namespace shaft {
         bool *probVis;
         
         bool RayInShaft(const Ray &ray) const {
-#ifdef SHAFT_HACK_ERRONOUS_BUT_FAST
-            if (!shaft->receiverNode->bounding_box.Inside(ray(ray.mint)))
-#else
-            if (!shaft->receiverNode->bounding_box.Inside(ray(-ray.mint)))
-#endif
-/*
- note: it was originally ray.o,
- and even though ray(ray.mint) _should_ also be correct,
- neither of the above gives a correct answer.
- ray(-ray.mint) does however, so let's use that
- */
+//#ifdef SHAFT_HACK_ERRONOUS_BUT_FAST
+//            if (!shaft->receiverNode->bounding_box.Inside(ray(ray.mint)))
+//#else
+//            if (!shaft->receiverNode->bounding_box.Inside(ray(-ray.mint)))
+//#endif
+            if (!shaft->receiverNode->bounding_box.Inside(ray.o))
+                /*
+                 note: it was originally ray.o,
+                 and even though ray(ray.mint) _should_ also be correct,
+                 neither of the above gives a correct answer.
+                 ray(-ray.mint) does however, so let's use that
+                 */
                 return false;
-            /*
-#ifdef SHAFT_LOG
-            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
-#else
-            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time);
-#endif
-            */
+            
+//#ifdef SHAFT_LOG
+//            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
+//#else
+//            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time);
+//#endif
             return RayBBoxIntersect(shaft->lightNode->bounding_box, ray);
         }
         
@@ -171,6 +171,9 @@ namespace shaft {
                 case SHAFT_UNDECIDED:
                 default:
                     if (is_leaf) {
+                        if (!shaft->isLeaf())
+                            Severe("ShaftTreeNode is leaf but Shaft is not!!");
+
                         if (!is_top)
                             log::ShaftSetSide(set == NULL);
                         return shaft->Visibility(ray);
@@ -297,10 +300,10 @@ namespace shaft {
                 is_leaf = true;
                 state = SHAFT_UNDECIDED;
                 
-                /*Warning("Shaft is leaf (#prims in shaft: %lu, #prims in node: %lu, #points in node: %lu",
-                                shaft.triangles.size(),
-                                shaft.receiverNode->inside_triangles.size(),
-                                shaft.receiverNode->points.size());*/
+//                Warning("Shaft is leaf (#prims in shaft: %lu, #prims in node: %lu, #points in node: %lu",
+//                                shaft.triangles.size(),
+//                                shaft.receiverNode->inside_triangles.size(),
+//                                shaft.receiverNode->points.size());
 #ifdef SHAFT_LOG
                 log::ShaftLeafCreated(shaft.receiverNode->inside_triangles.size(),
                                 shaft.receiverNode->points.size(),

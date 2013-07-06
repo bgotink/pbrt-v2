@@ -96,10 +96,11 @@ namespace shaft{
         float d = -n.x * a.x - n.y * a.y - n.z * a.z;
         
         if (n.x + n.y + n.z == 0) {
-            Severe("Creating plane between (%f,%f,%f), (%f,%f,%f), (%f,%f,%f) yields (0, 0, 0, %f)",
+            Severe("Creating plane between (%f,%f,%f), (%f,%f,%f), (%f,%f,%f) yields n=(%f, %f, %f), d=%f",
                   a.x, a.y, a.z,
                   b.x, b.y, b.z,
                   c.x, c.y, c.z,
+                  n.x, n.y, n.z,
                   d);
         }
         
