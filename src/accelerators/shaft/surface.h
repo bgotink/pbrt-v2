@@ -12,7 +12,7 @@
 #include "vector.h"
 #include "geometry.h"
 #include "memory.h"
-#include "Mesh.h"
+#include "mesh.h"
 #include <set>
 #include <list>
 

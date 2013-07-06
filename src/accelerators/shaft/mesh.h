@@ -1,13 +1,13 @@
 //
-//  Mesh.h
+//  mesh.h
 //  pbrt
 //
 //  Created by Bram Gotink on 15/11/12.
 //
 //
 
-#ifndef __pbrt__Mesh__
-#define __pbrt__Mesh__
+#ifndef __pbrt__mesh__
+#define __pbrt__mesh__
 
 #include "memory.h"
 #include "../../shapes/trianglemesh.h"
@@ -110,4 +110,4 @@ namespace shaft {
 
 };
 
-#endif /* defined(__pbrt__Mesh__) */
+#endif /* defined(__pbrt__mesh__) */
