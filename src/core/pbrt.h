@@ -102,8 +102,10 @@ typedef unsigned __int64 uint64_t;
 #define PBRT_CPP11
 // C++11
 #include <cmath>
+#if defined(PBRT_IS_APPLE)
 using std::isnan;
 using std::isinf;
+#endif // PBRT_IS_APPLE
 #endif // __cplusplus > 199711L
 #endif // PBRT_IS_LINUX || PBRT_IS_APPLE
 #if defined(PBRT_IS_WINDOWS)
