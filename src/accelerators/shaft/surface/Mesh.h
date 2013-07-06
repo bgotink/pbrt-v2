@@ -1,5 +1,5 @@
 //
-//  Mesh.h
+//  mesh.h
 //  pbrt
 //
 //  Created by Bram Gotink on 31/05/13.

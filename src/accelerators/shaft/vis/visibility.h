@@ -11,7 +11,7 @@
 
 #include "geometry.h"
 #include "rng.h"
-#include "../Mesh.h"
+#include "../mesh.h"
 #include "../tree.h"
 #include "../log.h"
 
