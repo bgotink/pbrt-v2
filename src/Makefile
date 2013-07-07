@@ -60,8 +60,14 @@ ifeq ($(ARCH),Darwin)
   EXRLIBS += -lz
 endif
 
-CC=gcc
-CXX=g++ -std=c++11
+ifeq ($(shell which clang),)
+  CC=gcc
+  CXX=g++ -std=c++11
+else
+  CC=clang
+  CXX=clang++
+endif
+
 LD=$(CXX) $(OPT) $(MARCH)
 INCLUDE=-I. -Icore $(EXR_INCLUDES) $(TIFF_INCLUDES)
 WARN=-Wall
