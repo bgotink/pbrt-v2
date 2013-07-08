@@ -16,7 +16,7 @@
 
 namespace shaft {
     
-    struct ShaftTreeNode;
+    class ShaftTreeNode;
     
     class ShaftAccel : public Aggregate {
         typedef std::vector<Reference<Primitive> > prim_list;

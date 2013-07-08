@@ -33,7 +33,7 @@ private:
     typedef std::vector<Reference<Shape> > shape_list;
     
 public:
-    friend class ElementTreeNode;
+    friend struct ElementTreeNode;
     
     Reference<ElementTreeNode> root_node;
     const uint32_t max_points_in_leaf;
@@ -61,7 +61,7 @@ public:
     
     pointlist sample(uint count) const;
     
-    friend class ElementTree;
+    friend struct ElementTree;
     friend class ShaftTreeNode;
     
     Reference<ElementTreeNode> left, right;

@@ -39,8 +39,8 @@ namespace shaft {
     };
     
     class Mesh {
-        friend class ElementTreeNode;
-        friend class ElementTree;
+        friend struct ElementTreeNode;
+        friend struct ElementTree;
         friend class Shaft;
         
         void init(std::list<Reference<TriangleMesh> > &meshes);
