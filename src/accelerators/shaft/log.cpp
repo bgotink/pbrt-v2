@@ -56,6 +56,12 @@ namespace shaft { namespace log {
 #ifdef SHAFT_SHOW_LEAFS
     Film *falseColorLeafs;
 #endif
+#ifdef SHAFT_SHOW_SIDES
+    FalseColorFilm *falseColorSides;
+#endif
+#ifdef SHAFT_SHOW_EMPTY_LEAVES
+    FalseColorFilm *falseColorEmptyLeaves;
+#endif
     
     ParamSet filmParams;
     Filter *filter;
@@ -147,6 +153,12 @@ void ShaftSaveFalseColor() {
 #ifdef SHAFT_SHOW_LEAFS
 	SAVE_FALSE_COLOR(falseColorLeafs);
 #endif
+#ifdef SHAFT_SHOW_SIDES
+	SAVE_FALSE_COLOR(falseColorSides);
+#endif
+#ifdef SHAFT_SHOW_EMPTY_LEAVES
+	SAVE_FALSE_COLOR(falseColorEmptyLeaves);
+#endif
 }
 
 void ShaftSaveMetaData(double timeSpent) {
@@ -206,14 +218,14 @@ void ShaftSaveMetaData(double timeSpent) {
 }
     
 #define CREATE_FALSE_COLOR_ON_IMAGEFILM(ptr, name) \
-if (ptr != NULL) \
-delete ptr; \
-ptr = & ::CreateImageFilm(FalseColorFilm::GetFilename(name, filmParams), filmParams, filter)->SetNoDeleteFilter();
+	if (ptr != NULL) \
+		delete ptr; \
+	ptr = & ::CreateImageFilm(FalseColorFilm::GetFilename(name, filmParams), filmParams, filter)->SetNoDeleteFilter();
     
 #define CREATE_FALSE_COLOR(ptr, name) \
-if (ptr != NULL) \
-delete ptr; \
-ptr = ::CreateFalseColorFilm(name, filmParams, filter);
+	if (ptr != NULL) \
+		delete ptr; \
+	ptr = ::CreateFalseColorFilm(name, filmParams, filter);
     
 void ShaftNewImage() {
 #ifdef SHAFT_SHOW_DEPTHS
@@ -227,6 +239,12 @@ void ShaftNewImage() {
 #endif
 #ifdef SHAFT_SHOW_LEAFS
     CREATE_FALSE_COLOR_ON_IMAGEFILM(falseColorLeafs, "leafs");
+#endif
+#ifdef SHAFT_SHOW_SIDES
+    CREATE_FALSE_COLOR(falseColorSides, "sides");
+#endif
+#ifdef SHAFT_SHOW_EMPTY_LEAVES
+    CREATE_FALSE_COLOR(falseColorEmptyLeaves, "empty.leaves");
 #endif
 }
 

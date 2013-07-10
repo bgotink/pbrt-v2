@@ -13,6 +13,8 @@
 #define SHAFT_SHOW_DEPTHS
 #define SHAFT_SHOW_PRIMS
 #define SHAFT_SHOW_LEAFS
+#define SHAFT_SHOW_SIDES
+#define SHAFT_SHOW_EMPTY_LEAVES
 
 // end of configuration
 
@@ -37,6 +39,12 @@
 #ifdef SHAFT_SHOW_LEAFS
 #undef SHAFT_SHOW_LEAFS
 #endif // defined(SHAFT_SHOW_LEAFS)
+#ifdef SHAFT_SHOW_SIDES
+#undef SHAFT_SHOW_SIDES
+#endif // defined(SHAFT_SHOW_SIDES)
+#ifdef SHAFT_SHOW_EMPTY_LEAVES
+#undef SHAFT_SHOW_EMPTY_LEAVES
+#endif // defined(SHAFT_SHOW_EMPTY_LEAVES)
 #endif // !defined(SHAFT_LOG)
 
 #include "memory.h"
@@ -145,6 +153,12 @@ void ShaftLogResult();
 #ifdef SHAFT_SHOW_LEAFS
     extern Film *falseColorLeafs;
 #endif // defined(SHAFT_SHOW_LEAFS)
+#ifdef SHAFT_SHOW_SIDES
+    extern FalseColorFilm *falseColorSides;
+#endif // defined(SHAFT_SHOW_SIDES)
+#ifdef SHAFT_SHOW_EMPTY_LEAVES
+    extern FalseColorFilm *falseColorEmptyLeaves;
+#endif // defined(SHAFT_SHOW_EMPTY_LEAVES)
     
     extern ParamSet filmParams;
     extern Filter *filter;
@@ -193,8 +207,16 @@ void ShaftLogResult();
 #define ShaftSetPrimCount();
 #endif
     
+#ifdef SHAFT_SHOW_EMPTY_LEAVES
+    inline void ShaftSetLeafEmpty(bool empty) {
+    	if (falseColorEmptyLeaves != NULL && cameraSample != NULL) falseColorEmptyLeaves->Set(*cameraSample, empty ? 2 : 1);
+    }
+#else
+#define ShaftSetLeafEmpty()
+#endif
+
     void ShaftSaveFalseColor();
-    
+
     void ShaftSaveMetaData(double timeSpent);
     
 #else
@@ -207,7 +229,7 @@ void ShaftLogResult();
 #define ShaftBlocked()
 #define ShaftEmpty()
 #define ShaftAccelIntersectP()
-#define ShaftLeafCreated(uint32_t a, uint32_t b, uint32_t c, const Shaft &s)
+#define ShaftLeafCreated()
     
 #define ProbVis_pa()
 #define ProbVis_pb()
