@@ -110,11 +110,12 @@ namespace shaft {
         bool *probVis;
         
         bool RayInShaft(const Ray &ray) const {
-#ifdef SHAFT_HACK_ERRONOUS_BUT_FAST
+//#ifdef SHAFT_HACK_ERRONOUS_BUT_FAST
             if (!shaft->receiverNode->bounding_box.Inside(ray(ray.mint)))
-#else
-            if (!shaft->receiverNode->bounding_box.Inside(ray(-ray.mint)))
-#endif
+//#else
+//            if (!shaft->receiverNode->bounding_box.Inside(ray(-ray.mint)))
+//#endif
+//        	if (!shaft->receiverNode->bounding_box.Inside(ray.o))
 /*
  note: it was originally ray.o,
  and even though ray(ray.mint) _should_ also be correct,
@@ -284,7 +285,6 @@ namespace shaft {
         typedef primlist::iterator primiter;
         
         void doSplit() {
-            // we just acquired the lock, check if not set already
             if (state != SHAFT_UNSET) {
                 return;
             }
@@ -315,6 +315,7 @@ namespace shaft {
             Info("Splitting shaft...");
             
             bool split_light;
+            int split_axis = -1;
             
             if (receiver->is_leaf)
                 split_light = true;
@@ -322,8 +323,8 @@ namespace shaft {
                 split_light = false;
             else {
                 // use a heuristic (todo: use the clean heuristic provided by Laine
-                int axis = shaft.geometry.main_axis;
-                if (axis != -1) {
+                int main_axis = shaft.geometry.main_axis;
+                if (main_axis != -1) {
                     float diff[3];
                     for (int i = 0; i < 3; i++)
                         diff[i] = (light->bounding_box[1][i] - light->bounding_box[0][i])
@@ -333,36 +334,41 @@ namespace shaft {
                     float max = -1;
 
                     for (int i = 0; i < 3; i++) {
+                    	if (i == main_axis)
+                    		continue;
+
                         if (diff[i] < 0) {
                             if (-diff[i] > max) {
                                 max = -diff[i];
+                                split_axis = i;
                                 neg = true;
                             }
                         } else {
                             if (diff[i] > max) {
                                 max = diff[i];
+                                split_axis = i;
                                 neg = false;
                             }
                         }
                     }
 
                     split_light = !neg;
-                } else {
+                } else { // axis == -1
                     split_light = receiver->bounding_box.Extent().LengthSquared()
                                 < light->bounding_box.Extent().LengthSquared();
-                }
-            }
+                } // axis
+            } // light->is_leaf
             
             if (split_light) {
                 Info("Splitting light...");
-                light->split();
+                light->split(split_axis);
                 
                 left = new ShaftTreeNode(Shaft::constructSubShaft(receiver, light->left, light, shaft));
                 right = new ShaftTreeNode(Shaft::constructSubShaft(receiver, light->right, light, shaft));
                 Info("Prims in shaft: before: %lu; left: %lu, right %lu", shaft.triangles.size(), left->shaft->triangles.size(), right->shaft->triangles.size());
             } else {
                 Info("Splitting receiver...");
-                receiver->split();
+                receiver->split(split_axis);
                 
                 left = new ShaftTreeNode(Shaft::constructSubShaft(receiver->left, light, receiver, shaft));
                 right = new ShaftTreeNode(Shaft::constructSubShaft(receiver->right, light, receiver, shaft));

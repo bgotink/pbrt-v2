@@ -85,7 +85,7 @@ private:
     trislist _inside_triangles;
     static RNG rng;
     
-    void split();
+    void split(int axis = -1);
     void createBoundingBox();
     void setIsLeaf();
 };

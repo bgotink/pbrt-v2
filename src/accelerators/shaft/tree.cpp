@@ -144,27 +144,6 @@ bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh
     return true;
 }
 
-struct SplitPlane {
-    int split_axis;
-    float split_pos;
-};
-
-SplitPlane findSplitPlane(const ElementTreeNode &node) {
-    SplitPlane result;
-    
-    /*
-     * This is a really naive way of choosing which plane to split at.
-     * TODO refine!
-     */
-    
-    const BBox &box = node.bounding_box;
-    
-    result.split_axis = box.MaximumExtent();
-    result.split_pos = box.getCenter()[result.split_axis];
-    
-    return result;
-}
-    
 ElementTree::ElementTree(const prim_list &primitives, uint32_t nbPointsInLeaf) : max_points_in_leaf(nbPointsInLeaf), mesh(primitives) {
     root_node = new ElementTreeNode(this);
 }
@@ -172,7 +151,7 @@ ElementTree::ElementTree(const vector<Reference<Shape> > &shapes, uint32_t nbPoi
     root_node = new ElementTreeNode(this);
 }
 
-void ElementTreeNode::split() {
+void ElementTreeNode::split(int split_axis) {
     Assert(!is_leaf);
     
     typedef vector<Point> pointlist;
@@ -187,14 +166,9 @@ void ElementTreeNode::split() {
     pointlist &points= mesh.vertex_pos;
     pidxlist &pidxs = this->points;
     
-    int split_axis; float split_pos;
-    {
-        SplitPlane split = findSplitPlane(*this);
-        split_axis = split.split_axis;
-        split_pos = split.split_pos;
-        Info("Splitting box at axis %s, pos %f (extent: %f - %f)", (split_axis == X ? "X" : (split_axis == Y ? "Y" : "Z")), split_pos,
-             bounding_box.pMin[split_axis], bounding_box.pMax[split_axis]);
-    }
+    if (split_axis == -1)
+    	split_axis = bounding_box.MaximumExtent();
+    float split_pos = (bounding_box.pMax[split_axis] + bounding_box.pMin[split_axis]) / 2.f;
     
     left = new ElementTreeNode(tree, this);
     right = new ElementTreeNode(tree, this);
@@ -237,7 +211,7 @@ void ElementTreeNode::split() {
         
         if (a >= split_pos || b >= split_pos || c >= split_pos) {
             right->inside_triangles.push_back(*t_idx);
-            left->_inside_triangles.push_back(&* mesh.getTriangle(*t_idx)->getOriginal());
+            right->_inside_triangles.push_back(&* mesh.getTriangle(*t_idx)->getOriginal());
         } else {
             right->gone_triangles.push_back(*t_idx);
         }
@@ -339,12 +313,6 @@ void ElementTreeNode::setIsLeaf() {
         return;
     }
     
-    /*Vector size = bounding_box.Extent();
-    uint max = 25;
-    if (size.x > max || size.y > max || size.z > max) {
-        is_leaf = false;
-        return;
-    }*/
     is_leaf = true;
 }
     
