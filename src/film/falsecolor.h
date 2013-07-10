@@ -53,6 +53,7 @@ private:
     float cropWindow[4];
     string filename;
     int xPixelStart, yPixelStart, xPixelCount, yPixelCount;
+    bool changed;
     struct Pixel {
         Pixel() : count(0) {
         }

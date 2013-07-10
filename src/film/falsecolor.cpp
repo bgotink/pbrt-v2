@@ -56,9 +56,9 @@
 FalseColorFilm::FalseColorFilm(int xres, int yres, Filter *filt, const float crop[4],
                      const string &fn, bool openWindow)
 #ifdef PBRT_FILM_FALSECOLOR_LOCK
-: Film(xres, yres), mutex(*Mutex::Create())
+: Film(xres, yres), mutex(*Mutex::Create()), changed(false)
 #else
-: Film(xres, yres)
+: Film(xres, yres), changed(false)
 #endif
 {
     filter = filt;
@@ -92,6 +92,7 @@ void FalseColorFilm::Splat(const CameraSample &sample, const Spectrum &L) {
 
 void FalseColorFilm::Add(const CameraSample &sample, uint64_t value) {
     ACQUIRE_LOCK();
+    changed = true;
     
     // Compute sample's raster extent
     float dimageX = sample.imageX - 0.5f;
@@ -119,6 +120,7 @@ void FalseColorFilm::Add(const CameraSample &sample, uint64_t value) {
 
 void FalseColorFilm::Set(const CameraSample &sample, uint64_t value) {
     ACQUIRE_LOCK();
+    changed = true;
     
     // Compute sample's raster extent
     float dimageX = sample.imageX - 0.5f;
@@ -191,6 +193,9 @@ void GetRGB(float *rgb, uint64_t count, uint64_t max) {
 void FalseColorFilm::WriteImage(float splatScale) {
     ACQUIRE_LOCK();
     
+    if (!changed)
+    	return;
+
     // Convert image to RGB and compute final pixel values
     int nPix = xPixelCount * yPixelCount;
     float *rgb = new float[3*nPix];
