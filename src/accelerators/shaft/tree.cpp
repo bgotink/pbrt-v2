@@ -90,7 +90,7 @@ static bool planeBoxOverlap(const BBox &box, const Point &point, const Vector &n
 }
 
 // based on http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/tribox3.txt
-bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh &mesh) {
+bool Intersects(const BBox &box, const Reference<Triangle> &triangle) {
     Point boxcenter = box.getCenter();
     Vector boxhalfsize = box.getXYZ() - boxcenter;
     
@@ -99,9 +99,9 @@ bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh
     float min, max, p0, p1, p2, rad, fex, fey, fez;
     Vector normal, e0, e1, e2;
     
-    v0 = mesh.getPoint((*triangle)[0]) - boxcenter;
-    v1 = mesh.getPoint((*triangle)[1]) - boxcenter;
-    v2 = mesh.getPoint((*triangle)[2]) - boxcenter;
+    v0 = triangle->getPoint(0) - boxcenter;
+    v1 = triangle->getPoint(1) - boxcenter;
+    v2 = triangle->getPoint(2) - boxcenter;
     
     e0 = v1 - v0;
     e1 = v2 - v1;
@@ -144,27 +144,6 @@ bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh
     return true;
 }
 
-struct SplitPlane {
-    int split_axis;
-    float split_pos;
-};
-
-SplitPlane findSplitPlane(const ElementTreeNode &node) {
-    SplitPlane result;
-    
-    /*
-     * This is a really naive way of choosing which plane to split at.
-     * TODO refine!
-     */
-    
-    const BBox &box = node.bounding_box;
-    
-    result.split_axis = box.MaximumExtent();
-    result.split_pos = box.getCenter()[result.split_axis];
-    
-    return result;
-}
-    
 ElementTree::ElementTree(const prim_list &primitives, uint32_t nbPointsInLeaf) : max_points_in_leaf(nbPointsInLeaf), mesh(primitives) {
     root_node = new ElementTreeNode(this);
 }
@@ -172,9 +151,9 @@ ElementTree::ElementTree(const vector<Reference<Shape> > &shapes, uint32_t nbPoi
     root_node = new ElementTreeNode(this);
 }
 
-void ElementTreeNode::split() {
+void ElementTreeNode::split(int split_axis) {
     Assert(!is_leaf);
-    
+
     typedef vector<Point> pointlist;
     
     typedef nblist pidxlist;
@@ -187,14 +166,9 @@ void ElementTreeNode::split() {
     pointlist &points= mesh.vertex_pos;
     pidxlist &pidxs = this->points;
     
-    int split_axis; float split_pos;
-    {
-        SplitPlane split = findSplitPlane(*this);
-        split_axis = split.split_axis;
-        split_pos = split.split_pos;
-        Info("Splitting box at axis %s, pos %f (extent: %f - %f)", (split_axis == X ? "X" : (split_axis == Y ? "Y" : "Z")), split_pos,
-             bounding_box.pMin[split_axis], bounding_box.pMax[split_axis]);
-    }
+    if (split_axis < 0 || split_axis > 2)
+    	split_axis = bounding_box.MaximumExtent();
+    float split_pos = (bounding_box.pMax[split_axis] + bounding_box.pMin[split_axis]) / 2.f;
     
     left = new ElementTreeNode(tree, this);
     right = new ElementTreeNode(tree, this);
@@ -224,20 +198,20 @@ void ElementTreeNode::split() {
     for (nbiter t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
         triangle = triangles[*t_idx];
 
-        float a = mesh.getPoint(triangle->getPoint(0))[split_axis],
-            b = mesh.getPoint(triangle->getPoint(1))[split_axis],
-            c = mesh.getPoint(triangle->getPoint(2))[split_axis];
+        float a = triangle->getPoint(0)[split_axis],
+              b = triangle->getPoint(1)[split_axis],
+              c = triangle->getPoint(2)[split_axis];
         
         if (a <= split_pos || b <= split_pos || c <= split_pos) {
             left->inside_triangles.push_back(*t_idx);
-            left->_inside_triangles.push_back(&* mesh.getTriangle(*t_idx)->getOriginal());
+            left->_inside_triangles.push_back(&* triangle);
         } else {
             left->gone_triangles.push_back(*t_idx);
         }
         
         if (a >= split_pos || b >= split_pos || c >= split_pos) {
             right->inside_triangles.push_back(*t_idx);
-            left->_inside_triangles.push_back(&* mesh.getTriangle(*t_idx)->getOriginal());
+            right->_inside_triangles.push_back(&* triangle);
         } else {
             right->gone_triangles.push_back(*t_idx);
         }
@@ -283,7 +257,7 @@ ElementTreeNode::ElementTreeNode(ElementTree *tree) : parent(NULL), tree(tree) {
     }
     for (unsigned int i = 0; i < mesh.getNbTriangles(); i++) {
         inside_triangles.push_back(i);
-        _inside_triangles.push_back(&* mesh.getTriangle(i)->getOriginal());
+        _inside_triangles.push_back(&* mesh.getTriangle(i));
     }
     setIsLeaf();
     createBoundingBox();
@@ -303,7 +277,10 @@ void ElementTreeNode::createBoundingBox() {
     nbiter end = points.end();
     nbiter point = points.begin();
     
-    if (end == point) return;
+    if (end == point) {
+    	Warning("Empty bounding box in ElementTreeNode");
+    	return;
+    }
     
     bounding_box.Insert(point_pos[*point]);
     // this is crude, lets hope it works
@@ -334,6 +311,7 @@ bool ElementTreeNode::IntersectP(const Ray &ray) const {
     
 void ElementTreeNode::setIsLeaf() {
     if (empty()) {is_leaf = true; return;}
+    Info("%p", tree);
     if (points.size() > tree->max_points_in_leaf) {
         is_leaf = false;
         return;
@@ -366,7 +344,7 @@ ElementTreeNode::pointlist ElementTreeNode::sample(uint count) const {
         int i = static_cast<int>(u);
         u -= i;
         
-        const Reference< ::Triangle> triangle = mesh.getTriangle(inside_triangles[i])->getOriginal();
+        const Reference<Triangle> triangle = mesh.getTriangle(inside_triangles[i]);
         Point p;
         do {
             u = rng.RandomFloat();

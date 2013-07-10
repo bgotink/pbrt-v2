@@ -25,9 +25,9 @@ namespace shaft {
 struct ElementTreeNode;
 struct ElementTree;
 
-bool Intersects(const BBox &box, const Reference<Triangle> &triangle, const Mesh &mesh);
+bool Intersects(const BBox &box, const Reference<Triangle> &triangle);
 
-    struct ElementTree: public ReferenceCounted {
+struct ElementTree: public ReferenceCounted {
 private:
     typedef std::vector<Reference<Primitive> > prim_list;
     typedef std::vector<Reference<Shape> > shape_list;
@@ -85,7 +85,7 @@ private:
     trislist _inside_triangles;
     static RNG rng;
     
-    void split();
+    void split(int axis = -1);
     void createBoundingBox();
     void setIsLeaf();
 };

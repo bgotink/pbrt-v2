@@ -20,7 +20,7 @@ namespace shaft { namespace vis {
         std::list<unsigned int>::const_iterator i, end;
         end = idx.end();
         for (i = idx.begin(); i != end; i++) {
-            result.push_back(&*(mesh.getTriangle(*i)->getOriginal()));
+            result.push_back(&*(mesh.getTriangle(*i)));
         }
         
         return result;

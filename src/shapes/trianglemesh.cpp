@@ -101,6 +101,11 @@ Reference<Triangle> TriangleMesh::getTriangle(int i) {
     return Reference<Triangle>(new Triangle(ObjectToWorld, WorldToObject, ReverseOrientation, this, i));
 }
 
+const Point &TriangleMesh::getPoint(int i) const {
+	Assert(i >= 0 && i < nverts);
+	return p[i];
+}
+
 void TriangleMesh::Refine(vector<Reference<Shape> > &refined) const {
     for (int i = 0; i < ntris; ++i)
         refined.push_back(new Triangle(ObjectToWorld,

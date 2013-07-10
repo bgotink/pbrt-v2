@@ -220,13 +220,13 @@ namespace shaft {
                 
                 size_t nodeRetained = 0, shaftRetained = 0;
                 for (ElementTreeNode::nbciter tidx = nodeTris.begin(); tidx != nodeTris.end(); tidx++) {
-                    ::Triangle *triangle = &*mesh.getTriangle(*tidx)->getOriginal();
+                    ::Triangle *triangle = &*mesh.getTriangle(*tidx);
 
                     if (triangles.insert(static_cast<Shape *>(triangle)).second)
                         nodeRetained++;
                 }
                 for (Shaft::nblciter tidx = shaftTris.begin(); tidx != shaftTris.end(); tidx++) {
-                    ::Triangle *triangle = &*mesh.getTriangle(*tidx)->getOriginal();
+                    ::Triangle *triangle = &*mesh.getTriangle(*tidx);
                     
                     if (triangles.insert(static_cast<Shape *>(triangle)).second)
                         shaftRetained++;
@@ -355,14 +355,6 @@ namespace shaft {
         ShaftState getState() const {
             if (shaft->empty()) {
                 return SHAFT_EMPTY;
-            }
-            
-            const ShaftGeometry &geom = shaft->geometry;
-            const Shaft::surface_list surfaces = shaft->surfaces;
-            
-            for (Shaft::surface_citer surf = surfaces.begin(); surf != surfaces.end(); surf++) {
-                if (geom.blockedBy(*surf))
-                    return SHAFT_BLOCKED;
             }
             
             return SHAFT_UNSET;

@@ -17,10 +17,11 @@
 #include "primitive.h"
 #include "mesh.h"
 #include "tree.h"
-#include "surface.h"
 #include "log.h"
 #include "rng.h"
 #include "vis/visibility.h"
+
+#include <set>
 
 namespace shaft {
     
@@ -35,10 +36,6 @@ namespace shaft {
         const BBox receiver_bbox, light_bbox;
         const BBox bbox;
         
-        Vector4f testplane_1, testplane_2;
-        
-        bool blockedBy(const Reference<Surface> &surface) const;
-        
         bool intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const;
         bool intersectsLine(Point one, Point two) const;
         
@@ -50,17 +47,9 @@ namespace shaft {
         
     private:
         friend class Shaft;
-        
-        bool canBeBlockedBy(const BBox &bounding_box) const;
-        
-        std::list<Point> clampAndGetVertices(const Edge &edge) const;
     };
     
     class Shaft : public ReferenceCounted {
-        typedef std::list<Reference<Surface> > surface_list;
-        typedef surface_list::iterator surface_iter;
-        typedef surface_list::const_iterator surface_citer;
-        
         typedef std::vector<unsigned int> nblist;
         typedef nblist::iterator nbiter;
         typedef nblist::const_iterator nbciter;
@@ -80,7 +69,6 @@ namespace shaft {
         Reference<ElementTreeNode> lightNode;
         
         ShaftGeometry geometry;
-        surface_list surfaces;
         
         nbllist triangles;
         nbllist filtered_triangles;
@@ -93,17 +81,7 @@ namespace shaft {
         
         Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light, Reference<ElementTreeNode> &split, Shaft &parent);
         Shaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light);
-        
-        Reference<Surface> constructTriangleSurface(nblist &triangles);
-        Reference<Patch> createClippedPatch(const Reference<Triangle> &triangle) const;
-        
-        void classifyEdges(Reference<Surface> &surface) const;
-        void updatePatchFacings(Reference<Surface> &surface) const;
-        
-        void computeLooseEdges(Reference<Surface> &surface);
-        void combineSurfaces(surface_list &input_surfaces);
-        
-        friend class Surface;
+
         friend class ShaftTreeNode;
         
         inline Mesh &getMesh() { return receiverNode->tree->mesh; }
@@ -138,7 +116,7 @@ namespace shaft {
         
         inline bool isLeaf() const {
             return (receiverNode->is_leaf && lightNode->is_leaf)
-                        || empty();
+                        || (empty() && receiverNode->is_leaf);
         }
         
 #if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)

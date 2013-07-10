@@ -128,6 +128,27 @@ void ShaftSaveBuildTime(double bT) {
     buildTime = bT;
 }
 
+#define SAVE_FALSE_COLOR(image) \
+    if (image != NULL) \
+        image->WriteImage(); \
+    delete image; \
+    image = NULL;
+
+void ShaftSaveFalseColor() {
+#ifdef SHAFT_SHOW_DEPTHS
+	SAVE_FALSE_COLOR(falseColorShafts)
+#endif
+#ifdef SHAFT_SHOW_INTERSECTS
+	SAVE_FALSE_COLOR(falseColorIntersects)
+#endif
+#ifdef SHAFT_SHOW_PRIMS
+	SAVE_FALSE_COLOR(falseColorPrims);
+#endif
+#ifdef SHAFT_SHOW_LEAFS
+	SAVE_FALSE_COLOR(falseColorLeafs);
+#endif
+}
+
 void ShaftSaveMetaData(double timeSpent) {
     ofstream metadata;
     

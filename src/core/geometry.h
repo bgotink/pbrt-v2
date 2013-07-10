@@ -165,7 +165,7 @@ public:
     Point(float xx, float yy, float zz)
         : x(xx), y(yy), z(zz) {
             if (HasNaNs()) {
-                Error("Point (%f,%f,%f) has NaN", x, y, z);
+                Severe("Point (%f,%f,%f) has NaN", x, y, z);
             }
         Assert(!HasNaNs());
     }

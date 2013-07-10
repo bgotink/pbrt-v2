@@ -22,69 +22,59 @@
 
 namespace shaft {
     
-    class Triangle : public ReferenceCounted {
-        Vector3i vertices, neighbours;
-        Vector3l edge_labels;
-        
-        Reference< ::Triangle> original;
-        
-        friend class Mesh;
-        
-    public:
-        inline uint32_t operator[](unsigned int i) const { return vertices[i]; }
-        inline uint32_t getPoint(unsigned int i) const { return vertices[i]; }
-        
-        inline Reference< ::Triangle> &getOriginal() { return original; }
-        inline const Reference< ::Triangle> &getOriginal() const { return original; }
-    };
-    
     class Mesh {
         friend struct ElementTreeNode;
         friend struct ElementTree;
         friend class Shaft;
         
-        void init(std::list<Reference<TriangleMesh> > &meshes);
-        
+        typedef Reference<Primitive> prim_ref;
+        typedef Reference<Shape> shape_ref;
+        typedef Reference<TriangleMesh> trimesh_ref;
+        typedef Reference<Triangle> tris_ref;
+
         typedef std::map<const Shape *, Reference<Primitive> > shapeprimmap;
         
         typedef std::vector<Point> point_v;
-        typedef point_v::iterator point_v_iter;
+        typedef point_v::iterator point_viter;
         
-        typedef std::vector<Reference<Primitive> > prim_list;
-        typedef prim_list::const_iterator prim_iter;
-        typedef prim_list::iterator prim_mutiter;
+        typedef std::vector<prim_ref> prim_v;
+        typedef prim_v::const_iterator prim_viter;
+        typedef prim_v::iterator prim_vmutiter;
         
-        typedef std::list<Reference<TriangleMesh> > shape_list;
-        typedef shape_list::iterator shape_iter;
+        typedef std::list<trimesh_ref> trimesh_l;
+        typedef trimesh_l::iterator trimesh_liter;
         
-        typedef std::vector<Reference<Shape> > shape_vector;
-        typedef shape_vector::iterator shape_viter;
-        typedef shape_vector::const_iterator shape_vciter;
+        typedef std::vector<shape_ref> shape_v;
+        typedef shape_v::iterator shape_viter;
+        typedef shape_v::const_iterator shape_vciter;
         
-        shape_list filter(const prim_list &);
-        shape_list filter(const std::vector<Reference<Shape> > &);
+        typedef std::vector<tris_ref> tris_v;
+
+        void init(trimesh_l &meshes);
+
+        trimesh_l filter(const prim_v &);
+        trimesh_l filter(const shape_v &);
         
     protected:
-        std::vector<Point> vertex_pos;
-        std::vector<Reference<Triangle> > triangles;
-        std::map<uint64_t, bool> is_double_edge;
+        point_v vertex_pos;
+        tris_v triangles;
         unsigned int nbVertices, nbTriangles;
         
         shapeprimmap shape_prim_map;
         
     public:
-        Mesh(const vector<Reference<Primitive> > &primitives);
-        Mesh(const vector<Reference<Shape> > &primitives);
+        Mesh(const prim_v &primitives);
+        Mesh(const shape_v &primitives);
         
         inline unsigned int getNbVertices() const { return nbVertices; }
         inline unsigned int getNbTriangles() const { return nbTriangles; }
 
-        inline const Reference<Triangle> &getTriangle(unsigned int idx) const {
+        inline const tris_ref &getTriangle(unsigned int idx) const {
             Assert(idx >= 0 && idx < triangles.size());
             return triangles[idx];
         }
         
-        inline Reference<Triangle> &getTriangle(unsigned int idx) {
+        inline tris_ref &getTriangle(unsigned int idx) {
             Assert(idx >= 0 && idx < triangles.size());
             return triangles[idx];
         }
@@ -96,7 +86,7 @@ namespace shaft {
         
         Reference<Material> getSomeMaterial() const;
         
-        inline Reference<Primitive> getPrimitive(const Reference<Shape> &shape) const {
+        inline prim_ref getPrimitive(const shape_ref &shape) const {
             if (!shape_prim_map.count(&*shape))
                 return Reference<Primitive>(NULL);
             
@@ -106,8 +96,6 @@ namespace shaft {
         operator char*() const;
     };
     
-    bool IntersectsTriangle(const Reference<Triangle> &triangle, const Mesh &mesh, const Ray &ray);
-
 };
 
 #endif /* defined(__pbrt__mesh__) */

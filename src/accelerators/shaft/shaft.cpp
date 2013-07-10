@@ -26,72 +26,11 @@ using namespace shaft::vis;
 
 namespace shaft {
 
-    bool ShaftGeometry::canBeBlockedBy(const BBox &bounding_box) const {
-        return bounding_box.Overlaps(bbox);
-    }
-    
-    typedef list<Reference<RawEdge> > rawedge_list;
-    typedef rawedge_list::iterator rawedge_iter;
-    typedef rawedge_list::const_iterator rawedge_citer;
-    
-    // see [Laine, 06] fig 4.18
-    bool ShaftGeometry::blockedBy(const Reference<shaft::Surface> &surface) const {
-        // main_axis = -1 if the two endpoints overlap,
-        // in which case we ALWAYS split the shaft
-        if (main_axis == -1) return false;
-        
-        if (!canBeBlockedBy(surface->getBoundingBox()))
-            return false;
-        
-        const rawedge_list raw_edges = surface->getRawEdges();
-        
-        for (rawedge_citer re = raw_edges.begin(); re != raw_edges.end(); re++) {
-            const RawEdge &edge = **re;
-            
-            if ((!edge.neighbour[0] || !edge.neighbour[1]) && edge.is_inside)
-                return false; // single edge inside shaft
-        }
-
-        float winding_counter = 0.f;
-        for (rawedge_citer re = raw_edges.begin(); re != raw_edges.end(); re++) {
-            Reference<RawEdge> raw_edge = *re;
-            if (raw_edge->neighbour[0]&& raw_edge->neighbour[1])
-                // double edge -> not @ side of the surface
-                continue;
-            
-            Edge edge(raw_edge, !!raw_edge->neighbour[0]);
-            list<Point> vertices = clampAndGetVertices(edge);
-            
-            list<Point>::iterator vertices_end = --vertices.end();
-            for (list<Point>::iterator vertex = vertices.begin(); vertex != vertices_end;) {
-                Point current = *vertex;
-                vertex++;
-                Point next = *vertex;
-
-                float d0 = current * testplane_1, d1 = next * testplane_1;
-                
-                if (sign(d0) == sign(d1)) continue;
-                
-                float f0 = current * testplane_2, f1 = next * testplane_2;
-                
-                if ((f0 < 0.f) && (f1 < 0.f)) continue;
-                if ((d0 < d1) == (d0 * f1 > d1 * f0)) continue;
-                
-                float adjust = 1.f;
-                if ((d0 == 0.f) || (d1 == 0.f)) adjust = .5f;
-                if (d0 > d1) adjust = -adjust;
-                winding_counter += adjust;
-            }
-        }
-        
-        return winding_counter != 0.f;
-    }
-    
     bool ShaftGeometry::intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const {
         const Point *point[3];
         
         for (unsigned int i = 0; i < 3; i++)
-            point[i] = &mesh.getPoint((*triangle)[i]);
+            point[i] = &triangle->getPoint(i);
         
         // if neither of the point is inside the bounding box of the shaft, the triangle cannot intersect
         if (!bbox.Inside(*point[0]) && !bbox.Inside(*point[1]) && !bbox.Inside(*point[2]))
@@ -219,55 +158,6 @@ namespace shaft {
         return Intersect(ray);
     }
     
-    list<Point> ShaftGeometry::clampAndGetVertices(const Edge & edge) const {
-        float min, max;
-        list<Point> result;
-        
-        switch (main_axis) {
-            case -1: // overlap, yay us
-                result.push_back(Point(edge.getVertex(0).point));
-                result.push_back(Point(edge.getVertex(1).point));
-                
-                break;
-            case 0: // X
-            case 1: // Y
-            case 2: // Z
-                if (receiver_bbox.getCenter()[main_axis] < light_bbox.getCenter()[main_axis]) {
-                    min = receiver_bbox.getxyz()[main_axis];
-                    max = light_bbox.getXYZ()[main_axis];
-                } else {
-                    min = light_bbox.getxyz()[main_axis];
-                    max = receiver_bbox.getXYZ()[main_axis];
-                }
-                
-                const Point *p[2];
-                p[0] = &edge.getVertex(0).point;
-                p[1] = &edge.getVertex(1).point;
-                for (unsigned int i = 0; i < 2; i++) {
-                    const Point &point = *p[i];
-                    const Point &other = *p[1-i];
-                    
-                    const Vector diff = (other - point);
-                    
-                    if (point[main_axis] < min) {
-                        Point new_point = point;
-                        new_point += diff * (min - point[main_axis]) / diff[main_axis];
-                        result.push_back(new_point);
-                    } else if (point[main_axis] > max) {
-                        Point new_point = point;
-                        new_point += diff * (max - point[main_axis]) / diff[main_axis];
-                        result.push_back(new_point);
-                    } else {
-                        result.push_back(point);
-                    }
-                }
-        }
-        
-        // TODO see fig 4.11?
-        
-        return result;
-    }
-    
     /*
      * The planes are oriented so that a point in the shaft lies on the positive
      * side of each of the planes.
@@ -359,9 +249,6 @@ namespace shaft {
                 }
                 
                 Point tmp1 = (receiver_center + Vector(0, 0, 1)), tmp2 = (receiver_center + Vector(0, 1, 0));
-                
-                testplane_1 = CreatePlane(receiver_center, tmp1, light_center);
-                testplane_2 = CreatePlane(receiver_center, tmp2, light_center);
             }
                 break;
             case 1: // Y
@@ -373,9 +260,6 @@ namespace shaft {
                 }
                 
                 Point tmp1 = (receiver_center + Vector(1, 0, 0)), tmp2 = (receiver_center + Vector(0, 0, 1));
-                
-                testplane_1 = CreatePlane(receiver_center, tmp1, light_center);
-                testplane_2 = CreatePlane(receiver_center, tmp2, light_center);
             }
                 break;
             case 2: // Z
@@ -387,9 +271,6 @@ namespace shaft {
                 }
                 
                 Point tmp1 = (receiver_center + Vector(1, 0, 0)), tmp2 = (receiver_center + Vector(0, 1, 0));
-                
-                testplane_1 = CreatePlane(receiver_center, tmp1, light_center);
-                testplane_2 = CreatePlane(receiver_center, tmp2, light_center);
             }
                 break;
             case -1:
@@ -405,117 +286,8 @@ namespace shaft {
                 planes.push_back(Vector4f(0, -1, 0, shaft_bbox.pMax.y));
                 planes.push_back(Vector4f(0, 0, -1, shaft_bbox.pMax.z));
                                  
-                // by not settings test_plane{1,2}, we assure that all tests fail
-                // (these tests shouldn't be run in the first place
                 break;
         }
-    }
-    
-    Reference<Patch> Shaft::createClippedPatch(const Reference<Triangle> &triangle) const {
-        Patch &result = *(new Patch);
-        Patch::edge_list &edges = result.edges;
-        
-        uint32_t pidx[3] = { triangle->getPoint(0), triangle->getPoint(1), triangle->getPoint(2) };
-        const Mesh &mesh = getMesh();
-        
-        for (unsigned int i = 0; i < 3; i++) {
-            int next = (i == 2) ? 0 : i+1;
-            Edge &edge = *new Edge(pidx[i], pidx[next], mesh);
-            
-            edge.setOwner(&result);
-            
-            RawEdge::idtype edge_id = pidx[i];
-            if (pidx[i] > pidx[next]) {
-                edge_id = (edge_id << 32) + pidx[next];
-            } else {
-                edge_id = edge_id + (uint64_t(pidx[next]) << 32);
-            }
-            
-            edges.push_back(Reference<Edge>(&edge));
-        }
-        // FIXME implement real clipping here
-        
-        return Reference<Patch>(&result);
-    }
-    
-    // See [Laine, 06] fig 4.21
-    void Shaft::classifyEdges(Reference<Surface> &surface) const {
-        rawedge_list rawEdges = surface->getRawEdges();
-        for (rawedge_iter re = rawEdges.begin(); re != rawEdges.end(); re++) {
-            if (!(*re)->is_inside) continue;
-            (*re)->is_inside = geometry.intersectsLine((*re)->getPoint(0), (*re)->getPoint(1));
-        }
-    }
-    
-    // See [Laine, 06] fig 4.22
-    void Shaft::updatePatchFacings(Reference<Surface> &surface) const {
-        const BBox &receiverBox = receiverNode->bounding_box;
-        const BBox &lightBox = lightNode->bounding_box;
-        
-        for (Surface::patch_iter patch = surface->patches.begin(); patch != surface->patches.end(); patch++) {
-            if ((*patch)->facing != INCONSISTENT)
-                continue;
-            
-            const Reference<Triangle> &t = getTriangle((*patch)->mesh_triangle);
-            Vector4f pl = CreatePlane(getPoint(t->getPoint(0)),
-                                      getPoint(t->getPoint(1)),
-                                      getPoint(t->getPoint(2)));
-            
-            BBoxPlaneResult receiver_result = pl * receiverBox;
-            BBoxPlaneResult light_result = pl * lightBox;
-            
-            if (receiver_result == FRONT)
-                (*patch)->facing = TOWARDS_RECEIVER;
-            else if (receiver_result == BACK)
-                (*patch)->facing = TOWARDS_LIGHT;
-            else if (light_result == FRONT)
-                (*patch)->facing = TOWARDS_LIGHT;
-            else if (light_result == BACK)
-                (*patch)->facing = TOWARDS_RECEIVER;
-        }
-    }
-    
-    // see [Laine, 06] fig 4.20
-    Reference<Surface> Shaft::constructTriangleSurface(nblist &triangles) {
-        Surface &new_surface = *(new Surface);
-        
-        map<RawEdge::idtype, Edge *> edge_map;
-        Mesh &mesh = getMesh();
-        
-        for (nbiter tidx = triangles.begin(); tidx != triangles.end(); tidx++) {
-            const Reference<Triangle> &t = getTriangle(*tidx);
-            
-            // Is the triangle in the shaft?
-            if (!intersects(t)) continue;
-            
-            // If the triangle is in any of the nodes the shaft connects,
-            // don't take it into account (cf [Laine, 06] section 4.2.2)
-            if (Intersects(receiverNode->bounding_box, t, mesh)) continue;
-            if (Intersects(lightNode->bounding_box, t, mesh)) continue;
-            
-            Reference<Patch> p = createClippedPatch(t);
-            p->facing = INCONSISTENT;
-            p->mesh_triangle = *tidx;
-            
-            for (Patch::edge_iter e = p->edges.begin(); e != p->edges.end(); e++) {
-                RawEdge::idtype elabel = (*e)->getRawEdgeLabel();
-            
-                if (edge_map.count(elabel) == 0) {
-                    edge_map[elabel] = &**e;
-                } else {
-                    Edge &other = *edge_map[elabel];
-                    *e = other.flip();
-                    
-                    (*e)->setOwner(&*p);
-                }
-            }
-            
-            new_surface.patches.push_back(p);
-        }
-        
-        Info("Created surface with %lu patches from %lu triangles", new_surface.patches.size(), triangles.size());
-        
-        return Reference<Surface>(&new_surface);
     }
     
 #if defined(SHAFT_LOG) && defined(SHAFT_SHOW_LEAFS)
@@ -530,39 +302,6 @@ namespace shaft {
 #endif
     receiverNode(receiver), lightNode(light), geometry(receiver, light), vis(NULL) {
         // copy main_axis from the parent?
-        
-        for (surface_iter surf = parent.surfaces.begin(); surf != parent.surfaces.end(); surf++) {
-            surfaces.push_back((*surf)->clone());
-        }
-        
-        surfaces.push_back(constructTriangleSurface(split->gone_triangles));
-        surface_list tmp_surfaces;
-
-        Reference<Surface> surf;
-        for (surface_iter s = surfaces.begin(); s != surfaces.end(); s++) {
-            surf = *s;
-            
-            if (surf->patches.empty())
-                continue;
-            
-            classifyEdges(surf);
-            updatePatchFacings(surf);
-            surf->mergePatches();
-            surf->simplifyPatches();
-            surf->splitSurface(tmp_surfaces);
-        }
-        
-        surfaces.clear();
-        
-        for (surface_iter surf = tmp_surfaces.begin(); surf != tmp_surfaces.end(); surf++) {
-            computeLooseEdges(*surf);
-        }
-        
-        combineSurfaces(tmp_surfaces);
-        
-        for (surface_iter surf = surfaces.begin(); surf != surfaces.end(); surf++) {
-            (*surf)->computeBoundingBox();
-        }
         
         nbset new_triangles;
         
@@ -598,8 +337,8 @@ namespace shaft {
         Reference<Triangle> triangle;
         for (nblciter tris = triangles.begin(); tris != end; tris++) {
             triangle = mesh.getTriangle(*tris);
-            if (!Intersects(receiverBox, triangle, mesh)
-                && !Intersects(lightBox, triangle, mesh))
+            if (!Intersects(receiverBox, triangle)
+                && !Intersects(lightBox, triangle))
                 filtered_triangles.push_back(*tris);
         }
     }
@@ -622,96 +361,9 @@ namespace shaft {
         nblist triangles_vector(filtered_triangles.size());
         triangles_vector.insert(triangles_vector.begin(), filtered_triangles.begin(), filtered_triangles.end());
         
-        Reference<Surface> surf = constructTriangleSurface(triangles_vector);
-        
-        classifyEdges(surf);
-        updatePatchFacings(surf);
-        surf->mergePatches();
-        surf->simplifyPatches();
-        surf->splitSurface(surfaces);
-        
-        for (surface_iter s = surfaces.begin(); s != surfaces.end(); s++) {
-            (*s)->computeBoundingBox();
-        }
-        
-        //Info("# Surfaces: %lu", surfaces.size());
-        
 #if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
         depth = 0;
 #endif
-    }
-    
-    // cf [Laine, 06] fig 4.26
-    void Shaft::computeLooseEdges(Reference<Surface> &surface) {
-        Mesh &mesh = getMesh();
-        surface->loose_edges.clear();
-        
-        for (Surface::patch_iter patch = surface->patches.begin(); patch != surface->patches.end(); patch++) {
-            Reference<Patch> p = *patch;
-            for (Patch::edge_iter e = p->edges.begin(); e != p->edges.end(); e++) {
-                Reference<Edge> edge = *e;
-                RawEdge::idtype edge_label = edge->raw_edge->mesh_edge;
-                if (mesh.is_double_edge[edge_label] == false) continue;
-                if (edge->raw_edge->is_inside && !edge->getNeighbour()) {
-                    surface->loose_edges.push_back(edge_label);
-                }
-            }
-        }
-    }
-    
-    typedef set<Surface *> surf_set;
-    typedef surf_set::iterator surf_siter;
-    
-    typedef map<Surface *, surf_set> union_find;
-    typedef union_find::iterator uf_iter;
-    
-    typedef map<RawEdge::idtype, Surface *> loose_edge_map;
-    typedef loose_edge_map::iterator le_iter;
-    
-    // cf [Laine, 06] fig 4.27
-    void Shaft::combineSurfaces(surface_list &input_list) {
-        union_find combine_union;
-        loose_edge_map loose_edges;
-        
-        for (surface_iter s = input_list.begin(), il_end = input_list.end(); s != il_end; s++) {
-            Reference<Surface> surf = *s;
-            
-            combine_union[&* surf] = set<Surface *>();
-            combine_union[&* surf].insert(&* surf);
-            
-            for (Surface::nbiter el = surf->loose_edges.begin(), el_end = surf->loose_edges.end(); el != el_end; el++) {
-                RawEdge::idtype elabel = *el;
-                
-                if (loose_edges.count(elabel) != 0) {
-                    Surface *surf_two = loose_edges[elabel];
-                    combine_union[&*surf].insert(surf_two);
-                    combine_union[surf_two] = combine_union[&* surf];
-                } else {
-                    loose_edges[elabel] = &* surf;
-                }
-            }
-        }
-        
-        surf_set handled_surfaces;
-        
-        for (uf_iter s = combine_union.begin(); s != combine_union.end(); s++) {
-            surf_set &set_surfaces = s->second;
-            if (set_surfaces.size() == 1) {
-                surfaces.push_back(* set_surfaces.begin());
-            } else {
-                std::set<Reference<Surface> > surfaces_set;
-                
-                for (surf_siter surf = set_surfaces.begin(), send = set_surfaces.end(); surf != send; surf++) {
-                    surfaces_set.insert(Reference<Surface>(*surf));
-                }
-                
-                surfaces.push_back(Surface::constructCombinedSurface(surfaces_set));
-            }
-            
-            handled_surfaces.insert(set_surfaces.begin(), set_surfaces.end());
-        }
-        
-        Info("Combined %lu to %lu surfaces", input_list.size(), surfaces.size());
     }
     
     bool Shaft::IntersectP(const Ray &ray) const {
@@ -722,21 +374,12 @@ namespace shaft {
         // check all triangles
         for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
             log::ShaftIntersectTest();
-            if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
+            if (mesh.getTriangle(*t)->IntersectP(ray))
                 return true;
         }
         log::ShaftNotIntersected();
         
         return receiverNode->IntersectP(ray);
-    }
-    
-    bool isRayBlockedByTriangles(const ElementTreeNode::nblist &triangles, const Mesh &mesh, const Ray &ray) {
-        ElementTreeNode::nbciter end = triangles.end();
-        for (ElementTreeNode::nbciter t = triangles.begin(); t != end; t++) {
-            if (IntersectsTriangle(mesh.getTriangle(*t), mesh, ray))
-                return true;
-        }
-        return false;
     }
     
     float Shaft::Visibility(const Ray &ray) const {
@@ -859,14 +502,14 @@ namespace shaft {
                 // test whether the ray hits anything in the block
                 Ray r = createMatterTestRay(ray, receiverBox);
                 for (ElementTreeNode::nbciter t = receiverTris.begin(); !rayMatters && t != receiverTris.end(); t++) {
-                    if (IntersectsTriangle(mesh.getTriangle(*t), mesh, r))
+                    if (mesh.getTriangle(*t)->IntersectP(r))
                         rayMatters = true;
                 }
                 
                 if (!rayMatters) continue;
                 rayMatters = false;
                 for (ElementTreeNode::nbciter t = lightTris.begin(); !rayMatters && t != lightTris.end(); t++) {
-                    if (IntersectsTriangle(mesh.getTriangle(*t), mesh, r))
+                    if (mesh.getTriangle(*t)->IntersectP(r))
                         rayMatters = true;
                 }
                 
@@ -875,7 +518,7 @@ namespace shaft {
                 
                 for (ProbabilisticVisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
                     tris = *t;
-                    if (IntersectsTriangle(mesh.getTriangle(tris), mesh, ray)) {
+                    if (mesh.getTriangle(*t)->IntersectP(ray)) {
                         counts[tris]++;
                     }
                 }
@@ -896,9 +539,7 @@ namespace shaft {
         
         if (max == 0) {
 //            Info("ProbVis initialisation found no blockers, falling back to exact visibility");
-//            vis = new ExactVisibilityCalculator(mesh, filtered_triangles, receiverNode, lightNode);
-            Warning("Trying BlockedVisibilityCalculator");
-            vis = createBlockedVisibilityCalculator();
+            vis = new ExactVisibilityCalculator(mesh, filtered_triangles, receiverNode, lightNode);
             return;
         }
         
@@ -914,7 +555,7 @@ namespace shaft {
         }
         Info("Most blocking occluder blocked %u / %d times", max, countMatters);
         Info("Most blocking occluder blocked %f %% times", 100. * mostBlockingOccluderBlocking);
-        Info("Most blocking occluder: (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
+//        Info("Most blocking occluder: (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
         
         ProbabilisticVisibilityCalculator::nbllist tmpTriangles;
         tmpTriangles.insert(tmpTriangles.begin(), triangles.begin(), triangles.end());

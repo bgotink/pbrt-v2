@@ -11,7 +11,7 @@
 
 namespace shaft { namespace vis {
     
-    ProbabilisticVisibilityCalculator::ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) : rng(rng), mesh(mesh), mostBlockingOccluder(mostBlockingOccluder), triangles(VisibilityCalculator::getTriangles(mesh, triangles)), mostBlockingOccluderBlocking(mostBlockingOccluderBlocking) {
+    ProbabilisticVisibilityCalculator::ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) : rng(rng), mesh(mesh), mostBlockingOccluder(mostBlockingOccluder), triangles(VisibilityCalculator::getTriangles(mesh, triangles)), mostBlockingOccluderBlocking(mostBlockingOccluderBlocking) {
     }
     
     float ProbabilisticVisibilityCalculator::Visibility(const Ray &ray) const {
@@ -22,7 +22,7 @@ namespace shaft { namespace vis {
         log::ShaftIntersectTest();
         log::ShaftAddIntersect();
         
-        return IntersectsTriangle(mostBlockingOccluder, mesh, ray);
+        return mostBlockingOccluder->IntersectP(ray);
     }
     
     bool ProbabilisticVisibilityCalculator::hitsOtherOccluder(const Ray &ray) const {
@@ -35,14 +35,14 @@ namespace shaft { namespace vis {
             log::ShaftIntersectTest();
             log::ShaftAddIntersect();
             
-            if (IntersectsTriangle(triangle, mesh, ray)) {
+            if (triangle->IntersectP(ray)) {
                 return true;
             }
         }
         return false;
     }
     
-    ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) {
+    ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) {
         if (type == "bram")
             return new BramProbVisCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking);
         

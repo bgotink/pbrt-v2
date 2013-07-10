@@ -23,7 +23,7 @@ namespace vis {
         typedef std::list<unsigned int> nbllist;
         typedef nbllist::const_iterator nblciter;
         
-        typedef std::list<Reference<shaft::Triangle> > trislist;
+        typedef std::list<Reference<Triangle> > trislist;
         typedef trislist::const_iterator trisciter;
         
         static trislist getTriangles(const Mesh &mesh, const nbllist &tidx);
@@ -62,7 +62,7 @@ namespace vis {
         
     private:
         const shaft::Mesh &mesh;
-        const Reference<shaft::Triangle> mostBlockingOccluder;
+        const Reference<Triangle> mostBlockingOccluder;
         const trislist triangles;
         
     protected:
@@ -82,12 +82,12 @@ namespace vis {
         }
         
     public:
-        ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
+        ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
         
         virtual float Visibility(const Ray &ray) const;
     };
     
-    ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const shaft::Mesh &mesh, const Reference<shaft::Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
+    ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
 }
 }
 

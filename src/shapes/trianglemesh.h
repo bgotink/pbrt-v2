@@ -59,7 +59,9 @@ public:
     friend class Triangle;
     template <typename T> friend class VertexTexture;
     Reference<Triangle> getTriangle(int i);
-    int getNbTriangles() const { return ntris; }
+    const Point &getPoint(int i) const;
+    inline int getNbTriangles() const { return ntris; }
+    inline int getNbPoints() const { return nverts; }
     
     virtual bool isTriangleMesh() const { return true; }
 protected:
@@ -86,6 +88,9 @@ public:
         mesh = m;
         setV();
         PBRT_CREATED_TRIANGLE(this);
+    }
+    Triangle(Reference<Triangle> &t) : Shape(t->ObjectToWorld, t->WorldToObject, t->ReverseOrientation), n(t->n), mesh(t->mesh) {
+    	setV();
     }
     BBox ObjectBound() const;
     BBox WorldBound() const;
