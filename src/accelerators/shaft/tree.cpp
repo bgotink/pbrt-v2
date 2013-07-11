@@ -174,9 +174,10 @@ void ElementTreeNode::split(int split_axis) {
     right = new ElementTreeNode(tree, this);
     
     for (pidxiter point = pidxs.begin(); point != pidxs.end(); point++) {
-        if(points[*point][split_axis] < split_pos) {
+        if (points[*point][split_axis] <= split_pos) {
             left->points.push_back(*point);
-        } else {
+        }
+        if (points[*point][split_axis] >= split_pos){
             right->points.push_back(*point);
         }
     }
@@ -248,6 +249,7 @@ void ElementTreeNode::split(int split_axis) {
     
     points.clear();
     inside_triangles.clear();
+    _inside_triangles.clear();
 }
     
 ElementTreeNode::ElementTreeNode(ElementTree *tree) : parent(NULL), tree(tree) {
@@ -284,13 +286,13 @@ void ElementTreeNode::createBoundingBox() {
     
     bounding_box.Insert(point_pos[*point]);
     // this is crude, lets hope it works
-    bounding_box.Expand(.5f);
+//    bounding_box.Expand(.5f);
     
     for(; point != end; point++) {
         bounding_box.Insert(point_pos[*point]);
     }
     
-    //bounding_box.Expand(1.f);
+    bounding_box.Expand(.01f * bounding_box.Extent()[bounding_box.MaximumExtent()]);
     
     Info("Created BBox for ElementTreeNode");
 }
