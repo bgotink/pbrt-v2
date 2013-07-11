@@ -68,25 +68,6 @@ namespace shaft {
         SHAFT_BLOCKED, SHAFT_EMPTY, SHAFT_UNDECIDED, SHAFT_UNSET
     };
     
-    bool RayBBoxIntersect(const BBox &box, const Ray &ray) {
-        float t0 = ray.mint, t1 = ray.maxt;
-        for (int i = 0; i < 3; ++i) {
-            // Update interval for _i_th bounding box slab
-            float invRayDir = 1.f / ray.d[i];
-            float tNear = (box.pMin[i] - ray.o[i]) * invRayDir;
-            float tFar  = (box.pMax[i] - ray.o[i]) * invRayDir;
-                
-            // Update parametric interval from slab intersection $t$s
-            if (tNear > tFar) swap(tNear, tFar);
-            t0 = tNear > t0 ? tNear : t0;
-            t1 = tFar  < t1 ? tFar  : t1;
-            if (t0 > t1) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
     struct ShaftTreeNode {
         ShaftTreeNode(const Reference<Shaft> &shaft) : shaft(shaft), left(NULL), right(NULL), state(getState())
         , show(NULL), probVis(NULL) {
@@ -110,27 +91,29 @@ namespace shaft {
         bool *probVis;
         
         bool RayInShaft(const Ray &ray) const {
-//#ifdef SHAFT_HACK_ERRONOUS_BUT_FAST
-            if (!shaft->receiverNode->bounding_box.Inside(ray(ray.mint)))
+        	Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time
+#if defined(SHAFT_LOG)
+        			, ray.depth
+#endif
+        	);
+
+        	const BBox &receiver_bbox = shaft->receiverNode->bounding_box;
+        	if (!receiver_bbox.Inside(ray.o) && !receiver_bbox.Inside(ray(ray.mint)) && !receiver_bbox.Inside(ray(-ray.mint)))
+        		return false;
+
+//        	return shaft->receiverNode->bounding_box.IntersectP(r)
+//        			&& shaft->lightNode->bounding_box.IntersectP(r);
+
+//            if (!shaft->receiverNode->bounding_box.Inside(ray.o))
+//                return false;
+
+//#ifdef SHAFT_LOG
+//            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
 //#else
 //            if (!shaft->receiverNode->bounding_box.Inside(ray(-ray.mint)))
 //#endif
-//        	if (!shaft->receiverNode->bounding_box.Inside(ray.o))
-/*
- note: it was originally ray.o,
- and even though ray(ray.mint) _should_ also be correct,
- neither of the above gives a correct answer.
- ray(-ray.mint) does however, so let's use that
- */
-                return false;
-            /*
-#ifdef SHAFT_LOG
-            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
-#else
-            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time);
-#endif
-            */
-            return RayBBoxIntersect(shaft->lightNode->bounding_box, ray);
+            return shaft->lightNode->bounding_box.IntersectP(r);
+//			return RayBBoxIntersect(shaft->lightNode->bounding_box, ray);
         }
         
         bool IntersectP(const Ray &ray, bool showShafts = false) const {
@@ -160,7 +143,8 @@ namespace shaft {
         
         float Visibility(const Ray &ray, bool *set = NULL, bool is_top = true) const {
             if (!RayInShaft(ray)) {
-                return 0.;
+            	if (set) *set = false;
+                return 1.;
             }
             if (set) *set = true;
             
