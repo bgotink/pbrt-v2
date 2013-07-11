@@ -400,7 +400,6 @@ namespace shaft {
     }
     
     ShaftAccel::~ShaftAccel() {
-        log::ShaftLogResult();
         delete shaft_tree;
         delete fallback_accel;
     }
