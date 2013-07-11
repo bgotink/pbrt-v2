@@ -247,8 +247,6 @@ namespace shaft {
                 } else {
                     CREATE_PLANES_X(light_bbox, receiver_bbox);
                 }
-                
-                Point tmp1 = (receiver_center + Vector(0, 0, 1)), tmp2 = (receiver_center + Vector(0, 1, 0));
             }
                 break;
             case 1: // Y
@@ -258,8 +256,6 @@ namespace shaft {
                 } else {
                     CREATE_PLANES_Y(light_bbox, receiver_bbox);
                 }
-                
-                Point tmp1 = (receiver_center + Vector(1, 0, 0)), tmp2 = (receiver_center + Vector(0, 0, 1));
             }
                 break;
             case 2: // Z
@@ -269,8 +265,6 @@ namespace shaft {
                 } else {
                     CREATE_PLANES_Z(light_bbox, receiver_bbox);
                 }
-                
-                Point tmp1 = (receiver_center + Vector(1, 0, 0)), tmp2 = (receiver_center + Vector(0, 1, 0));
             }
                 break;
             case -1:
@@ -317,8 +311,6 @@ namespace shaft {
         
         triangles.insert(triangles.begin(), new_triangles.begin(), new_triangles.end());
         filterTriangles();
-        
-        //Info("# Surfaces: %lu", surfaces.size());
         
 #if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
         depth = parent.depth + 1;
