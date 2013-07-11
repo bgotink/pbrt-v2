@@ -215,19 +215,6 @@ void ShaftSaveMetaData(double timeSpent) {
     
     metadata.flush();
     metadata.close();
-}
-    
-#define CREATE_FALSE_COLOR_ON_IMAGEFILM(ptr, name) \
-	if (ptr != NULL) \
-		delete ptr; \
-	ptr = & ::CreateImageFilm(FalseColorFilm::GetFilename(name, filmParams), filmParams, filter)->SetNoDeleteFilter();
-    
-#define CREATE_FALSE_COLOR(ptr, name) \
-	if (ptr != NULL) \
-		delete ptr; \
-	ptr = ::CreateFalseColorFilm(name, filmParams, filter);
-    
-void ShaftNewImage() {
 
 	// reset all counters
 
@@ -249,9 +236,19 @@ void ShaftNewImage() {
 
 	nb_pa = nb_pb = nb_pc =
 	nb_panh = nb_pbnh = nb_pcnh = 0;
-
-	// create false color images
-
+}
+    
+#define CREATE_FALSE_COLOR_ON_IMAGEFILM(ptr, name) \
+	if (ptr != NULL) \
+		delete ptr; \
+	ptr = & ::CreateImageFilm(FalseColorFilm::GetFilename(name, filmParams), filmParams, filter)->SetNoDeleteFilter();
+    
+#define CREATE_FALSE_COLOR(ptr, name) \
+	if (ptr != NULL) \
+		delete ptr; \
+	ptr = ::CreateFalseColorFilm(name, filmParams, filter);
+    
+void ShaftNewImage() {
 #ifdef SHAFT_SHOW_DEPTHS
     CREATE_FALSE_COLOR(falseColorShafts, "depth");
 #endif
