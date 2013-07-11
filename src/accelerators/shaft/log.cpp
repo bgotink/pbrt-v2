@@ -228,6 +228,30 @@ void ShaftSaveMetaData(double timeSpent) {
 	ptr = ::CreateFalseColorFilm(name, filmParams, filter);
     
 void ShaftNewImage() {
+
+	// reset all counters
+
+	nb_intersect_operations =
+	nb_intersect_done =
+	nb_no_intersected_shaft =
+	nb_node_intersect_done = 0;
+
+	nb_shaft_blocked =
+	nb_shaft_empty =
+	nb_shaftaccel_intersectp = 0;
+
+	nb_leave_shafts =
+	nb_total_prims_in_leaves =
+	nb_total_prims_in_leave_nodes =
+	nb_total_points_in_leave_nodes =
+	nb_total_depth =
+	nb_max_points_in_leave_nodes = 0;
+
+	nb_pa = nb_pb = nb_pc =
+	nb_panh = nb_pbnh = nb_pcnh = 0;
+
+	// create false color images
+
 #ifdef SHAFT_SHOW_DEPTHS
     CREATE_FALSE_COLOR(falseColorShafts, "depth");
 #endif
