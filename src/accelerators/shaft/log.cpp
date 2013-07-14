@@ -85,17 +85,16 @@ namespace shaft { namespace log {
 #endif
 #endif // defined(SHAFT_SHOW_LEAFS)
     
-    static double buildTime;
+    static double buildTime, initTime;
 
 static void PrintStats(ostream &str) {
-    str << "# ray intersectp tests done: " << nb_intersect_done << endl;
     str << "# real intersect operations @ shaft: " << nb_intersect_operations << endl;
     str << "# intersects not done by shaft: " << nb_no_intersected_shaft << endl;
     str << "# real intersect operations @ nodes: " << nb_node_intersect_done << endl;
     str << endl;
     
-    str << "# shafts blocked: " << nb_shaft_blocked << endl;
-    str << "# shafts empty: " << nb_shaft_empty << endl;
+//    str << "# shafts blocked: " << nb_shaft_blocked << endl;
+//    str << "# shafts empty: " << nb_shaft_empty << endl;
     str << "# ShaftAccel::IntersectP: " << nb_shaftaccel_intersectp << endl;
     str << endl;
     
@@ -110,8 +109,10 @@ static void PrintStats(ostream &str) {
     str << "avg. depth: " << static_cast<float>(nb_total_depth) / static_cast<double>(nb_leave_shafts) << endl;
     str << endl;
     
+    str << "# exact intersectp tests done: " << nb_intersect_done << endl;
     if (nb_pc > 0 || nb_pb > 0 || nb_pa > 0) {
         float tot = nb_pa + nb_pb + nb_pc;
+        str << "ProbVis" << endl;
         str << "# times A: " << nb_pa
             << " (" << 100 * (static_cast<float>(nb_pa) / tot) << " %) \t-\t " << nb_panh
             << " (" << 100. * static_cast<double>(nb_panh) / static_cast<double>(nb_pa) << " %) missed" << endl;
@@ -132,6 +133,10 @@ void ShaftLogResult() {
     
 void ShaftSaveBuildTime(double bT) {
     buildTime = bT;
+}
+
+void ShaftSaveInitTime(double iT) {
+    initTime = iT;
 }
 
 #define SAVE_FALSE_COLOR(image) \
@@ -211,6 +216,7 @@ void ShaftSaveMetaData(double timeSpent) {
 #endif
     
     metadata << "Building took " << buildTime << " seconds." << endl;
+    metadata << "Initialising ProbVis took " << initTime << " seconds." << endl;
     metadata << "Rendering took " << timeSpent << " seconds." << endl;
     
     metadata.flush();

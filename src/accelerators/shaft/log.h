@@ -138,6 +138,7 @@ inline void ShaftLeafCreated(uint64_t nbPrims, uint64_t nbPoints, uint64_t nbPri
 }
     
 void ShaftSaveBuildTime(double buildTime);
+void ShaftSaveInitTime(double initTime);
     
 void ShaftLogResult();
     
@@ -243,6 +244,7 @@ void ShaftLogResult();
 #define ShaftAddIntersect();
 #define ShaftSaveFalseColor();
 #define ShaftSaveBuildTime();
+#define ShaftSaveInitTime();
 #define ShaftSaveMetaData();
     
 #endif

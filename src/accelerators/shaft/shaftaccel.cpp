@@ -391,12 +391,17 @@ namespace shaft {
         }
         fallback_accel = fallbackCreator.createAccel();
         
+        Timer probvisInitTimer;
+        probvisInitTimer.Start();
+
         if (probVisType == NULL) {
             shaft_tree->setUseProbVis(false);
         } else {
             RNG *rng = new RNG;
             shaft_tree->setUseProbVis(true, rng, probVisType);
         }
+
+        log::ShaftSaveInitTime(probvisInitTimer.Time());
     }
     
     ShaftAccel::~ShaftAccel() {

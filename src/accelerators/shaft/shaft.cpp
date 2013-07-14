@@ -361,15 +361,11 @@ namespace shaft {
     bool Shaft::IntersectP(const Ray &ray) const {
         const Mesh &mesh = getMesh();
 
-        log::ShaftStartIntersectP();
-        
         // check all triangles
         for (nblciter t = triangles.begin(); t != triangles.end(); t++) {
-            log::ShaftIntersectTest();
             if (mesh.getTriangle(*t)->IntersectP(ray))
                 return true;
         }
-        log::ShaftNotIntersected();
         
         return receiverNode->IntersectP(ray);
     }
