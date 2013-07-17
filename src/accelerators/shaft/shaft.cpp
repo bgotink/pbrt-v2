@@ -751,6 +751,9 @@ namespace shaft {
 #if defined(SHAFT_SHOW_LEAFS)
         log::hitLeafId = uid;
 #endif
+#if defined(SHAFT_SHOW_EMPTY_LEAVES)
+        log::ShaftSetLeafEmpty(receiverNode->empty());
+#endif
 #endif // defined(SHAFT_LOG)
 #if defined(SHAFT_ENABLE_BREAK) && defined(SHAFT_BREAK_MANYPRIMS)
         if (triangles.size() > SHAFT_BREAK_MANYPRIMS_TRESHOLD) {

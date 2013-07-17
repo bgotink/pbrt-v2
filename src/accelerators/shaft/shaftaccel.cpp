@@ -68,25 +68,6 @@ namespace shaft {
         SHAFT_BLOCKED, SHAFT_EMPTY, SHAFT_UNDECIDED, SHAFT_UNSET
     };
     
-    bool RayBBoxIntersect(const BBox &box, const Ray &ray) {
-        float t0 = ray.mint, t1 = ray.maxt;
-        for (int i = 0; i < 3; ++i) {
-            // Update interval for _i_th bounding box slab
-            float invRayDir = 1.f / ray.d[i];
-            float tNear = (box.pMin[i] - ray.o[i]) * invRayDir;
-            float tFar  = (box.pMax[i] - ray.o[i]) * invRayDir;
-                
-            // Update parametric interval from slab intersection $t$s
-            if (tNear > tFar) swap(tNear, tFar);
-            t0 = tNear > t0 ? tNear : t0;
-            t1 = tFar  < t1 ? tFar  : t1;
-            if (t0 > t1) {
-                return false;
-            }
-        }
-        return true;
-    }
-    
     struct ShaftTreeNode {
         ShaftTreeNode(const Reference<Shaft> &shaft) : shaft(shaft), left(NULL), right(NULL), state(getState())
         , show(NULL), probVis(NULL) {
@@ -110,26 +91,29 @@ namespace shaft {
         bool *probVis;
         
         bool RayInShaft(const Ray &ray) const {
-//#ifdef SHAFT_HACK_ERRONOUS_BUT_FAST
-//            if (!shaft->receiverNode->bounding_box.Inside(ray(ray.mint)))
-//#else
-//            if (!shaft->receiverNode->bounding_box.Inside(ray(-ray.mint)))
-//#endif
-            if (!shaft->receiverNode->bounding_box.Inside(ray.o))
-                /*
-                 note: it was originally ray.o,
-                 and even though ray(ray.mint) _should_ also be correct,
-                 neither of the above gives a correct answer.
-                 ray(-ray.mint) does however, so let's use that
-                 */
-                return false;
-            
+        	Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time
+#if defined(SHAFT_LOG)
+        			, ray.depth
+#endif
+        	);
+
+        	const BBox &receiver_bbox = shaft->receiverNode->bounding_box;
+        	if (!receiver_bbox.Inside(ray.o) && !receiver_bbox.Inside(ray(ray.mint)) && !receiver_bbox.Inside(ray(-ray.mint)))
+        		return false;
+
+//        	return shaft->receiverNode->bounding_box.IntersectP(r)
+//        			&& shaft->lightNode->bounding_box.IntersectP(r);
+
+//            if (!shaft->receiverNode->bounding_box.Inside(ray.o))
+//                return false;
+
 //#ifdef SHAFT_LOG
 //            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time, ray.depth);
 //#else
-//            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time);
+//            if (!shaft->receiverNode->bounding_box.Inside(ray(-ray.mint)))
 //#endif
-            return RayBBoxIntersect(shaft->lightNode->bounding_box, ray);
+            return shaft->lightNode->bounding_box.IntersectP(r);
+//			return RayBBoxIntersect(shaft->lightNode->bounding_box, ray);
         }
         
         bool IntersectP(const Ray &ray, bool showShafts = false) const {
@@ -159,7 +143,8 @@ namespace shaft {
         
         float Visibility(const Ray &ray, bool *set = NULL, bool is_top = true) const {
             if (!RayInShaft(ray)) {
-                return 0.;
+            	if (set) *set = false;
+                return 1.;
             }
             if (set) *set = true;
             
@@ -287,7 +272,6 @@ namespace shaft {
         typedef primlist::iterator primiter;
         
         void doSplit() {
-            // we just acquired the lock, check if not set already
             if (state != SHAFT_UNSET) {
                 return;
             }
@@ -318,6 +302,7 @@ namespace shaft {
             Info("Splitting shaft...");
             
             bool split_light;
+            int split_axis = -1;
             
             if (receiver->is_leaf)
                 split_light = true;
@@ -325,8 +310,8 @@ namespace shaft {
                 split_light = false;
             else {
                 // use a heuristic (todo: use the clean heuristic provided by Laine
-                int axis = shaft.geometry.main_axis;
-                if (axis != -1) {
+                int main_axis = shaft.geometry.main_axis;
+                if (main_axis != -1) {
                     float diff[3];
                     for (int i = 0; i < 3; i++)
                         diff[i] = (light->bounding_box[1][i] - light->bounding_box[0][i])
@@ -336,36 +321,41 @@ namespace shaft {
                     float max = -1;
 
                     for (int i = 0; i < 3; i++) {
+                    	if (i == main_axis)
+                    		continue;
+
                         if (diff[i] < 0) {
                             if (-diff[i] > max) {
                                 max = -diff[i];
+                                split_axis = i;
                                 neg = true;
                             }
                         } else {
                             if (diff[i] > max) {
                                 max = diff[i];
+                                split_axis = i;
                                 neg = false;
                             }
                         }
                     }
 
                     split_light = !neg;
-                } else {
+                } else { // axis == -1
                     split_light = receiver->bounding_box.Extent().LengthSquared()
                                 < light->bounding_box.Extent().LengthSquared();
-                }
-            }
+                } // axis
+            } // light->is_leaf
             
             if (split_light) {
                 Info("Splitting light...");
-                light->split();
+                light->split(split_axis);
                 
                 left = new ShaftTreeNode(Shaft::constructSubShaft(receiver, light->left, light, shaft));
                 right = new ShaftTreeNode(Shaft::constructSubShaft(receiver, light->right, light, shaft));
                 Info("Prims in shaft: before: %lu; left: %lu, right %lu", shaft.triangles.size(), left->shaft->triangles.size(), right->shaft->triangles.size());
             } else {
                 Info("Splitting receiver...");
-                receiver->split();
+                receiver->split(split_axis);
                 
                 left = new ShaftTreeNode(Shaft::constructSubShaft(receiver->left, light, receiver, shaft));
                 right = new ShaftTreeNode(Shaft::constructSubShaft(receiver->right, light, receiver, shaft));

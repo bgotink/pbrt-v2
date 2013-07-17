@@ -1,2 +1,2 @@
 #!/bin/sh
-mogrify -format png -gamma 1.7 $*
+mogrify -format png -gamma 1.7 "$@"
