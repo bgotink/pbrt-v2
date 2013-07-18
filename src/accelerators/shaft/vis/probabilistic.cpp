@@ -9,9 +9,14 @@
 #include "visibility.h"
 #include "visibility_impl.h"
 
+#define max(a,b) (a > b ? a : b)
+#define min(a,b) (a < b ? a : b)
+
 namespace shaft { namespace vis {
     
-    ProbabilisticVisibilityCalculator::ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) : rng(rng), mesh(mesh), mostBlockingOccluder(mostBlockingOccluder), triangles(VisibilityCalculator::getTriangles(mesh, triangles)), mostBlockingOccluderBlocking(mostBlockingOccluderBlocking) {
+    ProbabilisticVisibilityCalculator::ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) : rng(rng), mesh(mesh), mostBlockingOccluder(mostBlockingOccluder), triangles(VisibilityCalculator::getTriangles(mesh, triangles)), mostBlockingOccluderBlocking(mostBlockingOccluderBlocking),
+        p_c(.2), p_a((1-p_c)*min(max(mostBlockingOccluderBlocking, .3), .9)), p_b(1-p_c-p_a)
+    {
     }
     
     float ProbabilisticVisibilityCalculator::Visibility(const Ray &ray) const {

@@ -66,7 +66,7 @@ namespace vis {
         const trislist triangles;
         
     protected:
-        
+        const float p_c, p_a, p_b;
         const float mostBlockingOccluderBlocking;
         
         virtual float evaluate(const Ray &ray, float p) const = 0;

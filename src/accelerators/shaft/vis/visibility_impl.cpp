@@ -12,15 +12,13 @@
 namespace shaft {
 namespace vis {
         
-#   define P_A   ((mostBlockingOccluderBlocking)*(1-P_C))
-#   define P_B   ((1-mostBlockingOccluderBlocking)*(1-P_C))
-    //#   define ALPHA    (1.f / 3.f)
-    //#   define BETA     (1.f / 3.f)
+#   define P_A   p_a
+#   define P_B   p_b
 #   define ALPHA P_A
 #   define BETA  P_B
 
-#   define P_C   0.3
-#   define GAMMA (1 - ALPHA - BETA)
+#   define P_C   p_c
+#   define GAMMA P_C
     
     BjornProbVisCalculator::BjornProbVisCalculator(const Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking)
                     : ProbabilisticVisibilityCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking)
