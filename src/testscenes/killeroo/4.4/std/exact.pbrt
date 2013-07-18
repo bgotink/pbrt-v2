@@ -1,0 +1,82 @@
+
+LookAt 400 20 30   0 63 -110   0 0 1
+Rotate -5 0 0 1
+Camera "perspective" "float fov" [39]
+
+#Accelerator "shaft" "bool draw_shafts" "true" "point shaft_point" [ 500.0  250.0 0.0 ]
+#Accelerator "shaft" "bool use_probvis" "false"
+#Accelerator "shaft" "bool use_probvis" "false"  "integer receiver_treshold" [2] #"integer light_treshold" [3]
+#Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "niels"
+#Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "bram"
+#Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "bjorn"
+        #"integer light_treshold" [3]
+#        "integer receiver_treshold" [8]
+Sampler "random" "integer pixelsamples" [4]
+#Sampler "random" "integer pixelsamples" [64]
+#Sampler "random" "integer pixelsamples" [1024]
+#Sampler "random" "integer pixelsamples" [10240]
+Film "image" "string filename" "killeroo.exact.exr"
+	"integer xresolution" [480] "integer yresolution" [480]
+#	"integer xresolution" [240] "integer yresolution" [240]
+#	"integer xresolution" [64] "integer yresolution" [64]
+#	"integer xresolution" [4] "integer yresolution" [4]
+
+# zoom in by feet
+# "integer xresolution" [1500] "integer yresolution" [1500]
+#	"float cropwindow" [ .34 .49  .67 .8 ]
+
+#Sampler "lowdiscrepancy" "integer pixelsamples" [16]
+
+SurfaceIntegrator "directlighting"
+
+WorldBegin
+
+AttributeBegin
+	Material "matte" "color Kd" [0 0 0]
+	#Translate 150 0  20
+	#Translate 0 0 0
+	Translate 120 120 15
+	AreaLightSource "area"  "color L" [500 500 500] "integer nsamples" [4]
+	Shape "trianglemesh"
+		"integer indices" [2 1 0]
+		"point P" [ 
+			4	-4	0
+			4	4	0
+			-4	4	0
+			-4	-4	0
+		]
+	Shape "trianglemesh"
+			"integer indices" [3 2 0]
+	   		"point P" [ 
+				4	-4	0
+				4	4	0
+				-4	4	0
+			-4	-4	0
+	   	]
+AttributeEnd
+
+AttributeBegin
+  Material "matte" "color Kd" [.5 .5 .8]
+  Translate 0 0 -140
+Shape "trianglemesh" "point P" [ -1000 -1000 0 1000 -1000 0 1000 1000 0 -1000 1000 0 ]
+      "float uv" [ 0 0 5 0 5 5 0 5 ]
+	"integer indices" [ 0 1 2 2 3 0]
+Shape "trianglemesh" "point P" [ -400 -1000 -1000   -400 1000 -1000   -400 1000 1000 -400 -1000 1000 ]
+      "float uv" [ 0 0 5 0 5 5 0 5 ]
+        "integer indices" [ 0 1 2 2 3 0]
+AttributeEnd
+
+AttributeBegin
+Scale .5 .5 .5
+Rotate -60 0 0 1
+    Material "plastic" "color Kd" [.4 .2 .2] "color Ks" [.5 .5 .5]
+        "float roughness" [.025]
+Translate 100 200 -140
+    Include "geometry/killeroo.pbrt"
+    Material "plastic" "color Ks" [.3 .3 .3] "color Kd" [.4 .5 .4]
+        "float roughness" [.15] 
+Translate -200 0 0
+    Include "geometry/killeroo.pbrt"
+
+AttributeEnd
+WorldEnd
