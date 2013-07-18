@@ -427,8 +427,8 @@ namespace shaft {
         return r;
     }
     
-#   define PROBVIS_NBTESTS_RECEIVER 10
-#   define PROBVIS_NBTESTS_LIGHT    5
+#   define PROBVIS_NBTESTS_RECEIVER 8
+#   define PROBVIS_NBTESTS_LIGHT    4
 #   define TOTAL_NBTEST             (PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER \
                                     * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT)
     
@@ -466,24 +466,17 @@ namespace shaft {
         const Mesh &mesh = getMesh();
         uint countMatters = 0;
         
-//        ElementTreeNode::pointlist receiverPoints = receiverNode->sample(PROBVIS_NBTESTS_RECEIVER)
-//                                 , lightPoints = lightNode->sample(PROBVIS_NBTESTS_LIGHT);
-        
         for (int xr = 0; xr < PROBVIS_NBTESTS_RECEIVER; xr++) {
         for (int yr = 0; yr < PROBVIS_NBTESTS_RECEIVER; yr++) {
         for (int zr = 0; zr < PROBVIS_NBTESTS_RECEIVER; zr++) {
-//        for (int xi = 0; xi < PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER; xi++) {
         
             Point pr = receiverStart + Vector(receiverStep.x * xr, receiverStep.y * yr, receiverStep.z * zr);
-//            Point &pr = receiverPoints[xi];
             
             for (int xl = 0; xl < PROBVIS_NBTESTS_LIGHT; xl++) {
             for (int yl = 0; yl < PROBVIS_NBTESTS_LIGHT; yl++) {
             for (int zl = 0; zl < PROBVIS_NBTESTS_LIGHT; zl++) {
-//            for (int yi = 0; yi < PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT; yi++) {
 
                 Point pl = lightStart + Vector(lightStep.x * xl, lightStep.y * yl, lightStep.z * zl);
-//                Point &pl = lightPoints[yi];
                 
                 Ray ray(pr, pl - pr, 0.f);
                 
