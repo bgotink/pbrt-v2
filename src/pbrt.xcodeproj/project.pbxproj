@@ -15,7 +15,6 @@
 		257F27BD17456BBC0036027D /* log.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 257F27BC17456BBC0036027D /* log.cpp */; };
 		25DEEE3B16555CF8008ABA50 /* shaft.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE3916555CF8008ABA50 /* shaft.cpp */; };
 		25DEEE3F1655604F008ABA50 /* tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE3D1655604F008ABA50 /* tree.cpp */; };
-		25DEEE4316559287008ABA50 /* surface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE4116559287008ABA50 /* surface.cpp */; };
 		25F8FCC9171457EB00E6D280 /* exact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F8FCC3171457EB00E6D280 /* exact.cpp */; };
 		25F8FCCA171457EB00E6D280 /* probabilistic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F8FCC4171457EB00E6D280 /* probabilistic.cpp */; };
 		25F8FCCB171457EB00E6D280 /* visibility_impl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F8FCC5171457EB00E6D280 /* visibility_impl.cpp */; };
@@ -198,8 +197,6 @@
 		25DEEE3D1655604F008ABA50 /* tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = tree.cpp; path = shaft/tree.cpp; sourceTree = "<group>"; };
 		25DEEE3E1655604F008ABA50 /* tree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tree.h; path = shaft/tree.h; sourceTree = "<group>"; };
 		25DEEE40165560F4008ABA50 /* vector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = vector.h; path = shaft/vector.h; sourceTree = "<group>"; };
-		25DEEE4116559287008ABA50 /* surface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = surface.cpp; path = shaft/surface.cpp; sourceTree = "<group>"; };
-		25DEEE4216559287008ABA50 /* surface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = surface.h; path = shaft/surface.h; sourceTree = "<group>"; };
 		25F8FCC3171457EB00E6D280 /* exact.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = exact.cpp; path = shaft/vis/exact.cpp; sourceTree = "<group>"; };
 		25F8FCC4171457EB00E6D280 /* probabilistic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = probabilistic.cpp; path = shaft/vis/probabilistic.cpp; sourceTree = "<group>"; };
 		25F8FCC5171457EB00E6D280 /* visibility_impl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = visibility_impl.cpp; path = shaft/vis/visibility_impl.cpp; sourceTree = "<group>"; };
@@ -550,8 +547,6 @@
 				25F9DB3F1655405300CE3FA1 /* Mesh.cpp */,
 				25F9DB401655405300CE3FA1 /* Mesh.h */,
 				25DEEE40165560F4008ABA50 /* vector.h */,
-				25DEEE4116559287008ABA50 /* surface.cpp */,
-				25DEEE4216559287008ABA50 /* surface.h */,
 				25034061176603B90065B262 /* break.cpp */,
 				25034062176603B90065B262 /* break.h */,
 			);
@@ -1088,7 +1083,6 @@
 				25F9DB411655405300CE3FA1 /* Mesh.cpp in Sources */,
 				25DEEE3B16555CF8008ABA50 /* shaft.cpp in Sources */,
 				25DEEE3F1655604F008ABA50 /* tree.cpp in Sources */,
-				25DEEE4316559287008ABA50 /* surface.cpp in Sources */,
 				25F8FCC9171457EB00E6D280 /* exact.cpp in Sources */,
 				25F8FCCA171457EB00E6D280 /* probabilistic.cpp in Sources */,
 				25F8FCCB171457EB00E6D280 /* visibility_impl.cpp in Sources */,
