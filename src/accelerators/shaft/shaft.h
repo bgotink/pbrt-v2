@@ -123,7 +123,8 @@ namespace shaft {
         inline uint32_t getDepth() const { return depth; }
 #endif
         
-        void initProbVis(bool useProbVis, RNG *rng = NULL, const string * const type = NULL);
+        void initProbVis(bool useProbVis, RNG *rng = NULL, const string * const type = NULL,
+                         uint32_t regular_size_prims = 8, uint32_t regular_size_lights = 4);
         
         inline static Reference<Shaft> constructSubShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light,
                                                     Reference<ElementTreeNode> &split, Shaft &parent) {

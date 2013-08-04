@@ -27,10 +27,15 @@ struct ElementTree;
 
 bool Intersects(const BBox &box, const Reference<Triangle> &triangle);
 
+typedef enum ElementTreeNodeSplitType {
+    CENTER, MEDIAN, MEAN
+} ElementTreeNodeSplitType;
+
 struct ElementTree: public ReferenceCounted {
 private:
     typedef std::vector<Reference<Primitive> > prim_list;
     typedef std::vector<Reference<Shape> > shape_list;
+    typedef ElementTreeNodeSplitType split_type_t;
     
 public:
     friend struct ElementTreeNode;
@@ -38,11 +43,12 @@ public:
     Reference<ElementTreeNode> root_node;
     const uint32_t max_points_in_leaf;
     Mesh mesh;
+    const split_type_t node_split_type;
     
     inline std::vector<Point> &getPointPos() { return mesh.vertex_pos; }
         
-    ElementTree(const prim_list &primitives, uint32_t nbPoinsInLeaf = 15);
-    ElementTree(const shape_list &shapes, uint32_t nbPointsInLeaf = 15);
+    ElementTree(const prim_list &primitives, uint32_t nbPoinsInLeaf = 15, split_type_t split_type = MEDIAN);
+    ElementTree(const shape_list &shapes, uint32_t nbPointsInLeaf = 15, split_type_t split_type = MEDIAN);
 };
 
 struct ElementTreeNode : public ReferenceCounted {

@@ -427,12 +427,8 @@ namespace shaft {
         return r;
     }
     
-#   define PROBVIS_NBTESTS_RECEIVER 8
-#   define PROBVIS_NBTESTS_LIGHT    4
-#   define TOTAL_NBTEST             (PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER * PROBVIS_NBTESTS_RECEIVER \
-                                    * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT * PROBVIS_NBTESTS_LIGHT)
-    
-    void Shaft::initProbVis(bool useProbVis, RNG *rng, const string * const type) {
+    void Shaft::initProbVis(bool useProbVis, RNG *rng, const string * const type,
+                            uint32_t regular_size_prims, uint32_t regular_size_lights) {
         Assert(!useProbVis || rng != NULL);
         Assert(isLeaf());
         
@@ -457,24 +453,24 @@ namespace shaft {
         ElementTreeNode::nblist &lightTris = lightNode->inside_triangles;
         
         Point &receiverStart = receiverBox.pMin;
-        Vector receiverStep = receiverBox.Extent() / (PROBVIS_NBTESTS_RECEIVER - 1.);
+        Vector receiverStep = receiverBox.Extent() / (regular_size_prims - 1.);
         
         Point &lightStart = lightBox.pMin;
-        Vector lightStep = lightBox.Extent() / (PROBVIS_NBTESTS_LIGHT - 1.);
+        Vector lightStep = lightBox.Extent() / (regular_size_lights - 1.);
         
         const nbllist &triangles = this->triangles;
         const Mesh &mesh = getMesh();
         uint countMatters = 0;
         
-        for (int xr = 0; xr < PROBVIS_NBTESTS_RECEIVER; xr++) {
-        for (int yr = 0; yr < PROBVIS_NBTESTS_RECEIVER; yr++) {
-        for (int zr = 0; zr < PROBVIS_NBTESTS_RECEIVER; zr++) {
+        for (int xr = 0; xr < regular_size_prims; xr++) {
+        for (int yr = 0; yr < regular_size_prims; yr++) {
+        for (int zr = 0; zr < regular_size_prims; zr++) {
         
             Point pr = receiverStart + Vector(receiverStep.x * xr, receiverStep.y * yr, receiverStep.z * zr);
             
-            for (int xl = 0; xl < PROBVIS_NBTESTS_LIGHT; xl++) {
-            for (int yl = 0; yl < PROBVIS_NBTESTS_LIGHT; yl++) {
-            for (int zl = 0; zl < PROBVIS_NBTESTS_LIGHT; zl++) {
+            for (int xl = 0; xl < regular_size_lights; xl++) {
+            for (int yl = 0; yl < regular_size_lights; yl++) {
+            for (int zl = 0; zl < regular_size_lights; zl++) {
 
                 Point pl = lightStart + Vector(lightStep.x * xl, lightStep.y * yl, lightStep.z * zl);
                 

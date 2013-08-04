@@ -13,6 +13,7 @@
 #include <map>
 #include <vector>
 #include <set>
+#include <algorithm>
 
 using std::vector;
 using std::list;
@@ -100,7 +101,7 @@ namespace shaft {
     }
     
     void Mesh::init(trimesh_l &meshes) {
-        list<Point> new_vertices;
+        set<Point> new_vertices;
         map< Point, uint32_t> vmap;
         list<tris_ref> new_triangles;
         
@@ -111,14 +112,14 @@ namespace shaft {
             TriangleMesh &mesh = **shape;
 
             if (mesh.getNbTriangles() == 0) {
-            	Warning("mesh has no traingles");
+            	Warning("mesh has no triangles");
             }
         
             for (int i = 0, end = mesh.getNbTriangles(); i < end; i++)
                 new_triangles.push_back(mesh.getTriangle(i));
             
             for (int i = 0, end = mesh.getNbPoints(); i < end; i++) {
-            	new_vertices.push_back(mesh.getPoint(i));
+                new_vertices.insert(mesh.getPoint(i));
             }
 
             prim_ref prim = getPrimitive(shape_ref(&mesh));
@@ -126,7 +127,17 @@ namespace shaft {
                 prim->FullyRefine(prims);
             }
         }
-        
+
+        nbVertices = new_vertices.size();
+        vertex_pos.reserve(nbVertices);
+        vertex_pos.assign(new_vertices.begin(), new_vertices.end());
+
+//        std::sort(vertex_pos.begin(), vertex_pos.end());
+//        vertex_pos.erase(std::unique(vertex_pos.begin(), vertex_pos.end()), vertex_pos.end());
+//
+//        Severe("Removed %ld elements", nbVertices- vertex_pos.size());
+//        nbVertices = vertex_pos.size();
+
         shape_prim_map.clear();
         for (prim_viter prim = prims.begin(), end = prims.end(); prim != end; prim++) {
             shape_prim_map[&* (*prim)->getShape()] = prim_ref(*prim);
@@ -140,12 +151,10 @@ namespace shaft {
         nbVertices = new_vertices.size();
         vertex_pos.reserve(nbVertices);
         vertex_pos.insert(vertex_pos.begin(), new_vertices.begin(), new_vertices.end());
-        Assert(new_vertices.size() == vertex_pos.size());
         
         nbTriangles = new_triangles.size();
         triangles.reserve(nbTriangles);
         triangles.insert(triangles.begin(), new_triangles.begin(), new_triangles.end());
-        Assert(new_triangles.size() == triangles.size());
     }
     
     Reference<Material> Mesh::getSomeMaterial() const {

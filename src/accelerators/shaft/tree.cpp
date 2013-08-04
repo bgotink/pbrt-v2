@@ -10,6 +10,7 @@
 #include "log.h"
 #include "../../shapes/trianglemesh.h"
 #include <sstream>
+#include <algorithm>
 
 #define X 0
 #define Y 1
@@ -144,10 +145,10 @@ bool Intersects(const BBox &box, const Reference<Triangle> &triangle) {
     return true;
 }
 
-ElementTree::ElementTree(const prim_list &primitives, uint32_t nbPointsInLeaf) : max_points_in_leaf(nbPointsInLeaf), mesh(primitives) {
+ElementTree::ElementTree(const prim_list &primitives, uint32_t nbPointsInLeaf, split_type_t split_type) : max_points_in_leaf(nbPointsInLeaf), mesh(primitives), node_split_type(split_type) {
     root_node = new ElementTreeNode(this);
 }
-ElementTree::ElementTree(const vector<Reference<Shape> > &shapes, uint32_t nbPointsInLeaf) : max_points_in_leaf(nbPointsInLeaf), mesh(shapes) {
+ElementTree::ElementTree(const vector<Reference<Shape> > &shapes, uint32_t nbPointsInLeaf, split_type_t split_type) : max_points_in_leaf(nbPointsInLeaf), mesh(shapes), node_split_type(split_type) {
     root_node = new ElementTreeNode(this);
 }
 
@@ -168,12 +169,67 @@ void ElementTreeNode::split(int split_axis) {
     
     if (split_axis < 0 || split_axis > 2)
     	split_axis = bounding_box.MaximumExtent();
-    float split_pos = (bounding_box.pMax[split_axis] + bounding_box.pMin[split_axis]) / 2.f;
+
+    float split_pos;
+    if (tree->node_split_type == CENTER) {
+        split_pos = (bounding_box.pMax[split_axis] + bounding_box.pMin[split_axis]) / 2.f;
+    } else if (tree->node_split_type == MEAN) {
+        while(true) {
+            double mean = 0;
+            for (pidxiter point = pidxs.begin(), end = pidxs.end(); point != end; point++) {
+                mean += points[*point][split_axis];
+            }
+            split_pos = (float) ( mean / ((float)pidxs.size()) );
+
+            if (split_pos != bounding_box.pMax[split_axis] && split_pos != bounding_box.pMin[split_axis])
+                break;
+
+            // we can never get here three times, unless there's only one point in this node
+            // however, in that case it would be a leaf
+            split_axis = (split_axis + 1) % 3;
+        }
+    } else { // use median
+        int started_at = split_axis;
+        while (true) {
+            vector<float> positions;
+            uint size = pidxs.size();
+            positions.reserve(size);
+
+            for (pidxiter point = pidxs.begin(), end = pidxs.end(); point != end; point++) {
+                positions.push_back(points[*point][split_axis]);
+            }
+            sort(positions.begin(), positions.end());
+
+            if ((size % 2) == 0) {
+                // even nb of elements
+                uint idx = size / 2;
+                split_pos = (positions[idx] + positions[idx - 1]) / 2.f;
+            } else {
+                split_pos = positions[size / 2];
+            }
+
+            if ((split_pos == bounding_box.pMax[split_axis]) || (split_pos == bounding_box.pMin[split_axis])) {
+                // try other orientation
+                split_axis = (split_axis + 1) % 3;
+                if (split_axis == started_at) {
+                    Warning("Looping around, vertices (count=%u)", size);
+                    for (pidxiter point = pidxs.begin(), end = pidxs.end(); point != end; point++) {
+                        const Point &p = points[*point];
+                        Warning("%u - (%f,%f,%f)", *point, p.x, p.y, p.z);
+                    }
+                    // fallback to center
+                    split_pos = (bounding_box.pMax[split_axis] + bounding_box.pMin[split_axis]) / 2.f;
+                    break;
+                }
+            } else
+                break;
+        }
+    }
     
     left = new ElementTreeNode(tree, this);
     right = new ElementTreeNode(tree, this);
     
-    for (pidxiter point = pidxs.begin(); point != pidxs.end(); point++) {
+    for (pidxiter point = pidxs.begin(), end = pidxs.end(); point != end; point++) {
         if (points[*point][split_axis] <= split_pos) {
             left->points.push_back(*point);
         }
@@ -313,7 +369,7 @@ bool ElementTreeNode::IntersectP(const Ray &ray) const {
     
 void ElementTreeNode::setIsLeaf() {
     if (empty()) {is_leaf = true; return;}
-    Info("%p", tree);
+
     if (points.size() > tree->max_points_in_leaf) {
         is_leaf = false;
         return;
