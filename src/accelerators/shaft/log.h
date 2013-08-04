@@ -8,13 +8,19 @@
 
 // freely configurable, SHAFT_LOG flag disables all other if disabled
 
+// enable logging
 #define SHAFT_LOG
+
+// false color images
 #define SHAFT_SHOW_INTERSECTS
 #define SHAFT_SHOW_DEPTHS
 #define SHAFT_SHOW_PRIMS
 #define SHAFT_SHOW_LEAFS
 #define SHAFT_SHOW_SIDES
 #define SHAFT_SHOW_EMPTY_LEAVES
+
+// log extra (SLOWER for all formulae!)
+#define SHAFT_LOG_VISIBILITY_ALL
 
 // end of configuration
 
@@ -27,6 +33,7 @@
 
 
 #ifndef SHAFT_LOG
+
 #ifdef SHAFT_SHOW_INTERSECTS
 #undef SHAFT_SHOW_INTERSECTS
 #endif // defined(SHAFT_SHOW_INTERSECTS)
@@ -45,11 +52,18 @@
 #ifdef SHAFT_SHOW_EMPTY_LEAVES
 #undef SHAFT_SHOW_EMPTY_LEAVES
 #endif // defined(SHAFT_SHOW_EMPTY_LEAVES)
+
+#ifdef SHAFT_LOG_VISIBILITY_ALL
+#undef SHAFT_LOG_VISIBILITY_ALL
+#endif // defined(SHAFT_LOG_VISIBILITY_ALL)
+
 #endif // !defined(SHAFT_LOG)
 
 #include "memory.h"
 
 namespace shaft { namespace log {
+
+typedef volatile double AtomicDouble;
 
 #ifdef SHAFT_LOG
 
@@ -70,8 +84,18 @@ extern uint64_t nb_total_depth;
 extern uint64_t nb_max_points_in_leave_nodes;
     
 extern AtomicUInt64 nb_pa, nb_pb, nb_pc;
+
+#ifdef SHAFT_LOG_VISIBILITY_ALL
+extern AtomicUInt64 nb_pa_na, nb_pa_ab, nb_pa_anb;
+extern AtomicUInt64 nb_pb_nb, nb_pb_ab, nb_pb_nab;
+extern AtomicUInt64 nb_pc_anb, nb_pc_ab, nb_pc_nab, nb_pc_nanb;
+
+extern AtomicDouble mse;
+extern AtomicUInt64 mse_count;
+#else
 extern AtomicUInt64 nb_panh, nb_pbnh, nb_pcnh;
-    
+#endif
+
 inline void ShaftStartIntersectP() {
     AtomicAdd(&nb_intersect_done, 1);
 }
@@ -111,7 +135,62 @@ inline void ProbVis_pb() {
 inline void ProbVis_pc() {
     AtomicAdd(&nb_pc, 1);
 }
-    
+
+#ifdef SHAFT_LOG_VISIBILITY_ALL
+#define ADD_MSE(e) \
+    float _tmpfl = e; \
+    AtomicAdd(&mse, _tmpfl * _tmpfl); \
+    AtomicAdd(&mse_count, 1);
+inline void ProbVis_pa_result(float vis, bool visA, bool visB) {
+    if (!visA) {
+        AtomicAdd(&nb_pa_na, 1);
+        ADD_MSE(vis);
+    } else {
+        if (visB) {
+            AtomicAdd(&nb_pa_ab, 1);
+            ADD_MSE(1-vis);
+        } else {
+            AtomicAdd(&nb_pa_anb, 1);
+            ADD_MSE(vis);
+        }
+    }
+}
+
+inline void ProbVis_pb_result(float vis, bool visA, bool visB) {
+    if (!visB) {
+        AtomicAdd(&nb_pb_nb, 1);
+        ADD_MSE(vis);
+    } else {
+        if (visA) {
+            AtomicAdd(&nb_pb_ab, 1);
+            ADD_MSE(1-vis);
+        } else {
+            AtomicAdd(&nb_pb_nab, 1);
+            ADD_MSE(vis);
+        }
+    }
+}
+
+inline void ProbVis_pc_result(float vis, bool visA, bool visB) {
+    if (visA) {
+        if (visB) {
+            AtomicAdd(&nb_pc_ab, 1);
+            ADD_MSE(1 - vis);
+        } else {
+            AtomicAdd(&nb_pc_anb, 1);
+            ADD_MSE(vis);
+        }
+    } else {
+        if (visB) {
+            AtomicAdd(&nb_pc_nab, 1);
+            ADD_MSE(vis);
+        } else {
+            AtomicAdd(&nb_pc_nanb, 1);
+            ADD_MSE(vis);
+        }
+    }
+}
+#else
 inline void ProbVis_pa_noHit() {
     AtomicAdd(&nb_panh, 1);
 }
@@ -119,23 +198,16 @@ inline void ProbVis_pa_noHit() {
 inline void ProbVis_pb_noHit() {
     AtomicAdd(&nb_pbnh, 1);
 }
-    
+
 inline void ProbVis_pc_noHit() {
     AtomicAdd(&nb_pcnh, 1);
 }
+#endif
+
+void ShaftsInitStarted();
+void ShaftsInitEnded();
     
-inline void ShaftLeafCreated(uint64_t nbPrims, uint64_t nbPoints, uint64_t nbPrimsInShaft, uint64_t depth) {
-    nb_leave_shafts++;
-    
-    nb_total_points_in_leave_nodes += nbPoints;
-    if (nbPoints > nb_max_points_in_leave_nodes)
-        nb_max_points_in_leave_nodes = nbPoints;
-    
-    nb_total_prims_in_leave_nodes += nbPrims;
-    nb_total_prims_in_leaves += nbPrimsInShaft;
-    
-    nb_total_depth += depth;
-}
+void ShaftLeafCreated(uint64_t nbPrims, uint64_t nbPoints, uint64_t nbPrimsInShaft, uint64_t depth);
     
 void ShaftSaveBuildTime(double buildTime);
 void ShaftSaveInitTime(double initTime);
@@ -165,10 +237,13 @@ void ShaftLogResult();
     extern Filter *filter;
     
 #if defined(PBRT_CPP11)
+#   pragma message("Using CPP11 thread_local")
     extern thread_local CameraSample *cameraSample;
 #elif defined(__GCC__)
+#   pragma message("Using GCC's __thread")
     extern __thread CameraSample *cameraSample;
 #else
+#   pragma message("Warning: no thread-local support detected!")
     extern CameraSample *cameraSample;
 #endif
     
@@ -238,7 +313,9 @@ void ShaftLogResult();
 #define ProbVis_pa_noHit()
 #define ProbVis_pb_noHit()
 #define ProbVis_pc_noHit()
-    
+
+#define ShaftsInitStarted();
+#define ShaftsInitEnded();
 #define ShaftNewImage();
 #define ShaftDepth();
 #define ShaftAddIntersect();

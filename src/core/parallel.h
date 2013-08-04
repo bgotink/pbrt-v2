@@ -200,6 +200,21 @@ inline int64_t AtomicCompareAndSwap(AtomicInt64 *v, int64_t newValue, int64_t ol
 #endif
 }
 
+inline double AtomicAdd(volatile double *val, double delta) {
+    PBRT_ATOMIC_MEMORY_OP();
+    union bits { double d; int64_t i; };
+    bits oldVal, newVal;
+    do {// On IA32/x64, adding a PAUSE instruction in compare/exchange loops
+        // is recommended to improve performance.  (And it does!)
+#if (defined(__i386__) || defined(__amd64__))
+        __asm__ __volatile__ ("pause\n");
+#endif
+        oldVal.d = *val;
+        newVal.d = oldVal.d + delta;
+    } while (AtomicCompareAndSwap(((AtomicInt64 *)val), newVal.i, oldVal.i) != oldVal.i);
+
+    return newVal.d;
+}
 
 #endif // PBRT_HAS_64_BIT_ATOMICS
 inline float AtomicAdd(volatile float *val, float delta) {

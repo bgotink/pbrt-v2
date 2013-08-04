@@ -17,6 +17,8 @@
 #include "film/image.h"
 #endif // defined(SHAFT_SHOW_LEAFS)
 
+#define SHAFT_LOG_DISTRIBUTIONS
+
 using namespace std;
 
 namespace shaft { namespace log {
@@ -40,9 +42,28 @@ namespace shaft { namespace log {
     AtomicUInt64 nb_pa(0);
     AtomicUInt64 nb_pb(0);
     AtomicUInt64 nb_pc(0);
+    
+#ifdef SHAFT_LOG_VISIBILITY_ALL
+    AtomicUInt64 nb_pa_na(0);
+    AtomicUInt64 nb_pa_ab(0);
+    AtomicUInt64 nb_pa_anb(0);
+
+    AtomicUInt64 nb_pb_nb(0);
+    AtomicUInt64 nb_pb_ab(0);
+    AtomicUInt64 nb_pb_nab(0);
+
+    AtomicUInt64 nb_pc_ab(0);
+    AtomicUInt64 nb_pc_anb(0);
+    AtomicUInt64 nb_pc_nab(0);
+    AtomicUInt64 nb_pc_nanb(0);
+
+    AtomicDouble mse(0);
+    AtomicUInt64 mse_count(0);
+#else
     AtomicUInt64 nb_panh(0);
     AtomicUInt64 nb_pbnh(0);
     AtomicUInt64 nb_pcnh(0);
+#endif
     
 #ifdef SHAFT_SHOW_DEPTHS
     FalseColorFilm *falseColorShafts;
@@ -85,16 +106,18 @@ namespace shaft { namespace log {
 #endif
 #endif // defined(SHAFT_SHOW_LEAFS)
     
-    static double buildTime, initTime;
+    double buildTime, initTime;
+
+#ifdef SHAFT_LOG_DISTRIBUTIONS
+    fstream *distributionFile;
+#endif
 
 static void PrintStats(ostream &str) {
     str << "# real intersect operations @ shaft: " << nb_intersect_operations << endl;
     str << "# intersects not done by shaft: " << nb_no_intersected_shaft << endl;
     str << "# real intersect operations @ nodes: " << nb_node_intersect_done << endl;
     str << endl;
-    
-//    str << "# shafts blocked: " << nb_shaft_blocked << endl;
-//    str << "# shafts empty: " << nb_shaft_empty << endl;
+
     str << "# ShaftAccel::IntersectP: " << nb_shaftaccel_intersectp << endl;
     str << endl;
     
@@ -114,15 +137,44 @@ static void PrintStats(ostream &str) {
         float tot = nb_pa + nb_pb + nb_pc;
         str << "ProbVis" << endl;
         str << "# times A: " << nb_pa
-            << " (" << 100 * (static_cast<float>(nb_pa) / tot) << " %) \t-\t " << nb_panh
-            << " (" << 100. * static_cast<double>(nb_panh) / static_cast<double>(nb_pa) << " %) missed" << endl;
-        str << "# times B: " << nb_pb
-            << " (" << 100 * (static_cast<float>(nb_pb) / tot) << " %) \t-\t " << nb_pbnh
-            << " (" << 100. * static_cast<double>(nb_pbnh) / static_cast<double>(nb_pb) << " %) missed" << endl;
-        str << "# times C: " << nb_pc
-            << " (" << 100 * (static_cast<float>(nb_pc) / tot) << " %) \t-\t " << nb_pcnh
-            << " (" << 100. * static_cast<double>(nb_pcnh) / static_cast<double>(nb_pc) << " %) missed" << endl;
+            << " (" << 100 * (static_cast<float>(nb_pa) / tot) << " %) \t-\t " 
+#ifdef SHAFT_LOG_VISIBILITY_ALL
+            <<      "(~A) : " <<  nb_pa_na << " (" << 100. *  static_cast<double>(nb_pa_na) / static_cast<double>(nb_pa) << "%)\t"
+            <<  "(A && B) : " <<  nb_pa_ab << " (" << 100. *  static_cast<double>(nb_pa_ab) / static_cast<double>(nb_pa) << "%)\t"
+            << "(A && ~B) : " << nb_pa_anb << " (" << 100. * static_cast<double>(nb_pa_anb) / static_cast<double>(nb_pa) << "%)"
+#else
+            << nb_panh << " (" << 100. * static_cast<double>(nb_panh) / static_cast<double>(nb_pa) << " %) missed"
+#endif
+            << endl;
         
+        str << "# times B: " << nb_pb
+            << " (" << 100 * (static_cast<float>(nb_pb) / tot) << " %) \t-\t " 
+#ifdef SHAFT_LOG_VISIBILITY_ALL
+            <<      "(~B) : " <<  nb_pb_nb << " (" << 100. *  static_cast<double>(nb_pb_nb) / static_cast<double>(nb_pb) << "%)\t"
+            <<  "(A && B) : " <<  nb_pb_ab << " (" << 100. *  static_cast<double>(nb_pb_ab) / static_cast<double>(nb_pb) << "%)\t"
+            << "(~A && B) : " << nb_pb_nab << " (" << 100. * static_cast<double>(nb_pb_nab) / static_cast<double>(nb_pb) << "%)"
+#else
+            << nb_pbnh << " (" << 100. * static_cast<double>(nb_pbnh) / static_cast<double>(nb_pb) << " %) missed"
+#endif
+            << endl;
+
+
+        str << "# times C: " << nb_pc
+            << " (" << 100 * (static_cast<float>(nb_pc) / tot) << " %) \t-\t "
+#ifdef SHAFT_LOG_VISIBILITY_ALL
+            <<   "(A && B) : " <<   nb_pc_ab << " (" << 100. *   static_cast<double>(nb_pc_ab) / static_cast<double>(nb_pc) << "%)\t"
+            <<  "(A && ~B) : " <<  nb_pc_anb << " (" << 100. *  static_cast<double>(nb_pc_anb) / static_cast<double>(nb_pc) << "%)\t"
+            <<  "(~A && B) : " <<  nb_pc_nab << " (" << 100. *  static_cast<double>(nb_pc_nab) / static_cast<double>(nb_pc) << "%)\t"
+            << "(~A && ~B) : " << nb_pc_nanb << " (" << 100. * static_cast<double>(nb_pc_nanb) / static_cast<double>(nb_pc) << "%)"
+#else
+            << nb_pcnh << " (" << 100. * static_cast<double>(nb_pcnh) / static_cast<double>(nb_pc) << " %) missed"
+#endif
+            << endl;
+
+#ifdef SHAFT_LOG_VISIBILITY_ALL
+        str << "MSE: " << (mse / static_cast<double>(mse_count)) << endl;
+#endif
+
         str << endl;
     }
 }
@@ -240,8 +292,27 @@ void ShaftSaveMetaData(double timeSpent) {
 	nb_total_depth =
 	nb_max_points_in_leave_nodes = 0;
 
-	nb_pa = nb_pb = nb_pc =
-	nb_panh = nb_pbnh = nb_pcnh = 0;
+	nb_pa = nb_pb = nb_pc = 0;
+
+#ifdef SHAFT_LOG_VISIBILITY_ALL
+    nb_pa_na =
+    nb_pa_ab =
+    nb_pa_anb = 0;
+
+    nb_pb_nb =
+    nb_pb_ab =
+    nb_pb_nab = 0;
+
+    nb_pc_ab =
+    nb_pc_anb =
+    nb_pc_nab =
+    nb_pc_nanb = 0;
+
+    mse = 0;
+    mse_count = 0;
+#else
+    nb_panh = nb_pbnh = nb_pcnh = 0;
+#endif
 }
     
 #define CREATE_FALSE_COLOR_ON_IMAGEFILM(ptr, name) \
@@ -272,6 +343,46 @@ void ShaftNewImage() {
 #endif
 #ifdef SHAFT_SHOW_EMPTY_LEAVES
     CREATE_FALSE_COLOR(falseColorEmptyLeaves, "empty.leaves");
+#endif
+}
+
+
+void ShaftsInitStarted() {
+#ifdef SHAFT_LOG_DISTRIBUTIONS
+    if (distributionFile != NULL) delete distributionFile;
+    distributionFile = new fstream;
+    distributionFile->open("distributions", ios::out | ios::trunc);
+    (*distributionFile) << "prims in node;points in node;prims in shaft;depth" << endl;
+#endif
+}
+
+void ShaftsInitEnded() {
+#ifdef SHAFT_LOG_DISTRIBUTIONS
+    if (distributionFile) {
+        distributionFile->flush();
+        distributionFile->close();
+        delete distributionFile;
+        distributionFile = NULL;
+    }
+#endif
+}
+
+void ShaftLeafCreated(uint64_t nbPrims, uint64_t nbPoints, uint64_t nbPrimsInShaft, uint64_t depth) {
+    nb_leave_shafts++;
+
+    nb_total_points_in_leave_nodes += nbPoints;
+    if (nbPoints > nb_max_points_in_leave_nodes) {
+        nb_max_points_in_leave_nodes = nbPoints;
+    }
+
+    nb_total_prims_in_leave_nodes += nbPrims;
+    nb_total_prims_in_leaves += nbPrimsInShaft;
+    
+    nb_total_depth += depth;
+
+#ifdef SHAFT_LOG_DISTRIBUTIONS
+    if (distributionFile)
+        (*distributionFile) << nbPrims << ";" << nbPoints << ";" << nbPrimsInShaft << ";" << depth << endl;
 #endif
 }
 
