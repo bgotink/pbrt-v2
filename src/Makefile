@@ -65,7 +65,17 @@ ifeq ($(shell which clang),)
   CXX=g++ -std=c++11
 else
   CC=clang
-  CXX=clang++
+  CXX=clang++ -std=c++11
+endif
+
+ifdef COMPILER
+ifeq ($(COMPILER),gcc)
+    CC=gcc
+	CXX=g++ -std=c++11
+else
+    CC=clang
+	CXX=clang++ -std=c++11
+endif
 endif
 
 LD=$(CXX) $(OPT) $(MARCH)
