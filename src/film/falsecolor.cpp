@@ -168,6 +168,11 @@ void FalseColorFilm::GetPixelExtent(int *xstart, int *xend,
 }
 
 void GetRGB(float *rgb, uint64_t count, uint64_t max) {
+    if (count == 0) {
+        rgb[0] = rgb[1] = rgb[2] = 0;
+        return;
+    }
+
     uint64_t half = max / 2;
     
     if (count < half) {
