@@ -19,14 +19,15 @@ namespace shaft {
 namespace vis {
     
     class VisibilityCalculator {
-    protected:
+    public:
         typedef std::list<unsigned int> nbllist;
         typedef nbllist::const_iterator nblciter;
         
         typedef std::list<Reference<Triangle> > trislist;
         typedef trislist::const_iterator trisciter;
-        
-        static trislist getTriangles(const Mesh &mesh, const nbllist &tidx);
+
+    protected:
+        static trislist getTriangles(const Mesh &mesh, const nbllist &tidx, const Triangle *const mostBlockingOccluder = NULL);
         
     public:
         virtual float Visibility(const Ray &ray) const = 0;
@@ -66,8 +67,8 @@ namespace vis {
         const trislist triangles;
         
     protected:
-        const float p_c, p_a, p_b;
         const float mostBlockingOccluderBlocking;
+        const float p_c, p_a, p_b;
         
         virtual float evaluate(const Ray &ray, float p) const = 0;
         bool hitsMostBlocking(const Ray &ray) const;
@@ -85,6 +86,7 @@ namespace vis {
         ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
         
         virtual float Visibility(const Ray &ray) const;
+        static void InitStratification(const unsigned int nbSamples);
     };
     
     ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);

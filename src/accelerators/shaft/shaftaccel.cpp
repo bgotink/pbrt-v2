@@ -18,8 +18,11 @@
 #include <set>
 #include <list>
 #include <vector>
+#include "vis/visibility.h"
 
 //#define SHAFT_TRY_LAST_SHAFT
+
+using shaft::vis::ProbabilisticVisibilityCalculator;
 
 namespace shaft {
 
@@ -106,18 +109,19 @@ namespace shaft {
         bool *probVis;
         
         bool RayInShaft(const Ray &ray) const {
-            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time
-#if defined(SHAFT_LOG)
-                    , ray.depth
-#endif
-            );
+//            Ray r = Ray(ray.o, ray.d, 0, ray.maxt + 1, ray.time
+//#if defined(SHAFT_LOG)
+//                    , ray.depth
+//#endif
+//            );
 
         	const BBox &receiver_bbox = shaft->receiverNode->bounding_box;
         	if (!receiver_bbox.Inside(ray.o) && !receiver_bbox.Inside(ray(ray.mint)) && !receiver_bbox.Inside(ray(-ray.mint)))
+//            if (!shaft->receiverNode->bounding_box.Inside(ray(ray.mint)))
         		return false;
 
-//            return shaft->lightNode->bounding_box.Inside(ray(ray.maxt));
-            return shaft->lightNode->bounding_box.IntersectP(r);
+            return shaft->lightNode->bounding_box.Inside(ray(ray.maxt));
+//            return shaft->lightNode->bounding_box.IntersectP(r);
         }
         
         bool IntersectP(const Ray &ray, bool showShafts = false) const {
@@ -455,6 +459,14 @@ namespace shaft {
             uint32_t preprocess_grid_lights = (uint32_t)ps.FindOneInt("preprocess_regular_lights", 4);
             RNG *rng = new RNG;
             shaft_tree->setUseProbVis(true, rng, &probVisType, preprocess_grid_prims, preprocess_grid_lights);
+
+            // set stratification, or not
+            int nbSamples = ps.FindOneInt("strat_samples", -1);
+            if (nbSamples > 0) {
+                ProbabilisticVisibilityCalculator::InitStratification(nbSamples);
+            } else {
+                ProbabilisticVisibilityCalculator::InitStratification(0);
+            }
         }
 
         // end timer

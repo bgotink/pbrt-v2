@@ -13,6 +13,40 @@
 #define min(a,b) (a < b ? a : b)
 
 namespace shaft { namespace vis {
+
+    static unsigned int nbSamples(0);
+    static float sampleStep(0/0.f);
+
+    /* NOT threadsafe */
+    struct Stratifier {
+
+        Stratifier() : current(0) {}
+
+        // precondition: val \in [0,1)
+        // postcondition: val \in [0,1)
+        float stratify(const float val) const {
+            if (nbSamples == 0) return val;
+
+#if !defined(PBRT_CPP11) && !defined(__GCC__)
+            Fatal("No stratification supported due to this platform lacking thread_local support");
+#endif
+
+            if (current == nbSamples) current = 0;
+            return (val + current++) * sampleStep;
+        }
+
+    private:
+        mutable unsigned int current;
+    };
+
+#if defined(PBRT_CPP11)
+    thread_local Stratifier stratifier;
+#elif defined(__GCC__)
+    __thread Stratifier stratifier;
+#else
+#   pragma message("Warning: no thread-local support detected! Stratifier use unsupported")
+    Stratifier stratifier;
+#endif
     
     ProbabilisticVisibilityCalculator::ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) : rng(rng), mesh(mesh), mostBlockingOccluder(mostBlockingOccluder), triangles(VisibilityCalculator::getTriangles(mesh, triangles)), mostBlockingOccluderBlocking(mostBlockingOccluderBlocking),
         p_c(.2), p_a((1-p_c)*min(max(mostBlockingOccluderBlocking, .3), .9)), p_b(1-p_c-p_a)
@@ -20,7 +54,7 @@ namespace shaft { namespace vis {
     }
     
     float ProbabilisticVisibilityCalculator::Visibility(const Ray &ray) const {
-        return evaluate(ray, rng.RandomFloat());
+        return evaluate(ray, stratifier.stratify(rng.RandomFloat()));
     }
     
     bool ProbabilisticVisibilityCalculator::hitsMostBlocking(const Ray &ray) const {
@@ -31,20 +65,20 @@ namespace shaft { namespace vis {
     }
     
     bool ProbabilisticVisibilityCalculator::hitsOtherOccluder(const Ray &ray) const {
-        Reference<Triangle> triangle;
         for (trisciter t = triangles.begin(); t != triangles.end(); t++) {
-            triangle = *t;
-            if (&*triangle == &*mostBlockingOccluder)
-                continue;
-            
             log::ShaftIntersectTest();
             log::ShaftAddIntersect();
             
-            if (triangle->IntersectP(ray)) {
+            if ((*t)->IntersectP(ray)) {
                 return true;
             }
         }
         return false;
+    }
+
+    void ProbabilisticVisibilityCalculator::InitStratification(const unsigned int samples) {
+        nbSamples = samples;
+        sampleStep = 1 / static_cast<float>(samples);
     }
     
     ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) {

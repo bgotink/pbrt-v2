@@ -13,12 +13,16 @@ namespace vis {
     VisibilityCalculator::~VisibilityCalculator() {
     }
     
-    VisibilityCalculator::trislist VisibilityCalculator::getTriangles(const Mesh &mesh, const nbllist &tidx) {
+    VisibilityCalculator::trislist VisibilityCalculator::getTriangles(const Mesh &mesh, const nbllist &tidx, const Triangle *const mostBlockingOccluder) {
         trislist result;
         
         const nblciter end = tidx.end();
-        for (nblciter iter = tidx.begin(); iter != end; iter++)
-            result.push_back(mesh.getTriangle(*iter));
+        Reference<Triangle> cur;
+        for (nblciter iter = tidx.begin(); iter != end; iter++) {
+            cur = mesh.getTriangle(*iter);
+            if (&*cur != mostBlockingOccluder) // also valid if mostBlockingOccluder is NULL
+                result.push_back(mesh.getTriangle(*iter));
+        }
         
         return result;
     }

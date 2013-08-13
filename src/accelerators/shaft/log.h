@@ -22,6 +22,8 @@
 // log extra (SLOWER for all formulae!)
 #define SHAFT_LOG_VISIBILITY_ALL
 
+#define SHAFT_LOG_TESTRAYS
+
 // end of configuration
 
 #ifndef pbrt_log_h
@@ -57,6 +59,10 @@
 #undef SHAFT_LOG_VISIBILITY_ALL
 #endif // defined(SHAFT_LOG_VISIBILITY_ALL)
 
+#ifdef SHAFT_LOG_TESTRAYS
+#undef SHAFT_LOG_TESTRAYS
+#endif // defined(SHAFT_LOG_TESTRAYS)
+
 #endif // !defined(SHAFT_LOG)
 
 #include "memory.h"
@@ -75,13 +81,6 @@ extern AtomicUInt64 nb_node_intersect_done;
 extern AtomicUInt64 nb_shaft_blocked;
 extern AtomicUInt64 nb_shaft_empty;
 extern AtomicUInt64 nb_shaftaccel_intersectp;
-    
-extern uint64_t nb_leave_shafts;
-extern uint64_t nb_total_prims_in_leaves;
-extern uint64_t nb_total_prims_in_leave_nodes;
-extern uint64_t nb_total_points_in_leave_nodes;
-extern uint64_t nb_total_depth;
-extern uint64_t nb_max_points_in_leave_nodes;
     
 extern AtomicUInt64 nb_pa, nb_pb, nb_pc;
 
@@ -237,13 +236,10 @@ void ShaftLogResult();
     extern Filter *filter;
     
 #if defined(PBRT_CPP11)
-#   pragma message("Using CPP11 thread_local")
     extern thread_local CameraSample *cameraSample;
 #elif defined(__GCC__)
-#   pragma message("Using GCC's __thread")
     extern __thread CameraSample *cameraSample;
 #else
-#   pragma message("Warning: no thread-local support detected!")
     extern CameraSample *cameraSample;
 #endif
     
@@ -294,6 +290,14 @@ void ShaftLogResult();
     void ShaftSaveFalseColor();
 
     void ShaftSaveMetaData(double timeSpent);
+
+#ifdef SHAFT_LOG_TESTRAYS
+    void addTestRay();
+    void addUsefulTestRay();
+#else
+#   define addTestRay()
+#   define addUsefulTestRay()
+#endif
     
 #else
     
@@ -323,6 +327,9 @@ void ShaftLogResult();
 #define ShaftSaveBuildTime();
 #define ShaftSaveInitTime();
 #define ShaftSaveMetaData();
+
+#define addTestRay();
+#define addUsefulTestRay();
     
 #endif
 

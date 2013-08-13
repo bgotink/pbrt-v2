@@ -170,6 +170,16 @@ namespace shaft{
     inline BBoxPlaneResult operator*(const Vector4f &plane, const BBox &box) {
         return box * plane;
     }
+
+    // assumes that a-b crosses the plane !!
+    inline Point getIntersection(const Vector4f &plane, const Point &a, const Point &b) {
+        Point p0 = getPointOnPlane(plane);
+        Vector l = b - a;
+        Vector n = getNormal(plane);
+
+        float d = ((p0 - a) * n) / (l * n);
+        return Point(a + d * l);
+    }
     
 }
 

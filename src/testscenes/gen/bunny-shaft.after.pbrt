@@ -1,0 +1,6 @@
+AttributeEnd
+
+Material "measured" "string filename" "brdfs/mystique.brdf"
+Include "geometry/bunny.pbrt"
+
+WorldEnd

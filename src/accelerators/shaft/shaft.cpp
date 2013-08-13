@@ -21,11 +21,14 @@
 
 #include <sstream>
 
+//#define SHAFT_DO_CLIPPING
+
 using namespace std;
 using namespace shaft::vis;
 
 namespace shaft {
 
+#if !defined(SHAFT_DO_CLIPPING)
     bool ShaftGeometry::intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const {
         const Point *point[3];
         
@@ -62,6 +65,67 @@ namespace shaft {
         
         return true;
     }
+#else // SHAFT_DO_CLIPPING
+    bool ShaftGeometry::intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const {
+        typedef std::list<Point> plist;
+        typedef plist::const_iterator pciter;
+
+        Point &a, &b, &c;
+        plist vertices;
+        vertices.push_back(a = triangle->getPoint(0));
+        vertices.push_back(b = triangle->getPoint(1));
+        vertices.push_back(c = triangle->getPoint(2));
+
+        // Sutherland-Hodgman
+        // https://en.wikipedia.org/wiki/Sutherland%E2%80%93Hodgman_algorithm
+        plane_citer plane_end = planes.end();
+        Vector4f p;
+        for (plane_citer plane = planes.begin(); plane != plane_end; plane++) {
+            plist tmpPoints;
+            tmpPoints.swap(vertices);
+
+            p = *plane;
+
+            pciter point_end = tmpPoints.end();
+            Point s = tmpPoints.back();
+            for (pciter point = tmpPoints.begin(); point != point_end; point++) {
+                Point e = *point;
+
+                if ((e * p) >= 0) {
+                    if ((s * p) < 0) {
+                        vertices.push_back(getIntersection(p, e, s));
+                    }
+                    vertices.push_back(e);
+                } else if ((s * p) >= 0) {
+                    vertices.push_back(getIntersection(p, e, s));
+                }
+
+                s = e;
+            }
+        }
+
+        if (vertices.size() < 3) return false; // cannot have an area
+
+        // check if surface of the "polygon" is empty
+        // see http://geomalgorithms.com/a01-_area.html
+        // 2*area = n*sum(V_i ^ V_i+1)
+        //  n = normal, V_i = vertex i
+        // -> area != 0 <=> n * sum(V_i ^ V_i+1) != 0
+
+        pciter point_end = vertices.end();
+        Vector A;
+        Vector n = (b - a) ^ (c - a);
+
+        Vector previous = Vector(vertices.back()), current;
+        for (pciter point = vertices.begin(); point != point_end; point++) {
+            current = Vector(*point);
+            A += (current ^ previous);
+            previous = current;
+        }
+
+        return fabs(A * n) > 4 * FLT_EPSILON;
+    }
+#endif
     
     bool ShaftGeometry::intersectsLine(Point one, Point two) const {
         for (plane_citer plane = planes.begin(), end = planes.end(); plane != end; plane++) {
@@ -462,19 +526,20 @@ namespace shaft {
         const Mesh &mesh = getMesh();
         uint countMatters = 0;
         
-        for (int xr = 0; xr < regular_size_prims; xr++) {
-        for (int yr = 0; yr < regular_size_prims; yr++) {
-        for (int zr = 0; zr < regular_size_prims; zr++) {
+        for (uint32_t xr = 0; xr < regular_size_prims; xr++) {
+        for (uint32_t yr = 0; yr < regular_size_prims; yr++) {
+        for (uint32_t zr = 0; zr < regular_size_prims; zr++) {
         
             Point pr = receiverStart + Vector(receiverStep.x * xr, receiverStep.y * yr, receiverStep.z * zr);
             
-            for (int xl = 0; xl < regular_size_lights; xl++) {
-            for (int yl = 0; yl < regular_size_lights; yl++) {
-            for (int zl = 0; zl < regular_size_lights; zl++) {
+            for (uint32_t xl = 0; xl < regular_size_lights; xl++) {
+            for (uint32_t yl = 0; yl < regular_size_lights; yl++) {
+            for (uint32_t zl = 0; zl < regular_size_lights; zl++) {
 
                 Point pl = lightStart + Vector(lightStep.x * xl, lightStep.y * yl, lightStep.z * zl);
                 
                 Ray ray(pr, pl - pr, 0.f);
+                log::addTestRay();
                 
                 unsigned int tris;
                 bool rayMatters = false;
@@ -495,6 +560,7 @@ namespace shaft {
                 
                 if (!rayMatters) continue;
                 countMatters++;
+                log::addUsefulTestRay();
                 
                 for (ProbabilisticVisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
                     tris = *t;

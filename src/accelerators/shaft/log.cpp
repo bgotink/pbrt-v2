@@ -38,6 +38,11 @@ namespace shaft { namespace log {
     uint64_t nb_total_points_in_leave_nodes = 0;
     uint64_t nb_max_points_in_leave_nodes = 0;
     uint64_t nb_total_depth = 0;
+
+#ifdef SHAFT_LOG_TESTRAYS
+    uint64_t nb_testrays = 0;
+    uint64_t nb_testrays_useful = 0;
+#endif
     
     AtomicUInt64 nb_pa(0);
     AtomicUInt64 nb_pb(0);
@@ -88,10 +93,13 @@ namespace shaft { namespace log {
     Filter *filter;
     
 #if defined(PBRT_CPP11)
+#   pragma message("Using CPP11 thread_local")
     thread_local CameraSample *cameraSample;
 #elif defined(__GCC__)
+#   pragma message("Using GCC's __thread")
     __thread CameraSample *cameraSample;
 #else
+#   pragma message("Warning: no thread-local support detected!")
     CameraSample *cameraSample;
 #endif
     
@@ -109,7 +117,7 @@ namespace shaft { namespace log {
     double buildTime, initTime;
 
 #ifdef SHAFT_LOG_DISTRIBUTIONS
-    fstream *distributionFile;
+    fstream *distributionFile (NULL);
 #endif
 
 static void PrintStats(ostream &str) {
@@ -131,6 +139,14 @@ static void PrintStats(ostream &str) {
     str << "\tmax: " << nb_max_points_in_leave_nodes << endl;
     str << "avg. depth: " << static_cast<float>(nb_total_depth) / static_cast<double>(nb_leave_shafts) << endl;
     str << endl;
+
+#ifdef SHAFT_LOG_TESTRAYS
+    if (nb_testrays > 0) {
+        str << "Sent " << nb_testrays << " test rays" << endl;
+        str << "of which " << nb_testrays_useful << " (" << (100. * static_cast<double>(nb_testrays_useful) / static_cast<double>(nb_testrays)) << " %) were useful." << endl;
+        str << endl;
+    }
+#endif
     
     str << "# exact intersectp tests done: " << nb_intersect_done << endl;
     if (nb_pc > 0 || nb_pb > 0 || nb_pa > 0) {
@@ -292,6 +308,11 @@ void ShaftSaveMetaData(double timeSpent) {
 	nb_total_depth =
 	nb_max_points_in_leave_nodes = 0;
 
+#ifdef SHAFT_LOG_TESTRAYS
+    nb_testrays =
+    nb_testrays_useful = 0;
+#endif
+
 	nb_pa = nb_pb = nb_pc = 0;
 
 #ifdef SHAFT_LOG_VISIBILITY_ALL
@@ -385,6 +406,15 @@ void ShaftLeafCreated(uint64_t nbPrims, uint64_t nbPoints, uint64_t nbPrimsInSha
         (*distributionFile) << nbPrims << ";" << nbPoints << ";" << nbPrimsInShaft << ";" << depth << endl;
 #endif
 }
+
+#ifdef SHAFT_LOG_TESTRAYS
+    void addTestRay() {
+        nb_testrays++;
+    }
+    void addUsefulTestRay() {
+        nb_testrays_useful++;
+    }
+#endif
 
 
 }}

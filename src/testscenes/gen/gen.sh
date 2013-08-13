@@ -17,17 +17,20 @@ else
 fi
 }
 
-if [ -f "$EXPATH/plane_split" ]; then
-	EXEC="$EXPATH/plane_split"
+FILE=${1:-killeroo}
+export size=${2:-100}
+
+if [[ $FILE = "killeroo" ]]; then
+    cat "$EXPATH"/killeroo-shaft.smallplanes.before.pbrt  > killeroo-shaft.smallplanes.pbrt
+
+    runSplit -1000 -1000 0      1000 -1000 0      -1000 1000 0    >> killeroo-shaft.smallplanes.pbrt
+    runSplit -400 -1000 -1000   -400 1000 -1000   -400 -1000 1000 >> killeroo-shaft.smallplanes.pbrt
+
+    cat "$EXPATH"/killeroo-shaft.smallplanes.after.pbrt >> killeroo-shaft.smallplanes.pbrt
 else
-	EXEC="$EXPATH/plane_split.sh"
+    cat "$EXPATH"/bunny-shaft.before.pbrt  > bunny-shaft.smallplanes.pbrt
+
+    runSplit -1000 0 -1000      -1000 0 1000      1000 0 -1000    >> bunny-shaft.smallplanes.pbrt
+
+    cat "$EXPATH"/bunny-shaft.after.pbrt >> bunny-shaft.smallplanes.pbrt  
 fi
-
-export size=${1:-100}
-
-cat "$EXPATH"/killeroo-shaft.smallplanes.before.pbrt  > killeroo-shaft.smallplanes.pbrt
-
-runSplit -1000 -1000 0      1000 -1000 0      -1000 1000 0    >> killeroo-shaft.smallplanes.pbrt
-runSplit -400 -1000 -1000   -400 1000 -1000   -400 -1000 1000 >> killeroo-shaft.smallplanes.pbrt
-
-cat "$EXPATH"/killeroo-shaft.smallplanes.after.pbrt >> killeroo-shaft.smallplanes.pbrt

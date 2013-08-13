@@ -24,8 +24,8 @@ DEFS=-DPBRT_HAS_OPENEXR
 MARCH=-m64
 
 # change this to -g3 for debug builds
-OPT=-O3
 # OPT=-g3
+OPT=-O3
 # comment out this line to enable assertions at runtime
 DEFS += -DNDEBUG
 
@@ -57,7 +57,7 @@ ifeq ($(ARCH),OpenBSD)
   EXRLIBS += -lpthread
 endif
 ifeq ($(ARCH),Darwin)
-  EXRLIBS += -lz
+  EXRLIBS += -lz -lpthread
 endif
 
 ifeq ($(shell which clang),)
@@ -71,10 +71,10 @@ endif
 ifdef COMPILER
 ifeq ($(COMPILER),gcc)
     CC=gcc
-	CXX=g++ -std=c++11
+    CXX=g++ -std=c++11
 else
     CC=clang
-	CXX=clang++ -std=c++11
+    CXX=clang++ -std=c++11
 endif
 endif
 

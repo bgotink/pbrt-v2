@@ -347,15 +347,20 @@ void ElementTreeNode::createBoundingBox() {
     for(; point != end; point++) {
         bounding_box.Insert(point_pos[*point]);
     }
-    
-    bounding_box.Expand(.01f * bounding_box.Extent()[bounding_box.MaximumExtent()]);
-    
+
+    float toExpand = .1f * bounding_box.Extent()[bounding_box.MaximumExtent()];
+    bounding_box.Expand(max(.1f,toExpand));
+
+//    Error("Created bounding box (%f,%f,%f) -> (%f,%f,%f)",
+//          bounding_box.pMin.x, bounding_box.pMin.y, bounding_box.pMin.z,
+//          bounding_box.pMax.x, bounding_box.pMax.y, bounding_box.pMax.z
+//          );
+
     Info("Created BBox for ElementTreeNode");
 }
     
 bool ElementTreeNode::IntersectP(const Ray &ray) const {
     Assert(is_leaf);
-    Assert(!empty());
     
     const trisciter tris_end = _inside_triangles.end();
     for (trisciter tris = _inside_triangles.begin(); tris != tris_end; tris++) {

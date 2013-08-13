@@ -1,5 +1,5 @@
 Film "image" "integer xresolution" [982] "integer yresolution" [486]
-    "string filename" "microcity.shaft.exr"
+    "string filename" "microcity.niels.exr"
 
 Scale -1 1 1
 LookAt 1.42702 -3.30238 1.79759
@@ -15,8 +15,8 @@ Sampler "lowdiscrepancy" "integer pixelsamples" [32]
 SurfaceIntegrator "directlighting"
 #    "float maxdist" [1]
 
-Accelerator "shaft" "bool use_probvis" "false"
-	"integer receiver_treshold" [1]
+Accelerator "shaft" "bool use_probvis" "true" "string probvis_type" "niels"
+	"integer receiver_treshold" [8]
 
 WorldBegin 
 

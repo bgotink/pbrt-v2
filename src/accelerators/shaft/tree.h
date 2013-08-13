@@ -47,8 +47,8 @@ public:
     
     inline std::vector<Point> &getPointPos() { return mesh.vertex_pos; }
         
-    ElementTree(const prim_list &primitives, uint32_t nbPoinsInLeaf = 15, split_type_t split_type = MEDIAN);
-    ElementTree(const shape_list &shapes, uint32_t nbPointsInLeaf = 15, split_type_t split_type = MEDIAN);
+    ElementTree(const prim_list &primitives, uint32_t nbPoinsInLeaf = 15, split_type_t split_type = MEAN);
+    ElementTree(const shape_list &shapes, uint32_t nbPointsInLeaf = 15, split_type_t split_type = MEAN);
 };
 
 struct ElementTreeNode : public ReferenceCounted {
