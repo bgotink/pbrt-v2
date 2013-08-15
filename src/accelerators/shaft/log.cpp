@@ -120,6 +120,10 @@ namespace shaft { namespace log {
     fstream *distributionFile (NULL);
 #endif
 
+    uint64_t accel_memsize(0);
+
+
+
 static void PrintStats(ostream &str) {
     str << "# real intersect operations @ shaft: " << nb_intersect_operations << endl;
     str << "# intersects not done by shaft: " << nb_no_intersected_shaft << endl;
@@ -193,6 +197,9 @@ static void PrintStats(ostream &str) {
 
         str << endl;
     }
+
+    if (accel_memsize)
+        str << "Memory footprint of the shaft accelerator (bytes): " << accel_memsize << endl << endl;
 }
 
 void ShaftLogResult() {
@@ -334,6 +341,8 @@ void ShaftSaveMetaData(double timeSpent) {
 #else
     nb_panh = nb_pbnh = nb_pcnh = 0;
 #endif
+
+    accel_memsize = 0;
 }
     
 #define CREATE_FALSE_COLOR_ON_IMAGEFILM(ptr, name) \
@@ -415,6 +424,10 @@ void ShaftLeafCreated(uint64_t nbPrims, uint64_t nbPoints, uint64_t nbPrimsInSha
         nb_testrays_useful++;
     }
 #endif
+
+void setAccelMemsize(uint64_t memsize) {
+    accel_memsize = memsize;
+}
 
 
 }}

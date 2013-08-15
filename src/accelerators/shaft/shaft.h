@@ -43,6 +43,8 @@ namespace shaft {
         
         ShaftGeometry(Reference<ElementTreeNode> &receiver_node, Reference<ElementTreeNode> &light_node);
         inline ~ShaftGeometry() {}
+
+        uint64_t memsize() const;
         
     private:
         friend class Shaft;
@@ -133,6 +135,8 @@ namespace shaft {
         inline static Reference<Shaft> constructInitialShaft(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light) {
             return Reference<Shaft>(new Shaft(receiver, light));
         }
+
+        uint64_t memsize() const;
     };    
 }
 

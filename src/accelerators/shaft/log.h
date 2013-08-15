@@ -31,6 +31,7 @@
 
 #ifdef SHAFT_LOG
 #include "film/falsecolor.h"
+#include "accelerators/shaft/shaftaccel.h"
 #endif // defined(SHAFT_LOG)
 
 
@@ -298,6 +299,8 @@ void ShaftLogResult();
 #   define addTestRay()
 #   define addUsefulTestRay()
 #endif
+
+    void setAccelMemsize(uint64_t memsize);
     
 #else
     
@@ -318,18 +321,19 @@ void ShaftLogResult();
 #define ProbVis_pb_noHit()
 #define ProbVis_pc_noHit()
 
-#define ShaftsInitStarted();
-#define ShaftsInitEnded();
-#define ShaftNewImage();
-#define ShaftDepth();
-#define ShaftAddIntersect();
-#define ShaftSaveFalseColor();
-#define ShaftSaveBuildTime();
-#define ShaftSaveInitTime();
-#define ShaftSaveMetaData();
+#define ShaftsInitStarted()
+#define ShaftsInitEnded()
+#define ShaftNewImage()
+#define ShaftDepth()
+#define ShaftAddIntersect()
+#define ShaftSaveFalseColor()
+#define ShaftSaveBuildTime()
+#define ShaftSaveInitTime()
+#define ShaftSaveMetaData()
 
-#define addTestRay();
-#define addUsefulTestRay();
+#define addTestRay()
+#define addUsefulTestRay()
+#define setAccelMemsize()
     
 #endif
 

@@ -454,16 +454,16 @@ namespace shaft {
         Assert(isLeaf());
         
         if (!useProbVis || filtered_triangles.empty()) {
-            vis = new ExactVisibilityCalculator(getMesh(), triangles, receiverNode, lightNode);
+            vis = createExactVisibilityCalculator(getMesh(), triangles, receiverNode, lightNode);
             return;
         }
         
         typedef std::map<uint32_t, unsigned int> countmap;
         
-        ProbabilisticVisibilityCalculator::nbllist &allTriangles = filtered_triangles;
+        VisibilityCalculator::nbllist &allTriangles = filtered_triangles;
         
         countmap counts;
-        for (ProbabilisticVisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
+        for (VisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
             counts[*t] = 0;
         }
         
@@ -519,7 +519,7 @@ namespace shaft {
                 countMatters++;
                 log::addUsefulTestRay();
                 
-                for (ProbabilisticVisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
+                for (VisibilityCalculator::nblciter t = allTriangles.begin(); t != allTriangles.end(); t++) {
                     tris = *t;
                     if (mesh.getTriangle(*t)->IntersectP(ray)) {
                         counts[tris]++;
@@ -542,7 +542,7 @@ namespace shaft {
         
         if (max == 0) {
 //            Info("ProbVis initialisation found no blockers, falling back to exact visibility");
-            vis = new ExactVisibilityCalculator(mesh, filtered_triangles, receiverNode, lightNode);
+            vis = createExactVisibilityCalculator(mesh, filtered_triangles, receiverNode, lightNode);
             return;
         }
         
@@ -560,12 +560,25 @@ namespace shaft {
         Info("Most blocking occluder blocked %f %% times", 100. * mostBlockingOccluderBlocking);
 //        Info("Most blocking occluder: (%d, %d, %d)", mostBlockingOccluder->getPoint(0), mostBlockingOccluder->getPoint(1), mostBlockingOccluder->getPoint(2));
         
-        ProbabilisticVisibilityCalculator::nbllist tmpTriangles;
+        VisibilityCalculator::nbllist tmpTriangles;
         tmpTriangles.insert(tmpTriangles.begin(), triangles.begin(), triangles.end());
         tmpTriangles.insert(tmpTriangles.end(), receiverTris.begin(), receiverTris.end());
         tmpTriangles.insert(tmpTriangles.end(), lightTris.begin(), lightTris.end());
         
         vis = createProbabilisticVisibilityCalculator(*type, mesh, mostBlockingOccluder, tmpTriangles, *rng, mostBlockingOccluderBlocking);
+    }
+
+    uint64_t ShaftGeometry::memsize() const {
+        return static_cast<uint64_t>(sizeof(ShaftGeometry))
+                + planes.size() * sizeof(Vector4f);
+    }
+
+    uint64_t Shaft::memsize() const {
+        return static_cast<uint64_t>(sizeof(Shaft))
+                + geometry.memsize() - sizeof(ShaftGeometry) // sizeof(ShaftGeometry) gets counted double...
+                + triangles.size() * sizeof(unsigned int)
+                + filtered_triangles.size() * sizeof(unsigned int)
+                + (vis ? vis->memsize() : 0);
     }
 
 }

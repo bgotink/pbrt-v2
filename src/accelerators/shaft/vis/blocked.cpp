@@ -16,6 +16,8 @@ namespace shaft { namespace vis {
             return 0.f;
         }
         virtual ~BlockedVisiblityCalculator() {}
+
+        virtual uint64_t memsize() const { return sizeof(BlockedVisiblityCalculator); }
     };
 
     VisibilityCalculator *createBlockedVisibilityCalculator() {

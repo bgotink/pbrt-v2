@@ -17,7 +17,7 @@
 		25DEEE3F1655604F008ABA50 /* tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25DEEE3D1655604F008ABA50 /* tree.cpp */; };
 		25F8FCC9171457EB00E6D280 /* exact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F8FCC3171457EB00E6D280 /* exact.cpp */; };
 		25F8FCCA171457EB00E6D280 /* probabilistic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F8FCC4171457EB00E6D280 /* probabilistic.cpp */; };
-		25F8FCCB171457EB00E6D280 /* visibility_impl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F8FCC5171457EB00E6D280 /* visibility_impl.cpp */; };
+		25F8FCCB171457EB00E6D280 /* probvis_impl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F8FCC5171457EB00E6D280 /* probvis_impl.cpp */; };
 		25F8FCCC171457EB00E6D280 /* visibility.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F8FCC7171457EB00E6D280 /* visibility.cpp */; };
 		25F8FCD01715990000E6D280 /* shaftaccel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F8FCCE171598FF00E6D280 /* shaftaccel.cpp */; };
 		25F9DB411655405300CE3FA1 /* Mesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 25F9DB3F1655405300CE3FA1 /* Mesh.cpp */; };
@@ -185,6 +185,8 @@
 		25034061176603B90065B262 /* break.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = break.cpp; path = shaft/break.cpp; sourceTree = "<group>"; };
 		25034062176603B90065B262 /* break.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = break.h; path = shaft/break.h; sourceTree = "<group>"; };
 		25034064176616000065B262 /* blocked.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = blocked.cpp; path = shaft/vis/blocked.cpp; sourceTree = "<group>"; };
+		2530DA7917BD219400DE1EF9 /* probabilistic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = probabilistic.h; path = shaft/vis/probabilistic.h; sourceTree = "<group>"; };
+		2530DA7A17BD21FE00DE1EF9 /* exact.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = exact.h; path = shaft/vis/exact.h; sourceTree = "<group>"; };
 		253B286B1737FE3F008A072E /* falsecolor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = falsecolor.cpp; sourceTree = "<group>"; };
 		253B286C1737FE3F008A072E /* falsecolor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = falsecolor.h; sourceTree = "<group>"; };
 		256C95AC17582DDD00571F0D /* Mesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Mesh.cpp; path = surface/Mesh.cpp; sourceTree = "<group>"; };
@@ -199,8 +201,8 @@
 		25DEEE40165560F4008ABA50 /* vector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = vector.h; path = shaft/vector.h; sourceTree = "<group>"; };
 		25F8FCC3171457EB00E6D280 /* exact.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = exact.cpp; path = shaft/vis/exact.cpp; sourceTree = "<group>"; };
 		25F8FCC4171457EB00E6D280 /* probabilistic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = probabilistic.cpp; path = shaft/vis/probabilistic.cpp; sourceTree = "<group>"; };
-		25F8FCC5171457EB00E6D280 /* visibility_impl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = visibility_impl.cpp; path = shaft/vis/visibility_impl.cpp; sourceTree = "<group>"; };
-		25F8FCC6171457EB00E6D280 /* visibility_impl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = visibility_impl.h; path = shaft/vis/visibility_impl.h; sourceTree = "<group>"; };
+		25F8FCC5171457EB00E6D280 /* probvis_impl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = probvis_impl.cpp; path = shaft/vis/probvis_impl.cpp; sourceTree = "<group>"; };
+		25F8FCC6171457EB00E6D280 /* probvis_impl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = probvis_impl.h; path = shaft/vis/probvis_impl.h; sourceTree = "<group>"; };
 		25F8FCC7171457EB00E6D280 /* visibility.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = visibility.cpp; path = shaft/vis/visibility.cpp; sourceTree = "<group>"; };
 		25F8FCC8171457EB00E6D280 /* visibility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = visibility.h; path = shaft/vis/visibility.h; sourceTree = "<group>"; };
 		25F8FCCD171598FF00E6D280 /* log.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = log.h; path = shaft/log.h; sourceTree = "<group>"; };
@@ -520,12 +522,14 @@
 		25F8FCC2171457D300E6D280 /* vis */ = {
 			isa = PBXGroup;
 			children = (
-				25F8FCC3171457EB00E6D280 /* exact.cpp */,
-				25F8FCC4171457EB00E6D280 /* probabilistic.cpp */,
-				25F8FCC5171457EB00E6D280 /* visibility_impl.cpp */,
-				25F8FCC6171457EB00E6D280 /* visibility_impl.h */,
 				25F8FCC7171457EB00E6D280 /* visibility.cpp */,
 				25F8FCC8171457EB00E6D280 /* visibility.h */,
+				25F8FCC3171457EB00E6D280 /* exact.cpp */,
+				2530DA7A17BD21FE00DE1EF9 /* exact.h */,
+				25F8FCC4171457EB00E6D280 /* probabilistic.cpp */,
+				2530DA7917BD219400DE1EF9 /* probabilistic.h */,
+				25F8FCC5171457EB00E6D280 /* probvis_impl.cpp */,
+				25F8FCC6171457EB00E6D280 /* probvis_impl.h */,
 				25034064176616000065B262 /* blocked.cpp */,
 			);
 			name = vis;
@@ -1085,7 +1089,7 @@
 				25DEEE3F1655604F008ABA50 /* tree.cpp in Sources */,
 				25F8FCC9171457EB00E6D280 /* exact.cpp in Sources */,
 				25F8FCCA171457EB00E6D280 /* probabilistic.cpp in Sources */,
-				25F8FCCB171457EB00E6D280 /* visibility_impl.cpp in Sources */,
+				25F8FCCB171457EB00E6D280 /* probvis_impl.cpp in Sources */,
 				25F8FCCC171457EB00E6D280 /* visibility.cpp in Sources */,
 				25F8FCD01715990000E6D280 /* shaftaccel.cpp in Sources */,
 				253B286D1737FE3F008A072E /* falsecolor.cpp in Sources */,

@@ -6,8 +6,8 @@
 //
 //
 
-#include "visibility.h"
-#include "visibility_impl.h"
+#include "probabilistic.h"
+#include "probvis_impl.h"
 
 #define max(a,b) (a > b ? a : b)
 #define min(a,b) (a < b ? a : b)
@@ -80,8 +80,13 @@ namespace shaft { namespace vis {
         nbSamples = samples;
         sampleStep = 1 / static_cast<float>(samples);
     }
+
+    uint64_t ProbabilisticVisibilityCalculator::memsize() const {
+        return static_cast<uint64_t>(sizeof(ProbabilisticVisibilityCalculator))
+                + triangles.size() * sizeof(trislist::value_type);
+    }
     
-    ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) {
+    VisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking) {
         if (type == "bram")
             return new BramProbVisCalculator(mesh, mostBlockingOccluder, triangles, rng, mostBlockingOccluderBlocking);
         

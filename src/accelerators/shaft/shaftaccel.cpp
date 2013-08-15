@@ -11,14 +11,13 @@
 #include "../bvh.h"
 #include "shaft.h"
 #include <iostream>
-#include <pthread.h>
 #include "log.h"
 #include "paramset.h"
 #include "intersection.h"
 #include <set>
 #include <list>
 #include <vector>
-#include "vis/visibility.h"
+#include "vis/probabilistic.h"
 
 //#define SHAFT_TRY_LAST_SHAFT
 
@@ -88,7 +87,6 @@ namespace shaft {
     public:
         ShaftTreeNode(const Reference<Shaft> &shaft) : shaft(shaft), left(NULL), right(NULL), state(getState())
         , show(NULL), probVis(NULL) {
-            pthread_mutex_init(&mutex, NULL);
             Assert(shaft);
             
             if (state != SHAFT_UNSET) {
@@ -97,7 +95,15 @@ namespace shaft {
             }
         }
         ~ShaftTreeNode() { if (left) delete left; if (right) delete right; if(show) delete show; if(probVis) delete probVis; }
-        
+
+        uint64_t memsize() const {
+            return static_cast<uint64_t>(0)
+                    + sizeof(ShaftTreeNode)
+                    + (left ? left->memsize() : 0)
+                    + (right ? right->memsize() : 0)
+                    + shaft->memsize();
+        }
+
         Reference<Shaft> shaft;
         
         ShaftTreeNode *left, *right;
@@ -277,17 +283,12 @@ namespace shaft {
         }
         
     private:
-        pthread_mutex_t mutex;
                      
         typedef std::vector<Reference<Primitive> > primlist;
         typedef primlist::iterator primiter;
         
         void doSplit() {
-            pthread_mutex_lock(&mutex);
-            
-            // we just acquired the lock, check if not set already
             if (state != SHAFT_UNSET) {
-                pthread_mutex_unlock(&mutex);
                 return;
             }
             
@@ -298,7 +299,6 @@ namespace shaft {
             if (shaft.isLeaf()) {
                 is_leaf = true;
                 state = SHAFT_UNDECIDED;
-                pthread_mutex_unlock(&mutex);
                 
                 /*Warning("Shaft is leaf (#prims in shaft: %lu, #prims in node: %lu, #points in node: %lu",
                                 shaft.triangles.size(),
@@ -352,7 +352,6 @@ namespace shaft {
             }
             
             state = SHAFT_UNDECIDED;
-            pthread_mutex_unlock(&mutex);
         }
         
         ShaftState getState() const {
@@ -473,6 +472,8 @@ namespace shaft {
         log::ShaftSaveInitTime(probvisInitTimer.Time());
 
         ps.ReportUnused();
+
+        log::setAccelMemsize(memsize());
     }
     
     ShaftAccel::~ShaftAccel() {
@@ -485,5 +486,17 @@ namespace shaft {
                                  const ParamSet &ps) {
         return new ShaftAccel(receivers, lights, ps);
     }
-    
+
+    uint64_t ShaftAccel::memsize() const {
+        uint64_t st_memsize = shaft_tree->memsize()
+               , lt_memsize = light_tree->memsize()
+               , rt_memsize = receiver_tree->memsize();
+
+        Error("Size of shaft_tree: %llu, light tree: %llu, receiver tree: %llu", st_memsize, lt_memsize, rt_memsize);
+
+        return  static_cast<uint64_t>(0)
+                + sizeof(ShaftAccel)
+                + st_memsize + lt_memsize + rt_memsize;
+    }
+
 } // namespace shaft

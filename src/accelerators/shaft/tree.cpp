@@ -424,4 +424,26 @@ ElementTreeNode::pointlist ElementTreeNode::sample(uint count) const {
     return result;
 }
 
+uint64_t ElementTree::memsize() const {
+    uint64_t m_memsize = mesh.memsize()
+           , t_memsize = root_node->memsize();
+
+    Error("Mesh memsize: %llu, root_node: %llu", m_memsize, t_memsize);
+
+    return static_cast<uint64_t>(0)
+            + sizeof(ElementTree)
+            + m_memsize - sizeof(Mesh) // double counted sizeof(Mesh) otherwise...
+            + t_memsize;
+}
+
+uint64_t ElementTreeNode::memsize() const {
+    return static_cast<uint64_t>(0)
+            + sizeof(ElementTreeNode)
+            + (left ? left->memsize() : 0)
+            + (right ? right->memsize() : 0)
+            + sizeof(unsigned int) * (points.size() + gone_triangles.size() + inside_triangles.size())
+            + sizeof(const ::Triangle*) * _inside_triangles.size();
+}
+
+
 }

@@ -38,6 +38,8 @@ namespace shaft {
         // check if shadow
         virtual bool IntersectP(const Ray &ray) const;
         virtual float Visibility(const Ray &ray) const;
+
+        uint64_t memsize() const;
         
     private:
         Reference<ElementTree> receiver_tree;

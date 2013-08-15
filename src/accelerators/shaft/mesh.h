@@ -92,6 +92,8 @@ namespace shaft {
             
             return shape_prim_map.at(&*shape);
         }
+
+        uint64_t memsize() const;
         
         operator char*() const;
     };

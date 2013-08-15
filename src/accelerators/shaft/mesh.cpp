@@ -165,4 +165,11 @@ namespace shaft {
         
         return shape_prim_map.begin()->second->getMaterial();
     }
+
+    uint64_t Mesh::memsize() const {
+        return static_cast<uint64_t>(sizeof(Mesh))
+                + vertex_pos.size() * sizeof(Point)
+                + triangles.size() * (sizeof(tris_ref) + sizeof(tris_ref::value_type));
+        // ignore shapeprimmap as we don't need this in normal circumstances
+    }
 }

@@ -9,7 +9,7 @@
 #ifndef pbrt_visibility_impl_h
 #define pbrt_visibility_impl_h
 
-#include "visibility.h"
+#include "probabilistic.h"
 
 namespace shaft { namespace vis {
     

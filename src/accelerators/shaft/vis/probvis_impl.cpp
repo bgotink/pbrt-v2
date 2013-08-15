@@ -6,7 +6,7 @@
 //
 //
 
-#include "visibility_impl.h"
+#include "probvis_impl.h"
 #include "../log.h"
 
 namespace shaft {

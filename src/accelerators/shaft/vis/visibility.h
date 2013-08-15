@@ -32,64 +32,16 @@ namespace vis {
     public:
         virtual float Visibility(const Ray &ray) const = 0;
         virtual ~VisibilityCalculator();
+        virtual uint64_t memsize() const = 0;
     };
 
     VisibilityCalculator *createBlockedVisibilityCalculator();
+    VisibilityCalculator *createExactVisibilityCalculator(const shaft::Mesh &mesh,
+                                                          const VisibilityCalculator::nbllist &triangles,
+                                                          const Reference<ElementTreeNode> &receiver_node,
+                                                          const Reference<ElementTreeNode> &light_node);
     
-    class ExactVisibilityCalculator : public VisibilityCalculator {
-        typedef std::list<const ::Triangle *> trisptrlist;
-        typedef trisptrlist::const_iterator trisptrciter;
-        
-        const shaft::Mesh &mesh;
-        const trisptrlist triangles;
-        const trislist _triangles;
-        const shaft::ElementTreeNode &receiver_node, &light_node;
-        
-    public:
-        ExactVisibilityCalculator(const shaft::Mesh &mesh, const nbllist &triangles,
-                                  const Reference<ElementTreeNode> &receiver_node,
-                                  const Reference<ElementTreeNode> &light_node);
-        
-        virtual float Visibility(const Ray &ray) const;
-    };
-    
-    class  ProbabilisticVisibilityCalculator : public VisibilityCalculator {
-    private:
-        const RNG &rng;
-        
-    public:
-        typedef VisibilityCalculator::nbllist nbllist;
-        typedef VisibilityCalculator::nblciter nblciter;
-        
-    private:
-        const shaft::Mesh &mesh;
-        const Reference<Triangle> mostBlockingOccluder;
-        const trislist triangles;
-        
-    protected:
-        const float mostBlockingOccluderBlocking;
-        const float p_c, p_a, p_b;
-        
-        virtual float evaluate(const Ray &ray, float p) const = 0;
-        bool hitsMostBlocking(const Ray &ray) const;
-        bool hitsOtherOccluder(const Ray &ray) const;
-        
-        inline bool vis_a(const Ray &ray) const {
-            return !hitsMostBlocking(ray);
-        }
-        
-        inline bool vis_b(const Ray &ray) const {
-            return !hitsOtherOccluder(ray);
-        }
-        
-    public:
-        ProbabilisticVisibilityCalculator(const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
-        
-        virtual float Visibility(const Ray &ray) const;
-        static void InitStratification(const unsigned int nbSamples);
-    };
-    
-    ProbabilisticVisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const ProbabilisticVisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
+    VisibilityCalculator *createProbabilisticVisibilityCalculator(const string &type, const shaft::Mesh &mesh, const Reference<Triangle> &mostBlockingOccluder, const VisibilityCalculator::nbllist &triangles, const RNG &rng, float mostBlockingOccluderBlocking);
 }
 }
 

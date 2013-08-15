@@ -53,6 +53,8 @@ private:
 
 template <typename T> class Reference {
 public:
+    typedef T value_type;
+
     // Reference Public Methods
     Reference(T *p = NULL) {
         ptr = p;
