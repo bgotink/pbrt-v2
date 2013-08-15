@@ -37,8 +37,7 @@ namespace shaft {
         const BBox bbox;
         
         bool intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const;
-        bool intersectsLine(Point one, Point two) const;
-        
+
         bool Intersect(const Ray &ray, Intersection *isect = NULL) const;
         bool IntersectP(const Ray &ray) const;
         

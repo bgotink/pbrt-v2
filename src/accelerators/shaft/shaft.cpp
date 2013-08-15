@@ -28,16 +28,11 @@ using namespace shaft::vis;
 
 namespace shaft {
 
-#if !defined(SHAFT_DO_CLIPPING)
     bool ShaftGeometry::intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const {
         const Point *point[3];
         
         for (unsigned int i = 0; i < 3; i++)
             point[i] = &triangle->getPoint(i);
-        
-        // if neither of the point is inside the bounding box of the shaft, the triangle cannot intersect
-        if (!bbox.Inside(*point[0]) && !bbox.Inside(*point[1]) && !bbox.Inside(*point[2]))
-            return false;
         
         // if every point lies to the wrong side of one of the planes, the triangle cannot intersect
         for (plane_citer plane = planes.begin(), end = planes.end(); plane != end; plane++) {
@@ -46,7 +41,7 @@ namespace shaft {
         }
         
         {
-            // check if any of the triangle points lies on the right side over all the planes,
+            // check if any of the triangle points lies on the right side off all the planes,
             // if so: the triangle intersects
             bool check[3] = { true, true, true };
             for (plane_citer plane = planes.begin(); plane != planes.end(); plane++) {
@@ -62,19 +57,19 @@ namespace shaft {
         // Warning("TODO implement -- triangle may overlap with shaft, but no points lie inside");
         // how?
         // clip away parts of the triangle that lie outside of a plane, then check if anything is left
-        
+
+#if !defined(SHAFT_DO_CLIPPING)
         return true;
     }
-#else // SHAFT_DO_CLIPPING
-    bool ShaftGeometry::intersects(const Reference<Triangle> &triangle, const Mesh &mesh) const {
+#else // defined(SHAFT_DO_CLIPPING)
+        {
         typedef std::list<Point> plist;
         typedef plist::const_iterator pciter;
 
-        Point &a, &b, &c;
         plist vertices;
-        vertices.push_back(a = triangle->getPoint(0));
-        vertices.push_back(b = triangle->getPoint(1));
-        vertices.push_back(c = triangle->getPoint(2));
+        vertices.push_back(*point[0]);
+        vertices.push_back(*point[1]);
+        vertices.push_back(*point[2]);
 
         // Sutherland-Hodgman
         // https://en.wikipedia.org/wiki/Sutherland%E2%80%93Hodgman_algorithm
@@ -104,8 +99,6 @@ namespace shaft {
             }
         }
 
-        if (vertices.size() < 3) return false; // cannot have an area
-
         // check if surface of the "polygon" is empty
         // see http://geomalgorithms.com/a01-_area.html
         // 2*area = n*sum(V_i ^ V_i+1)
@@ -114,7 +107,7 @@ namespace shaft {
 
         pciter point_end = vertices.end();
         Vector A;
-        Vector n = (b - a) ^ (c - a);
+        Vector n = (*point[1] - *point[0]) ^ (*point[2] - *point[0]);
 
         Vector previous = Vector(vertices.back()), current;
         for (pciter point = vertices.begin(); point != point_end; point++) {
@@ -123,57 +116,11 @@ namespace shaft {
             previous = current;
         }
 
-        return fabs(A * n) > 4 * FLT_EPSILON;
+        return fabs(A * n) > 0;
+        }
     }
 #endif
-    
-    bool ShaftGeometry::intersectsLine(Point one, Point two) const {
-        for (plane_citer plane = planes.begin(), end = planes.end(); plane != end; plane++) {
-            float f = one * *plane;
-            float f2 = two * *plane;
-            
-            if (sign(f) == sign(f2) && f < 0) {
-                // lies completely outside of one of the planes
-                return false;
-            }
-            
-            // using http://www.softsurfer.com/Archive/algorithm_0104/algorithm_0104B.htm#intersect3D_SegPlane()
-            
-            Vector u = two - one;
-            Vector w = one - getPointOnPlane(*plane);
-            Vector normal = getNormal(*plane);
-            
-            float d = normal * u;
-            float n = -normal * w;
-            
-            if (fabs(d) < (16 * FLT_EPSILON)) {
-                // line segment || plane
-                // -> skip this plane
-                continue;
-            }
-            
-            float i = n / d;
-            
-            if (i < 0 || i > 1)
-                // intersection point of the line and the plane
-                // is beyond the edges of the line segment
-                continue;
-            
-            Point intersection = one + i * u;
-            
-            // replace the outside point with the intersection
-            if (f < 0)
-                one = intersection;
-            else
-                two = intersection;
-            
-            if (one.epsilonEquals(two))
-                return false;
-        }
         
-        return !one.epsilonEquals(two);
-    }
-    
     bool ShaftGeometry::Intersect(const Ray &ray, Intersection *isect) const {
         Intersection intersect;
         float distance = INFINITY;
@@ -243,7 +190,9 @@ namespace shaft {
         if (first.pMin.z < last.pMin.z) \
             planes.push_back(CreatePlane(first.getXYz(), first.getXyz(), last.getXyz())); \
         else \
-            planes.push_back(CreatePlane(first.getxYz(), first.getxyz(), last.getxyz()));
+            planes.push_back(CreatePlane(first.getxYz(), first.getxyz(), last.getxyz())); \
+        planes.push_back(Vector4f(1, 0, 0, -first.pMin.x)); \
+        planes.push_back(Vector4f(-1, 0, 0, last.pMax.x));
 
     #define CREATE_PLANES_Y(first, last) \
         if (first.pMax.z > last.pMax.z) \
@@ -261,7 +210,10 @@ namespace shaft {
         if (first.pMin.x < last.pMin.x) \
             planes.push_back(CreatePlane(first.getxYZ(), first.getxYz(), last.getxYz())); \
         else \
-            planes.push_back(CreatePlane(first.getxyZ(), first.getxyz(), last.getxyz()));
+            planes.push_back(CreatePlane(first.getxyZ(), first.getxyz(), last.getxyz())); \
+        planes.push_back(Vector4f(0, 1, 0, -first.pMin.y)); \
+        planes.push_back(Vector4f(0, -1, 0, last.pMax.y));
+
 
     #define CREATE_PLANES_Z(first, last) \
         if (first.pMax.x > last.pMax.x) \
@@ -279,9 +231,12 @@ namespace shaft {
         if (first.pMin.y < last.pMin.y) \
             planes.push_back(CreatePlane(first.getXyZ(), first.getxyZ(), last.getXyZ())); \
         else \
-            planes.push_back(CreatePlane(first.getXyz(), first.getxyz(), last.getxyz()));
+            planes.push_back(CreatePlane(first.getXyz(), first.getxyz(), last.getxyz())); \
+        planes.push_back(Vector4f(0, 0, 1, -first.pMin.z)); \
+        planes.push_back(Vector4f(0, 0, -1, last.pMax.z));
 
-    
+
+
     ShaftGeometry::ShaftGeometry(Reference<ElementTreeNode> &receiver, Reference<ElementTreeNode> &light)
     : receiver_bbox(receiver->bounding_box), light_bbox(light->bounding_box), bbox(BBox::Union(receiver_bbox, light_bbox)) {
         const Point receiver_center = receiver_bbox.getCenter(),
@@ -364,11 +319,13 @@ namespace shaft {
         nbset new_triangles;
         
         Mesh &mesh = getMesh();
-        for (nblciter tris = parent.triangles.begin(); tris != parent.triangles.end(); tris++) {
+        for (nblciter tris = parent.triangles.begin(), trisend = parent.triangles.end();
+                        tris != trisend; tris++) {
             if (geometry.intersects(mesh.getTriangle(*tris), mesh))
                 new_triangles.insert(*tris);
         }
-        for (nbciter tris = split->gone_triangles.begin(); tris != split->gone_triangles.end(); tris++) {
+        for (nbciter tris = split->gone_triangles.begin(), trisend = split->gone_triangles.end();
+                        tris != trisend; tris++) {
             if (geometry.intersects(mesh.getTriangle(*tris), mesh))
                 new_triangles.insert(*tris);
         }

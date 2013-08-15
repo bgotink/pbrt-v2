@@ -254,36 +254,38 @@ void ElementTreeNode::split(int split_axis) {
     Reference<Triangle> triangle;
     for (nbiter t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
         triangle = triangles[*t_idx];
+//
+//        float a = triangle->getPoint(0)[split_axis],
+//              b = triangle->getPoint(1)[split_axis],
+//              c = triangle->getPoint(2)[split_axis];
+//        
+//        if (a <= split_pos || b <= split_pos || c <= split_pos) {
+//            left->inside_triangles.push_back(*t_idx);
+//            left->_inside_triangles.push_back(&* triangle);
+//        } else {
+//            left->gone_triangles.push_back(*t_idx);
+//        }
+//        
+//        if (a >= split_pos || b >= split_pos || c >= split_pos) {
+//            right->inside_triangles.push_back(*t_idx);
+//            right->_inside_triangles.push_back(&* triangle);
+//        } else {
+//            right->gone_triangles.push_back(*t_idx);
+//        }
 
-        float a = triangle->getPoint(0)[split_axis],
-              b = triangle->getPoint(1)[split_axis],
-              c = triangle->getPoint(2)[split_axis];
-        
-        if (a <= split_pos || b <= split_pos || c <= split_pos) {
+        if (Intersects(left->bounding_box, triangle)) {
             left->inside_triangles.push_back(*t_idx);
             left->_inside_triangles.push_back(&* triangle);
         } else {
             left->gone_triangles.push_back(*t_idx);
         }
-        
-        if (a >= split_pos || b >= split_pos || c >= split_pos) {
+
+        if (Intersects(right->bounding_box, triangle)) {
             right->inside_triangles.push_back(*t_idx);
             right->_inside_triangles.push_back(&* triangle);
         } else {
             right->gone_triangles.push_back(*t_idx);
         }
-        
-        /*if (Intersects(left->bounding_box, triangle, mesh)) {
-            left->inside_triangles.push_back(*t_idx);
-        } else {
-            left->gone_triangles.push_back(*t_idx);
-        }
-
-        if (Intersects(right->bounding_box, triangle, mesh)) {
-            right->inside_triangles.push_back(*t_idx);
-        } else {
-            right->gone_triangles.push_back(*t_idx);
-        }*/
     }
     
     left->setIsLeaf();
@@ -339,10 +341,6 @@ void ElementTreeNode::createBoundingBox() {
     	Warning("Empty bounding box in ElementTreeNode");
     	return;
     }
-    
-    bounding_box.Insert(point_pos[*point]);
-    // this is crude, lets hope it works
-//    bounding_box.Expand(.5f);
     
     for(; point != end; point++) {
         bounding_box.Insert(point_pos[*point]);
