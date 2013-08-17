@@ -507,15 +507,15 @@ public:
     
     const Point & getXYZ() const { return pMax; }
     const Point & getxyz() const { return pMin; }
-    
-    Point getXYz() const { return Point(pMax.x, pMax.y, pMin.z); }
+
     Point getXyz() const { return Point(pMax.x, pMin.y, pMin.z); }
-    Point getXyZ() const { return Point(pMax.x, pMin.y, pMax.z); }
-    
     Point getxYz() const { return Point(pMin.x, pMax.y, pMin.z); }
-    Point getxYZ() const { return Point(pMin.x, pMax.y, pMax.z); }
     Point getxyZ() const { return Point(pMin.x, pMin.y, pMax.z); }
-    
+
+    Point getXYz() const { return Point(pMax.x, pMax.y, pMin.z); }
+    Point getXyZ() const { return Point(pMax.x, pMin.y, pMax.z); }
+    Point getxYZ() const { return Point(pMin.x, pMax.y, pMax.z); }
+
     BBox &Insert(const BBox &b);
     BBox &Insert(const Point &p);
 

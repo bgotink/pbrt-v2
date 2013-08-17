@@ -32,6 +32,7 @@
 #ifdef SHAFT_LOG
 #include "film/falsecolor.h"
 #include "accelerators/shaft/shaftaccel.h"
+#include "core/geometry.h"
 #endif // defined(SHAFT_LOG)
 
 
@@ -301,6 +302,8 @@ void ShaftLogResult();
 #endif
 
     void setAccelMemsize(uint64_t memsize);
+
+    void storeBBoxSize(const BBox &box);
     
 #else
     
@@ -334,6 +337,7 @@ void ShaftLogResult();
 #define addTestRay()
 #define addUsefulTestRay()
 #define setAccelMemsize()
+#define storeBBoxSize()
     
 #endif
 

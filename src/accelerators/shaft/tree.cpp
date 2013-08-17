@@ -243,6 +243,9 @@ void ElementTreeNode::split(int split_axis) {
     
     right->bounding_box = bounding_box;
     right->bounding_box.pMin[split_axis] = split_pos;
+
+    log::storeBBoxSize(left->bounding_box);
+    log::storeBBoxSize(right->bounding_box);
     
     Info("bounding box: (%f,%f,%f) -> (%f,%f,%f)", bounding_box.pMin.x, bounding_box.pMin.y, bounding_box.pMin.z,
          bounding_box.pMax.x, bounding_box.pMax.y, bounding_box.pMax.z);
@@ -321,6 +324,7 @@ ElementTreeNode::ElementTreeNode(ElementTree *tree) : parent(NULL), tree(tree) {
     }
     setIsLeaf();
     createBoundingBox();
+    log::storeBBoxSize(bounding_box);
 }
 
 ElementTreeNode::ElementTreeNode(ElementTree *tree, ElementTreeNode *parent)

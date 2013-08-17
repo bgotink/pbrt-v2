@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <limits>
 
 #ifdef SHAFT_SHOW_LEAFS
 #include "film/image.h"
@@ -122,6 +123,11 @@ namespace shaft { namespace log {
 
     uint64_t accel_memsize(0);
 
+    float bbox_min_x(numeric_limits<float>::infinity());
+    float bbox_min_y(numeric_limits<float>::infinity());
+    float bbox_min_z(numeric_limits<float>::infinity());
+    float bbox_min_size(numeric_limits<float>::infinity());
+
 
 
 static void PrintStats(ostream &str) {
@@ -142,6 +148,8 @@ static void PrintStats(ostream &str) {
         << " (avg. " << static_cast<double>(nb_total_points_in_leave_nodes) / static_cast<double>(nb_leave_shafts) << ")" << endl;
     str << "\tmax: " << nb_max_points_in_leave_nodes << endl;
     str << "avg. depth: " << static_cast<float>(nb_total_depth) / static_cast<double>(nb_leave_shafts) << endl;
+    str << "BBox minimal sizes:: x: " << bbox_min_x << ", y: " << bbox_min_y << ", z: " << bbox_min_z
+        << ", size: " << bbox_min_size << endl;
     str << endl;
 
 #ifdef SHAFT_LOG_TESTRAYS
@@ -343,6 +351,11 @@ void ShaftSaveMetaData(double timeSpent) {
 #endif
 
     accel_memsize = 0;
+
+    bbox_min_x =
+    bbox_min_y =
+    bbox_min_z =
+    bbox_min_size = numeric_limits<float>::infinity();
 }
     
 #define CREATE_FALSE_COLOR_ON_IMAGEFILM(ptr, name) \
@@ -427,6 +440,15 @@ void ShaftLeafCreated(uint64_t nbPrims, uint64_t nbPoints, uint64_t nbPrimsInSha
 
 void setAccelMemsize(uint64_t memsize) {
     accel_memsize = memsize;
+}
+
+void storeBBoxSize(const BBox &box) {
+    Vector extent = box.Extent();
+    bbox_min_x = min(bbox_min_x, extent.x);
+    bbox_min_y = min(bbox_min_y, extent.y);
+    bbox_min_z = min(bbox_min_z, extent.z);
+
+    bbox_min_size = min(bbox_min_size, extent.x * extent.y * extent.z);
 }
 
 

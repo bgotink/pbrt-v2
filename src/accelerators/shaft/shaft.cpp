@@ -335,6 +335,7 @@ namespace shaft {
         
 #if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
         depth = parent.depth + 1;
+        Info("Shaft depth: %u", depth);
 #endif
     }
     
@@ -370,9 +371,6 @@ namespace shaft {
         }
         
         filterTriangles();
-        
-        nblist triangles_vector(filtered_triangles.size());
-        triangles_vector.insert(triangles_vector.begin(), filtered_triangles.begin(), filtered_triangles.end());
         
 #if defined(SHAFT_LOG) && defined(SHAFT_SHOW_DEPTHS)
         depth = 0;
@@ -454,7 +452,7 @@ namespace shaft {
         Assert(isLeaf());
         
         if (!useProbVis || filtered_triangles.empty()) {
-            vis = createExactVisibilityCalculator(getMesh(), triangles, receiverNode, lightNode);
+            vis = createExactVisibilityCalculator(getMesh(), filtered_triangles, receiverNode, lightNode);
             return;
         }
         

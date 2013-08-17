@@ -84,14 +84,14 @@ public:
     nblist inside_triangles;
     
     bool is_leaf;
-    
-private:
-    ElementTreeNode(ElementTree *tree, ElementTreeNode *parent);
 
     typedef std::vector<const ::Triangle *> trislist;
     typedef trislist::const_iterator trisciter;
     
     trislist _inside_triangles;
+    
+private:
+    ElementTreeNode(ElementTree *tree, ElementTreeNode *parent);
     static RNG rng;
     
     void split(int axis = -1);

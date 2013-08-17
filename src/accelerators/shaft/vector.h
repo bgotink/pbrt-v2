@@ -80,7 +80,7 @@ namespace shaft{
     }
     
     inline float operator*(const Vector4f &p, const Point &o) {
-        return o * p;
+        return o.x * p.x + o.y * p.y + o.z * p.z + p.w;
     }
     
     inline float operator*(const ::Vector &v, const Vector4f &p) {
@@ -88,43 +88,38 @@ namespace shaft{
     }
     
     inline float operator*(const Vector4f &p, const ::Vector &v) {
-        return v * p;
+        return v.x * p.x + v.y * p.y + v.z * p.z;
     }
     
     inline Vector4f CreatePlane(const Point &a, const Point &b, const Point&c) {
         ::Vector n = (b - a) ^ (c - a);
         float d = -n.x * a.x - n.y * a.y - n.z * a.z;
         
-        if (n.x + n.y + n.z == 0) {
-            Severe("Creating plane between (%f,%f,%f), (%f,%f,%f), (%f,%f,%f) yields (0, 0, 0, %f)",
-                  a.x, a.y, a.z,
-                  b.x, b.y, b.z,
-                  c.x, c.y, c.z,
-                  d);
-        }
-        
+//        if (n.x + n.y + n.z == 0) {
+//            Severe("Creating plane between (%f,%f,%f), (%f,%f,%f), (%f,%f,%f) yields (0, 0, 0, %f)",
+//                  a.x, a.y, a.z,
+//                  b.x, b.y, b.z,
+//                  c.x, c.y, c.z,
+//                  d);
+//        }
+
         return Vector4f(n.x, n.y, n.z, d);
     }
     
     inline Point getPointOnPlane(const Vector4f &p) {
-        float t = p.x + p.y + p.z;
-        Assert(t != 0.f);
-        Assert(!isnan(t));
-        
-        if (t == 0) {
-            Error("This function doesn't work for a plane (a*x + b*y + c*z + d == 0) with (a + b + c) == 0 (%f + %f + %f == 0)",
-                  p.x, p.y, p.z);
+        if (p.w == 0)
+            return Point(0, 0, 0);
+
+        if (p.x != 0) {
+            return Point(-p.w / p.x, 0, 0);
+        } else if (p.y != 0) {
+            return Point(0, -p.w / p.y, 0);
+        } else if (p.z != 0) {
+            return Point(0, 0, -p.w / p.z);
+        } else {
+            Severe("Invalid plane %f*x + %f*y + %f*z = %f", p.x, p.y, p.z, -p.w);
+            return Point(); // never reached
         }
-        
-        t = -p.w / t;
-        Assert(!isnan(t));
-        
-        // p = a*x + b*y + c*z + d == 0
-        // -> a point:
-        // x = y = z = -d / (a + b + c)
-        // given (a + b + c) != 0
-        
-        return Point(t, t, t);
     }
     
     inline Vector getNormal(const Vector4f &p) {
