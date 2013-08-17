@@ -174,19 +174,29 @@ void ElementTreeNode::split(int split_axis) {
     if (tree->node_split_type == CENTER) {
         split_pos = (bounding_box.pMax[split_axis] + bounding_box.pMin[split_axis]) / 2.f;
     } else if (tree->node_split_type == MEAN) {
-        while(true) {
+        bool found(false);
+        int orig_split_axis(split_axis);
+
+        do {
             double mean = 0;
             for (pidxiter point = pidxs.begin(), end = pidxs.end(); point != end; point++) {
                 mean += points[*point][split_axis];
             }
             split_pos = (float) ( mean / ((float)pidxs.size()) );
 
-            if (split_pos != bounding_box.pMax[split_axis] && split_pos != bounding_box.pMin[split_axis])
-                break;
+            int extent = bounding_box.Extent()[split_axis];
+            if (((bounding_box.pMax[split_axis] - split_pos) > 0) // .01 * extent)
+                && ((split_pos - bounding_box.pMin[split_axis]) > 0)) {// > .01 * extent)) {
+                found = true;
+            } else
+                // we can never get here three times, unless there's only one point in this node
+                // however, in that case it would be a leaf
+                split_axis = (split_axis + 1) % 3;
+        } while (!found && split_axis != orig_split_axis);
 
-            // we can never get here three times, unless there's only one point in this node
-            // however, in that case it would be a leaf
-            split_axis = (split_axis + 1) % 3;
+        if (!found) { // split_axis == orig_split_axis
+            // fallback to center
+            split_pos = (bounding_box.pMax[split_axis] + bounding_box.pMin[split_axis]) / 2.f;
         }
     } else { // use median
         int started_at = split_axis;
@@ -257,38 +267,36 @@ void ElementTreeNode::split(int split_axis) {
     Reference<Triangle> triangle;
     for (nbiter t_idx = inside_triangles.begin(); t_idx != inside_triangles.end(); t_idx++) {
         triangle = triangles[*t_idx];
-//
-//        float a = triangle->getPoint(0)[split_axis],
-//              b = triangle->getPoint(1)[split_axis],
-//              c = triangle->getPoint(2)[split_axis];
-//        
-//        if (a <= split_pos || b <= split_pos || c <= split_pos) {
-//            left->inside_triangles.push_back(*t_idx);
-//            left->_inside_triangles.push_back(&* triangle);
-//        } else {
-//            left->gone_triangles.push_back(*t_idx);
-//        }
-//        
-//        if (a >= split_pos || b >= split_pos || c >= split_pos) {
-//            right->inside_triangles.push_back(*t_idx);
-//            right->_inside_triangles.push_back(&* triangle);
-//        } else {
-//            right->gone_triangles.push_back(*t_idx);
-//        }
 
-        if (Intersects(left->bounding_box, triangle)) {
+        float a = triangle->getPoint(0)[split_axis],
+              b = triangle->getPoint(1)[split_axis],
+              c = triangle->getPoint(2)[split_axis];
+        
+        if (a <= split_pos || b <= split_pos || c <= split_pos) {
             left->inside_triangles.push_back(*t_idx);
             left->_inside_triangles.push_back(&* triangle);
         } else {
             left->gone_triangles.push_back(*t_idx);
         }
-
-        if (Intersects(right->bounding_box, triangle)) {
+        
+        if (a >= split_pos || b >= split_pos || c >= split_pos) {
             right->inside_triangles.push_back(*t_idx);
             right->_inside_triangles.push_back(&* triangle);
         } else {
             right->gone_triangles.push_back(*t_idx);
         }
+        
+        /*if (Intersects(left->bounding_box, triangle, mesh)) {
+            left->inside_triangles.push_back(*t_idx);
+        } else {
+            left->gone_triangles.push_back(*t_idx);
+        }
+
+        if (Intersects(right->bounding_box, triangle, mesh)) {
+            right->inside_triangles.push_back(*t_idx);
+        } else {
+            right->gone_triangles.push_back(*t_idx);
+        }*/
     }
     
     left->setIsLeaf();
@@ -342,22 +350,16 @@ void ElementTreeNode::createBoundingBox() {
     nbiter point = points.begin();
     
     if (end == point) {
-    	Warning("Empty bounding box in ElementTreeNode");
+    	Error("Empty bounding box in ElementTreeNode");
     	return;
     }
     
     for(; point != end; point++) {
         bounding_box.Insert(point_pos[*point]);
     }
-
-    float toExpand = .1f * bounding_box.Extent()[bounding_box.MaximumExtent()];
-    bounding_box.Expand(max(.1f,toExpand));
-
-//    Error("Created bounding box (%f,%f,%f) -> (%f,%f,%f)",
-//          bounding_box.pMin.x, bounding_box.pMin.y, bounding_box.pMin.z,
-//          bounding_box.pMax.x, bounding_box.pMax.y, bounding_box.pMax.z
-//          );
-
+    
+    bounding_box.Expand(.01f * bounding_box.Extent()[bounding_box.MaximumExtent()]);
+    
     Info("Created BBox for ElementTreeNode");
 }
     
